@@ -1,0 +1,9 @@
+{
+	"id": "com.andrewwalpole.foursquare",
+	"version": "0.0.1",
+	"vendor": "AndrewWalpole",
+	"type": "web",
+	"main": "index.html",
+	"title": "Foursquare",
+	"icon": "icon.png"
+}

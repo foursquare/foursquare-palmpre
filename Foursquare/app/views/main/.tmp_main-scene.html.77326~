@@ -1,0 +1,12 @@
+<div id="main" class="palm-hasheader">
+    <div id='header' class="palm-header">4Square Check-In</div>
+	<div style="width:225px;height:110px;margin:0 auto;padding:5px;background-color:#c1d5d3;">
+		<div style="margin:0 auto;">LOGIN:</div>
+		<div style="height:80px;">
+			<div style="height:40px;margin-right:5px;" x-mojo-element="TextField" id="username"></div>
+			<div style="height:40px;margin-right:5px;" x-mojo-element="PasswordField" id="password"></div>
+		</div>
+	</div>
+	<div x-mojo-element="Button" id="goCheckIn"></div>
+	<div id='message' style='height:400px;'></div>
+</div>

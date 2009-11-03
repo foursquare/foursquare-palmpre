@@ -1,0 +1,10 @@
+/* Put Application specific CSS here. */
+.checkin-score {
+	padding:10px;
+}
+
+.listWhiteBox {
+	background-color:#ffffff;
+	margin:10px;
+	border:1px solid #999999;
+}
