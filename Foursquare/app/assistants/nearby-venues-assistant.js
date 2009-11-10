@@ -55,6 +55,41 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	
 	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenues.bind(this));
 	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+
+    this.controller.setupWidget(Mojo.Menu.viewMenu,
+        this.menuAttributes = {
+           spacerHeight: 0,
+           menuClass: 'no-fade'
+        },
+        this.menuModel = {
+            visible: true,
+            items: [ {
+                items: [{ icon: "", command: "", label: "  "},
+                { icon: "", command: "", label: "  "},
+                { label: "Venues", width: 100 },
+                { icon: '', command: '', label: "  "},
+                { icon: '', command: '', label: "  "}]
+            }]
+        });
+        
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+        this.attributes = {
+           spacerHeight: 0,
+           menuClass: 'no-fade'
+        },
+        this.model = {
+          visible: true,
+          items: [{
+          	items: [ 
+                 { icon: "back", command: "do-Previous"},
+                 { icon: "back", command: "do-Previous2"},
+                 { icon: "back", command: "do-Previous3"},
+                 { icon: "back", command: "do-Previous4"},
+                 { icon: 'forward', command: 'do-Next'}
+                 ],
+            toggleCmd: "do-Previous"
+            }]
+    });
 }
 
 
@@ -203,6 +238,14 @@ NearbyVenuesAssistant.prototype.checkInFailed = function(response) {
 	$('message').innerHTML = 'Check In Failed: ' + repsonse.responseText;
 }
 
+NearbyVenuesAssistant.prototype.handleCommand = function(event) {
+        if (event.type === Mojo.Event.command) {
+            switch (event.command) {
+                case "command":
+                break;
+            }
+        }
+    }
 
 
 NearbyVenuesAssistant.prototype.activate = function(event) {

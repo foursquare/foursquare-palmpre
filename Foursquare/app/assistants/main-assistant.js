@@ -1,12 +1,22 @@
-function MainAssistant() {
+function MainAssistant(expressLogin,credentials) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
 	   that needs the scene controller should be done in the setup function below. */
+	   
+	   this.expressLogin=expressLogin;
+	   this.credentials=credentials;
+	   if(credentials) {
+		   this.username=this.credentials.username;
+		   this.password=this.credentials.password;
+	   }
 }
 
 MainAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
+	if (this.expressLogin) {
+		this.login(this.username,this.password);
+	}
 	
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
 	
@@ -23,6 +33,9 @@ MainAssistant.prototype.setup = function() {
 
 MainAssistant.prototype.onLoginTapped = function(event){
 	$('message').innerHTML = 'logging in';
+	
+	this.username=this.usernameModel.value;
+	this.password=this.passwordModel.value;
 	
 	this.login(this.usernameModel.value, this.passwordModel.value)
 }
@@ -57,14 +70,25 @@ var userData;
 MainAssistant.prototype.loginRequestSuccess = function(response) {
 	userData = response.responseJSON.user;
 	$('message').innerHTML += '<br/>' + response.responseJSON.user.checkin.display;
-	
-	this.controller.stageController.pushScene('nearby-venues', auth, userData);
+
+	this.cookieData=new Mojo.Model.Cookie("credentials");
+	Mojo.Log.error('############################created cookie object.');
+	this.cookieData.put({
+		username: this.username,
+		password: this.password
+	});
+	Mojo.Log.error('###########saved cookie?');
+	this.controller.stageController.swapScene('nearby-venues', auth, userData);
 }
 
 MainAssistant.prototype.loginRequestFailed = function(response) {
 	auth = undefined;
 	$('message').innerHTML = 'Login Failed... Try Again';
 }
+
+			
+
+
 
 MainAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
