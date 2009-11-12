@@ -9,12 +9,11 @@ function NearbyVenuesAssistant(a, ud) {
 }
 
 NearbyVenuesAssistant.prototype.setup = function() {
-	
+	Mojo.Log.error("#####setting up nearby");
 	//Create the attributes for the textfield
 	this.textFieldAtt = {
 			hintText: 'Leave Blank to Search All Nearby',
 			textFieldName:	'name', 
-			modelProperty:	'originalValue', 
 			multiline:		false,
 			disabledProperty: 'disabled',
 			focus: 			true, 
@@ -28,13 +27,13 @@ NearbyVenuesAssistant.prototype.setup = function() {
 			requiresEnterKey: false
 	};
 	//Create the model for the text field
-	this.model = {
-		originalValue : ''
+	this.textModel = {
+		value : ''
 	};
 	
 	this.resultsModel = {items: [], listTitle: $L('Results')};
 	//Setup the textfield widget and observer
-	this.controller.setupWidget('sendField', this.textFieldAtt, this.model);
+	this.controller.setupWidget('sendField', this.textFieldAtt, this.textModel);
     
 	// Set up the attributes & model for the List widget:
 	this.controller.setupWidget('results-venue-list', 
@@ -67,8 +66,8 @@ NearbyVenuesAssistant.prototype.setup = function() {
                 items: [{ icon: "", command: "", label: "  "},
                 { icon: "", command: "", label: "  "},
                 { label: "Venues", width: 100 },
-                { icon: '', command: '', label: "  "},
-                { icon: '', command: '', label: "  "}]
+                { iconPath: 'map.png', command: 'venue-map', label: "  "},
+                { iconPath: 'search.png', command: 'venue-search', label: "  "}]
             }]
         });
         
@@ -90,7 +89,29 @@ NearbyVenuesAssistant.prototype.setup = function() {
             toggleCmd: "do-Previous"
             }]
     });
+    
+    
+        this.controller.setupWidget("drawerId",
+         this.drawerAttributes = {
+             modelProperty: 'open',
+             unstyled: false
+         },
+         this.drawerModel = {
+             open: false
+         });
+
+    
+    Mojo.Log.error("#########setup nearby");
+    
 }
+
+
+
+
+
+
+
+
 
 
 NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
@@ -130,12 +151,15 @@ NearbyVenuesAssistant.prototype.failedLocation = function(event) {
 
 NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude) {
 	$('message').innerHTML += '<br/>Searching Venues...';
+	Mojo.Log.error("--------lat="+latitude+", long="+longitude);
 	
-	var query = this.model.originalValue;
+	var query = this.textModel.value;
+	$('message').innerHTML += "("+query+")";
+	//var query='';
 	var url = 'http://api.foursquare.com/v1/venues.json';
 	var request = new Ajax.Request(url, {
 	   method: 'get',
-	   evalJSON: 'true',
+	   evalJSON: 'force',
 	   requestHeaders: {}, //Not doing a search with auth due to malformed JSON results from it
 	   parameters: {geolat:latitude, geolong:longitude, r:.5, l:50, q:query},
 	   onSuccess: this.nearbyVenueRequestSuccess.bind(this),
@@ -148,7 +172,9 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 	mybutton.mojo.deactivate();
 	
 	//$('message').innerHTML = response.responseText;
+	Mojo.Log.error("----------------got venues");
 	$('message').innerHTML = '';
+	
 	
 	if (response.responseJSON == undefined) {
 		$('message').innerHTML = 'No Results Found';
@@ -158,7 +184,7 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		var venueList = [];
 
-		if (response.responseJSON.venues.group != undefined) { //If there is only 1 result it falls into this structure
+		/*if (response.responseJSON.venues.group != undefined) { //If there is only 1 result it falls into this structure
 			$('message').innerHTML = response.responseJSON.venues.group;
 			venueList = [response.responseJSON.venues.group.venue];
 		} else { //Otherwise multiple results are stuffed into an array of arrays, so I go 
@@ -170,10 +196,45 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 				}
 			}
 				
+		}*/
+		
+		if(response.responseJSON.venues[0] != undefined) {
+			$('message').innerHTML='venues[0] is not undefined';
+			if(response.responseJSON.venues[0].length > 0) {
+				for (var i = 0; i < response.responseJSON.venues[0].length; i++) {
+					venueList[i] = response.responseJSON.venues[0][i];
+					venueList[i].grouping = "Nearby Favorites";
+				}
+			}else{
+				venueList[0]=response.responseJSON.venues[0].venue;
+				venueList[0].grouping="Nearby Favorites";
+			}
+		}else if(response.responseJSON.venues.group != undefined){
+			$('message').innerHTML='group is not undefined';
+			Mojo.Log.error(response.responseText);
+			if(response.responseJSON.venues.group.length>1) {
+				for (var i = 0; i < response.responseJSON.venues.group.length; i++) {
+					venueList[i] = response.responseJSON.venues.group[i];
+					venueList[i].grouping = "Nearby";
+				}
+			}else{
+				venueList[0] = response.responseJSON.venues.group.venue;
+				venueList[0].grouping="Nearby";
+			}
 		}
 		
+		if(response.responseJSON.venues.group == undefined) {
+			for (var i = venueList.length; i < response.responseJSON.venues[1].length; i++) {
+				venueList[i] = response.responseJSON.venues[1][i];
+				venueList[i].grouping = "Nearby";
+			}
+		}
+		
+		
+		
+		
 		//now set the result list to the list's model
-		this.resultsModel.items = $A(venueList);
+		this.resultsModel.items =venueList;// $A(venueList);
 		this.controller.modelChanged(this.resultsModel);
 	}
 }
@@ -238,11 +299,24 @@ NearbyVenuesAssistant.prototype.checkInFailed = function(response) {
 	$('message').innerHTML = 'Check In Failed: ' + repsonse.responseText;
 }
 
+
+
+
+
+
+
+
+
+
+
 NearbyVenuesAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
-                case "command":
-                break;
+                case "venue-search":
+                	Mojo.Log.error("===========venue search clicked");
+                	$("drawerId").mojo.toggleState();
+					this.controller.modelChanged(this.drawerModel)
+                	break;
             }
         }
     }
@@ -251,6 +325,8 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 NearbyVenuesAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
+	       this.onGetNearbyVenues();
+
 }
 
 

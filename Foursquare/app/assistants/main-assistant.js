@@ -10,11 +10,17 @@ function MainAssistant(expressLogin,credentials) {
 		   this.username=this.credentials.username;
 		   this.password=this.credentials.password;
 	   }
+	   
 }
 
 MainAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
 	if (this.expressLogin) {
+		$("loginfields").style.visibility="hidden";
+		$("main").removeClassName("palm-hasheader");
+		$("message").style.marginTop="70px";
+		$("main").style.background="url(SPLASH_boy_transparent.png) no-repeat left top";
+	
 		this.login(this.username,this.password);
 	}
 	
@@ -54,7 +60,7 @@ MainAssistant.prototype.login = function(uname, pass){
 	var url = "http://api.foursquare.com/v1/user.json";
 	auth = make_base_auth(uname, pass);
 	
-	$('message').innerHTML += '<br/>sending login request';
+	$('message').innerHTML = '<br/>Logging <b>'+uname+'</b> in to Foursquare...';
 	
 	var request = new Ajax.Request(url, {
 	   method: 'get',
@@ -69,7 +75,7 @@ var userData;
 
 MainAssistant.prototype.loginRequestSuccess = function(response) {
 	userData = response.responseJSON.user;
-	$('message').innerHTML += '<br/>' + response.responseJSON.user.checkin.display;
+	$('message').innerHTML = '<br/>' + response.responseJSON.user.checkin.display;
 
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	Mojo.Log.error('############################created cookie object.');
@@ -78,7 +84,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 		password: this.password
 	});
 	Mojo.Log.error('###########saved cookie?');
-	this.controller.stageController.swapScene('nearby-venues', auth, userData);
+	setTimeout(this.controller.stageController.swapScene('nearby-venues',auth,userData),3000);
 }
 
 MainAssistant.prototype.loginRequestFailed = function(response) {
