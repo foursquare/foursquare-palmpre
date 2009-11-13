@@ -1,4 +1,4 @@
-function NearbyVenuesAssistant(a, ud) {
+function NearbyVenuesAssistant(a, ud, un, pw) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -6,6 +6,8 @@ function NearbyVenuesAssistant(a, ud) {
 	  
 	 this.auth = a;
 	 this.userData = ud;
+	 this.username=un;
+	 this.password=pw;
 }
 
 NearbyVenuesAssistant.prototype.setup = function() {
@@ -100,13 +102,32 @@ NearbyVenuesAssistant.prototype.setup = function() {
              open: false
          });
 
+
+    this.controller.setupWidget("spinnerId",
+         this.attributes = {
+             spinnerSize: 'large'
+         },
+         this.model = {
+             spinning: true 
+         });
+
+
     
     Mojo.Log.error("#########setup nearby");
+    
+    $("message").hide();
     
 }
 
 
+var auth;
 
+function make_base_auth(user, pass) {
+  var tok = user + ':' + pass;
+  var hash = Base64.encode(tok);
+  //$('message').innerHTML += '<br/>'+ hash;
+  return "Basic " + hash;
+}
 
 
 
@@ -154,9 +175,10 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude) {
 	Mojo.Log.error("--------lat="+latitude+", long="+longitude);
 	
 	var query = this.textModel.value;
-	$('message').innerHTML += "("+query+")";
+	//$('message').innerHTML += "("+query+")";
 	//var query='';
 	var url = 'http://api.foursquare.com/v1/venues.json';
+	auth = make_base_auth(this.username, this.password);
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
@@ -171,15 +193,16 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 	var mybutton = $('go_button');
 	mybutton.mojo.deactivate();
 	
-	//$('message').innerHTML = response.responseText;
 	Mojo.Log.error("----------------got venues");
 	$('message').innerHTML = '';
-	
+	//Mojo.Log.error(response.responseText);
 	
 	if (response.responseJSON == undefined) {
 		$('message').innerHTML = 'No Results Found';
 	}
 	else {
+		$("spinnerId").mojo.stop();
+		$("spinnerId").hide();
 		$(resultListBox).style.display = 'block';
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		var venueList = [];
@@ -231,7 +254,8 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 		}
 		
 		
-		
+			//$('message').innerHTML = response.responseText;
+
 		
 		//now set the result list to the list's model
 		this.resultsModel.items =venueList;// $A(venueList);
@@ -288,10 +312,22 @@ NearbyVenuesAssistant.prototype.checkInSuccess = function(response) {
 	//this.controller.modelChanged(this.resultsModel);
 	
 	//$('message').innerHTML = response.responseText;
+	//Mojo.Log.error(response.responseText);
+	
+	//this fixes the fact that the scoring isn't an array.
+	//we'll probably have to do this for badges as well
+	//or, you know, foursquare could fix it...
+	var txt=response.responseText;
+	txt=txt.replace('{"score":','[{"score":');
+	txt=txt.replace('pts "}}','pts "}}]')
+	txt=txt.replace('"},"score":','"}},{"score":');
+	txt=txt.replace('},"total":{','}},{"total":{');
+	var json=eval('(' + txt + ')');
+	
 	
 	var dialog = this.controller.showDialog({
 		template: 'listtemplates/checkin-info',
-		assistant: new CheckInDialogAssistant(this, response.responseJSON)
+		assistant: new CheckInDialogAssistant(this, json)
 	});
 }
 
@@ -300,7 +336,7 @@ NearbyVenuesAssistant.prototype.checkInFailed = function(response) {
 }
 
 
-
+//{"checkin":{"message":"OK! We've got you @ Se–or jalape–o.","id":2318912,"created":"Thu, 12 Nov 09 21:42:10 +0000","venue":{"id":172322,"name":"Se–or jalape–o","address":"415 n. Mary","crossstreet":null,"city":"Sunnyvale","state":"CA","zip":null,"cityid":23},"badges":{"badge":{"id":179914,"name":"Newbie","icon":"http://foursquare.com/images/badges/newbie_on.png","text":"Congrats on your first check-in!"}},"scoring":{"score":{"points":5,"icon":"http://foursquare.com/images/scoring/1.png","message":"First time @ Se–or jalape–o!"},"score":{"points":1,"icon":"http://foursquare.com/images/scoring/2.png","message":"First stop tonight"},"total":{"points":6,"message":"6 pts "}}}}
 
 
 

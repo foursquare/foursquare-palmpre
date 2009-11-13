@@ -84,7 +84,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 		password: this.password
 	});
 	Mojo.Log.error('###########saved cookie?');
-	setTimeout(this.controller.stageController.swapScene('nearby-venues',auth,userData),3000);
+	setTimeout(this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password),3000);
 }
 
 MainAssistant.prototype.loginRequestFailed = function(response) {

@@ -14,3 +14,7 @@ body {background-color: #fff !important;}
 #message {
 	width: 100%;
 }
+
+#spinnerId {
+	margin: 40px auto;
+}
