@@ -39,7 +39,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
     
 	// Set up the attributes & model for the List widget:
 	this.controller.setupWidget('results-venue-list', 
-					      {itemTemplate:'listtemplates/venueItems'},
+					      {itemTemplate:'listtemplates/venueItems',dividerFunction: this.groupVenues,dividerTemplate: 'listtemplates/dividertemplate'},
 					      this.resultsModel);
 
 	//Set up button handlers
@@ -117,6 +117,8 @@ NearbyVenuesAssistant.prototype.setup = function() {
     
     $("message").hide();
     
+    	       this.onGetNearbyVenues();
+
 }
 
 
@@ -195,7 +197,7 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 	
 	Mojo.Log.error("----------------got venues");
 	$('message').innerHTML = '';
-	//Mojo.Log.error(response.responseText);
+	Mojo.Log.error(response.responseText);
 	
 	if (response.responseJSON == undefined) {
 		$('message').innerHTML = 'No Results Found';
@@ -221,7 +223,7 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 				
 		}*/
 		
-		if(response.responseJSON.venues[0] != undefined) {
+		/*if(response.responseJSON.venues[0] != undefined) {
 			$('message').innerHTML='venues[0] is not undefined';
 			if(response.responseJSON.venues[0].length > 0) {
 				for (var i = 0; i < response.responseJSON.venues[0].length; i++) {
@@ -251,6 +253,20 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 				venueList[i] = response.responseJSON.venues[1][i];
 				venueList[i].grouping = "Nearby";
 			}
+		}*/
+		
+		if(response.responseJSON.groups[0] != undefined) { //actually got some venues
+			for(var g=0;g<response.responseJSON.groups.length;g++) {
+				Mojo.Log.error("##########in the loop");
+				var varray=response.responseJSON.groups[g].venues;
+				Mojo.Log.error("#######got venues");
+				var grouping=response.responseJSON.groups[g].type;
+				Mojo.Log.error("########grouping="+grouping);
+				for(var v=0;v<varray.length;v++) {
+					venueList.push(varray[v]);
+					venueList[venueList.length-1].grouping=grouping;
+				}
+			}
 		}
 		
 		
@@ -270,7 +286,7 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestFailed = function(response) {
 
 NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
 	
-	this.controller.showAlertDialog({
+	/*this.controller.showAlertDialog({
 		onChoose: function(value) {
 			if (value) {
 				this.checkIn(event.item.id, event.item.name);
@@ -281,7 +297,9 @@ NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
 		cancelable:true,
 		choices:[ {label:'Yes', value:true, type:'affirmative'}, {label:'No', value:false, type:'negative'} ]
 	});
+	*/
 	
+	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,this.username,this.password);
 }
 
 NearbyVenuesAssistant.prototype.checkIn = function(id, n) {
@@ -312,18 +330,25 @@ NearbyVenuesAssistant.prototype.checkInSuccess = function(response) {
 	//this.controller.modelChanged(this.resultsModel);
 	
 	//$('message').innerHTML = response.responseText;
-	//Mojo.Log.error(response.responseText);
+	Mojo.Log.error(response.responseText);
 	
 	//this fixes the fact that the scoring isn't an array.
 	//we'll probably have to do this for badges as well
 	//or, you know, foursquare could fix it...
+	//it'll first check if the JSON is whacked or not. this 
+	//prevents our app from breaking if 4S fixes the JSON in the future
+	var json=response.responseJSON;
+		Mojo.Log.error("^^^^^^^^^^^^^^^^made it here...");
 	var txt=response.responseText;
-	txt=txt.replace('{"score":','[{"score":');
-	txt=txt.replace('pts "}}','pts "}}]')
-	txt=txt.replace('"},"score":','"}},{"score":');
-	txt=txt.replace('},"total":{','}},{"total":{');
-	var json=eval('(' + txt + ')');
-	
+
+	if(txt.indexOf('"scoring":')>-1) {
+		Mojo.Log.error("^^^^^^^^^^^^^^^^not working...");
+		txt=txt.replace('{"score":','[{"score":');
+		txt=txt.replace('pts "}}','pts "}}]')
+		txt=txt.replace('"},"score":','"}},{"score":');
+		txt=txt.replace('},"total":{','}},{"total":{');
+		var json=eval('(' + txt + ')');
+	}
 	
 	var dialog = this.controller.showDialog({
 		template: 'listtemplates/checkin-info',
@@ -341,6 +366,9 @@ NearbyVenuesAssistant.prototype.checkInFailed = function(response) {
 
 
 
+NearbyVenuesAssistant.prototype.groupVenues = function(data){
+	return data.grouping;
+}
 
 
 
@@ -361,7 +389,7 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 NearbyVenuesAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
-	       this.onGetNearbyVenues();
+	     //  this.onGetNearbyVenues();
 
 }
 

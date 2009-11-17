@@ -10,5 +10,9 @@
     },
 	{
 		"source": "app\/assistants\/check-in-dialog-assistant.js"
+	},
+	{
+		"source": "app\/assistants\/venuedetail-assistant.js",
+        "scenes": "venuedetail"
 	}
 ]
