@@ -1,5 +1,5 @@
 <div id="main" class="noheader">
-	<div class="palm-page-header multi-line">
+	<div class="palm-page-header multi-line" id="venueHeader">
 		<div class="palm-page-header-wrapper">
 		    <div id="checkinVenueName" class="title left capitalize" ></div>                         
 			<div style="width: 65%; float: left;">
@@ -20,7 +20,7 @@
 			    <td class="right"></td>
 			  </tr>
 			</table>
-			<img id="venueMap" src="" />
+			<img id="venueMap" src="" width="320" height="175" />
 		</div>
 		<div id="snapMayor">
 			<table class="palm-divider labeled">
@@ -34,7 +34,9 @@
 			</table>
 			<div id="venueMayor">
 				<div id="mayorAvatar">
-					<img id="mayorPic" src="" />
+					<img id="mayorPic" width="75" height="75" alt="Mayor!" src="" />
+					<img id="mayorPicBorder" src="images/roundedCorner.png" />
+					<img id="mayorCrown" src="images/crown.png" />
 				</div>
 				<div id="mayorInfoBlock">
 					<div id="mayorName" class="title"></div>
@@ -53,6 +55,7 @@
 			  </tr>
 			</table>
 			<div id="venueTips"></div>
+			<div x-mojo-element="Button" id="buttonAddTip" class="buttonClass" name="buttonName"></div>
 		</div>
 		<div id="snapInfo" class="breaker">
 			<table class="palm-divider labeled">
@@ -65,6 +68,7 @@
 			  </tr>
 			</table>
 			<div id="venueInfo"></div>
+			<br/><br/>			<br/><br/>			<br/><br/>
 		</div>
     </div> 
 </div>
@@ -72,3 +76,8 @@
 	
 	
 </div>
+<div class="palm-scrim" id="venueScrim"></div>
+<div x-mojo-element="Spinner" id="venueSpinner" class="spinnerClass" name="spinnerName">
+</div>
+<div id="dropshadow">&nbsp;</div>
+<div class="fade-bottom"></div>

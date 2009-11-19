@@ -12,7 +12,7 @@ function VenuedetailAssistant(venue,u,p) {
 VenuedetailAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
 	$("snapMayor").hide();
-	$("snapTips").hide();
+	//$("snapTips").hide(); //keep it visible -- that way the Add Tip button can be there
 	$("checkinVenueName").innerHTML=this.venue.name;
 	$("checkinVenueAddress").innerHTML=this.venue.address;
 	if (this.venue.crossstreet) {
@@ -29,18 +29,7 @@ VenuedetailAssistant.prototype.setup = function() {
 	
 	
 	
-	var url = 'http://api.foursquare.com/v1/venue.json';
-	auth = make_base_auth(this.username, this.password);
-	Mojo.Log.error("un="+this.username);
-	var request = new Ajax.Request(url, {
-	   method: 'get',
-	   evalJSON: 'force',
-	   requestHeaders: {Authorization:auth}, //Not doing a search with auth due to malformed JSON results from it
-	   parameters: {vid:this.venue.id},
-	   onSuccess: this.getVenueInfoSuccess.bind(this),
-	   onFailure: this.getVenueInfoFailed.bind(this)
-	 });
-
+	this.getVenueInfo();
 	
 			/* setup widgets here */
 	    this.controller.setupWidget("detailScroller",
@@ -52,12 +41,29 @@ VenuedetailAssistant.prototype.setup = function() {
          });
 
 	
+    this.controller.setupWidget("venueSpinner",
+         this.attributes = {
+             spinnerSize: 'large'
+         },
+         this.model = {
+             spinning: true 
+         });
 
-	
+    this.controller.setupWidget("buttonAddTip",
+        this.buttonAttributes = {
+            },
+        this.buttonModel = {
+            label : "Add a Tip",
+            disabled: false
+        });
+
 	
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
 	
 	/* add event handlers to listen to events from widgets */
+	Mojo.Event.listen($("docheckin"),Mojo.Event.tap,this.promptCheckin.bind(this));
+	Mojo.Event.listen($("buttonAddTip"),Mojo.Event.tap, this.handleAddTip.bind(this));
+
 }
 
 var auth;
@@ -69,6 +75,19 @@ function make_base_auth(user, pass) {
   return "Basic " + hash;
 }
 
+VenuedetailAssistant.prototype.getVenueInfo = function() {
+	var url = 'http://api.foursquare.com/v1/venue.json';
+	auth = make_base_auth(this.username, this.password);
+	Mojo.Log.error("un="+this.username);
+	var request = new Ajax.Request(url, {
+	   method: 'get',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization:auth}, //Not doing a search with auth due to malformed JSON results from it
+	   parameters: {vid:this.venue.id},
+	   onSuccess: this.getVenueInfoSuccess.bind(this),
+	   onFailure: this.getVenueInfoFailed.bind(this)
+	 });
+}
 VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	Mojo.Log.error(response.responseText);
 	
@@ -110,7 +129,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			var username=response.responseJSON.venue.tips[t].user.firstname+" "+response.responseJSON.venue.tips[t].user.lastname;
 			var photo=response.responseJSON.venue.tips[t].user.photo;
 
-			tips+='<div class="palm-row single"><div class="checkin-score"><img src="'+photo+'" width="24"/> <span>'+username+'</span><br/><span class="palm-info-text">'+tip+'</span></div></div>'+"\n";
+			tips+='<div class="palm-row single aTip"><img src="'+photo+'" width="24"/> <span class="venueTipUser">'+username+'</span><br/><span class="palm-info-text venueTip">'+tip+'</span></div>'+"\n";
 		}
 		$("venueTips").innerHTML=tips;
 	}
@@ -126,19 +145,88 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 
 	var vinfo='';
 	var s=(totalcheckins != 1)? "s" :"";
-	vinfo='<span class="capitalize">'+response.responseJSON.venue.name+'</span> has been visited '+totalcheckins+' time'+s+' ';
-	vinfo+=(beenhere)? 'and you\'ve been here before.': 'but you\'ve never been here';
-	vinfo+='.<br/>';
-	vinfo+=(twitter != undefined)? 'Twitter: <a href="http://twitter.com/'+twitter+'">@'+twitter+'</a><br/>': '';
-	vinfo+=(phone != undefined)? 'Phone: <a href="tel://'+phone+'">'+phone+'</a><br/>': '';
+	if (totalcheckins>0) {
+		vinfo='<span class="capitalize">'+response.responseJSON.venue.name+'</span> has been visited '+totalcheckins+' time'+s+' ';
+		vinfo+=(beenhere)? 'and you\'ve been here before': 'but you\'ve never been here';
+		vinfo+='.<br/>';
+	}else{
+		vinfo='<span class="capitalize">'+response.responseJSON.venue.name+'</span> has never been visited! Be the first to check-in!<br/>';	
+	}
+	vinfo+=(twitter != undefined)? '<img src="images/bird.png" width="20" height="20" /> <a href="http://twitter.com/'+twitter+'">@'+twitter+'</a><br/>': '';
+	vinfo+=(phone != undefined)? '<img src="images/phone.png" width="20" height="20" /> <a href="tel://'+phone+'">'+phone+'</a><br/>': '';
 	Mojo.Log.error("vnfo="+vinfo);
 	$("venueInfo").innerHTML=vinfo;
+	$("venueScrim").hide();
+	$("venueSpinner").mojo.stop();
+	$("venueSpinner").hide();
 }
+
+
+
 VenuedetailAssistant.prototype.getVenueInfoFailed = function(response) {
 	Mojo.Log.error("############error!");
 }
 
+VenuedetailAssistant.prototype.promptCheckin = function(event) {
+	this.controller.showAlertDialog({
+		onChoose: function(value) {
+			if (value) {
+				Mojo.Log.error("#######click yeah");
+				this.checkIn(this.venue.id, this.venue.name);
+			}
+		},
+		title:"Foursquare Check In",
+		message:"Go ahead and check-in here?",
+		cancelable:true,
+		choices:[ {label:'Yeah!', value:true, type:'affirmative'}, {label:'Eh, nevermind.', value:false, type:'negative'} ]
+	});
+}
 
+VenuedetailAssistant.prototype.checkIn = function(id, n) {
+	if (auth) {
+		var url = 'http://api.foursquare.com/v1/checkin.json';
+		var request = new Ajax.Request(url, {
+			method: 'post',
+			evalJSON: 'true',
+			requestHeaders: {
+				Authorization: auth
+			},
+			parameters: {
+				vid: id
+			},
+			onSuccess: this.checkInSuccess.bind(this),
+			onFailure: this.checkInFailed.bind(this)
+		});
+	} else {
+		//$('message').innerHTML = 'Not Logged In';
+	}
+}
+
+VenuedetailAssistant.prototype.checkInSuccess = function(response) {
+	Mojo.Log.error(response.responseText);
+	
+	var json=response.responseJSON;
+		Mojo.Log.error("^^^^^^^^^^^^^^^^made it here...");
+	
+	var dialog = this.controller.showDialog({
+		template: 'listtemplates/checkin-info',
+		assistant: new CheckInDialogAssistant(this, json)
+	});
+}
+
+VenuedetailAssistant.prototype.checkInFailed = function(response) {
+	Mojo.Log.error('Check In Failed: ' + repsonse.responseText);
+}
+
+
+VenuedetailAssistant.prototype.handleAddTip=function(event) {
+	var thisauth=auth;
+	var dialog = this.controller.showDialog({
+		template: 'listtemplates/add-tip',
+		assistant: new AddTipDialogAssistant(this,thisauth,this.venue.id)
+	});
+
+}
 
 
 VenuedetailAssistant.prototype.activate = function(event) {

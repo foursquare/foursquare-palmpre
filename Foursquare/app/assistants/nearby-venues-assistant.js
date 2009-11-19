@@ -184,7 +184,7 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude) {
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
-	   requestHeaders: {}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
 	   parameters: {geolat:latitude, geolong:longitude, r:.5, l:50, q:query},
 	   onSuccess: this.nearbyVenueRequestSuccess.bind(this),
 	   onFailure: this.nearbyVenueRequestFailed.bind(this)
@@ -378,7 +378,11 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
             switch (event.command) {
                 case "venue-search":
                 	Mojo.Log.error("===========venue search clicked");
-                	$("drawerId").mojo.toggleState();
+					//get the scroller for your scene
+					var scroller = this.controller.getSceneScroller();
+					//call the widget method for scrolling to the top
+					scroller.mojo.revealTop(0);
+					$("drawerId").mojo.toggleState();
 					this.controller.modelChanged(this.drawerModel)
                 	break;
             }

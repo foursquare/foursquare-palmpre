@@ -20,7 +20,7 @@ body {background-color: #fff !important;}
 }
 
 #detailScroller {
-   height: 350px;
+   height: 370px;
    width: 320px;
    margin-left: auto;
    margin-right: auto;
@@ -28,15 +28,105 @@ body {background-color: #fff !important;}
 
 #mayorAvatar{
 	float: left;
+	position: relative;
+	margin-left: 2px;
+}
+#mayorPic {
+	margin-left: 4px;
+	margin-top: 4px;
+}
+#mayorPicBorder {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+#mayorCrown {
+	position: absolute;
+	top: -25px;
+	left: 4px;
 }
 #mayorInfoBlock {
 	float: left;
+	margin-left: 8px;
 	}
 #mayorInfo {
 	padding-left: 0;
 	margin-left: 0;
 }
+#venueMayor {
+	margin-top: 8px;
+}
+
 
 .breaker {
 	clear: both;
+}
+
+#venueSpinner {
+	z-index: 100000;
+	position: absolute;
+	top: 100px;
+	left: 100px;
+}
+
+.venueTip {
+	display: inline !important;
+	line-height: 12px !important;
+	float: left;
+}
+.venueTipUser {
+	display: inline !important;
+	float: left;
+}
+.aTip img {
+	float: left;
+}
+
+#venueInfo {
+	margin: 0 4px 0 4px;
+}
+.checkin-badge {
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+	padding: 2px !important;
+}
+.checkin-score {
+	height: 20px !important;
+	margin-top: 0 !important;
+	margin-bottom: -13px !important;
+}
+#venueHeader {
+	height: 95px !important;
+}
+
+
+#dropshadow {
+	position: absolute;
+	top: 94px;
+	left: 0;
+	z-index: 10000;
+	background: transparent url(../images/dropshadow_top.png) no-repeat left top;
+	width: 320px;
+	height: 16px;
+	-webkit-palm-mouse-target: ignore;
+}
+
+.fade-bottom {
+	position: absolute;
+	left: 0;
+	bottom: 0px;
+	z-index: 10000;
+	background: transparent url(../images/fade-bottom.png) no-repeat left top;
+	width: 320px;
+	height: 50px;
+	-webkit-palm-mouse-target: ignore;
+}
+
+.addtipok {
+	width: 48%;
+	float: left;
+}
+.addtipcancel {
+	width: 48%;
+	float: right;
 }

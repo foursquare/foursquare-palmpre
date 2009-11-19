@@ -25,35 +25,31 @@ CheckInDialogAssistant.prototype.initData = function(checkinJSON) {
 	$('checkin-title').innerHTML = checkinJSON.checkin.message;
 	
 	
-	//set the individual scores - right now scores are not an array, this needs to be fixed for this to work right
+	//set the individual scores - 
 	if(checkinJSON.checkin.scoring != undefined){
-		for(var i = 0; i < checkinJSON.checkin.scoring.length; i++) {
-			if (checkinJSON.checkin.scoring[i].score != undefined) { //this is the only way I know how to tell if it's a score rather than the total
-				var imgpath = checkinJSON.checkin.scoring[i].score.icon;
-				var msg = '+' + checkinJSON.checkin.scoring[i].score.points + ' ' +checkinJSON.checkin.scoring[i].score.message;
+		var totalpoints=0;
+		for(var i = 0; i < checkinJSON.checkin.scoring.score.length; i++) {
+			if (checkinJSON.checkin.scoring.score[i] != undefined) { 
+				var imgpath = checkinJSON.checkin.scoring.score[i].icon;
+				totalpoints+=parseInt(checkinJSON.checkin.scoring.score[i].points);
+				var msg = '+' + checkinJSON.checkin.scoring.score[i].points + ' ' +checkinJSON.checkin.scoring.score[i].message;
 				$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-score"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';
 			}
 		}
-	
-	
-	
-		var totalPts='0 pts';
-		var lastIndex=checkinJSON.checkin.scoring.length-1;
-		if(checkinJSON.checkin.scoring[lastIndex].total.message != undefined) {
-			totalPts = checkinJSON.checkin.scoring[lastIndex].total.message;
-			$('score-title').innerHTML = "Score! That's " + totalPts;
-		}
+		
+		var totalPts = (totalpoints != 1)? totalpoints+' pts': totalpoints+' pt';
+		$('score-title').innerHTML = "Score! That's " + totalPts;
 	}
 	
 	
 	//badges? we need stinkin' badges!
-	//as of right now, can only handle one badge. the JSON will have to be
-	//fix0red like the scores...
 	if(checkinJSON.checkin.badges != undefined) {
-		var badge_name=checkinJSON.checkin.badges.badge.name;
-		var badge_icon=checkinJSON.checkin.badges.badge.icon;
-		var badge_text=checkinJSON.checkin.badges.badge.text;
-		$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-score"><img src="'+badge_icon+'" /> <span>'+badge_name+'<br/>'+badge_text+'</span></div></div>';
+		for(var b = 0; b < checkinJSON.checkin.badges.length;b++) {
+			var badge_name=checkinJSON.checkin.badges[b].name;
+			var badge_icon=checkinJSON.checkin.badges[b].icon;
+			var badge_text=checkinJSON.checkin.badges[b].description;
+			$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-badge"><img src="'+badge_icon+'" width="32" height="32" /> <span>'+badge_name+': '+badge_text+'</span></div></div>';
+		}
 	}
 	
 	//set the total score
