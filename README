@@ -1,0 +1,23 @@
+------------------------------------------------------------------------------
+README
+A Palm Pre (WebOS) application for foursquare.
+
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Building
+------------------------------------------------------------------------------
+
+# to package:
+$ palm-package Foursquare
+Creating package in /Users/...
+
+# to install:
+$ palm-install com.andrewwalpole.foursquare....ipk
+connecting to device emulator (...
+copying /Users/...
+installing package /media/internal/developer/...
+
+# to run:
+$ palm-launch com.andrewwalpole.foursquare
+
