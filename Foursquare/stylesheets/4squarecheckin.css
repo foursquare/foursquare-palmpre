@@ -130,3 +130,21 @@ body {background-color: #fff !important;}
 	width: 48%;
 	float: right;
 }
+
+.vtag {
+	border-width: 8px;
+	-webkit-border-image: url(../images/tag.png) 0 18 0 18;
+	color: #fff;
+	padding: 2px;
+	text-align: center;
+	-webkit-text-stroke:0 1px 0 rgb(173, 41, 159);
+	font-size: 17px;
+	margin-left: 5px;
+	margin-bottom: 11px;
+	white-space: nowrap;
+}
+
+.chkLabel {
+	margin-top: 10px;
+	margin-bottom: 0px;
+}

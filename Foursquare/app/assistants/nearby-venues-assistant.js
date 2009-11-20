@@ -1,4 +1,4 @@
-function NearbyVenuesAssistant(a, ud, un, pw) {
+function NearbyVenuesAssistant(a, ud, un, pw,i) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -8,6 +8,7 @@ function NearbyVenuesAssistant(a, ud, un, pw) {
 	 this.userData = ud;
 	 this.username=un;
 	 this.password=pw;
+	 this.uid=i;
 }
 
 NearbyVenuesAssistant.prototype.setup = function() {
@@ -299,7 +300,7 @@ NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
 	});
 	*/
 	
-	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,this.username,this.password);
+	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid);
 }
 
 NearbyVenuesAssistant.prototype.checkIn = function(id, n) {
@@ -341,14 +342,14 @@ NearbyVenuesAssistant.prototype.checkInSuccess = function(response) {
 		Mojo.Log.error("^^^^^^^^^^^^^^^^made it here...");
 	var txt=response.responseText;
 
-	if(txt.indexOf('"scoring":')>-1) {
+	/*if(txt.indexOf('"scoring":')>-1) {
 		Mojo.Log.error("^^^^^^^^^^^^^^^^not working...");
 		txt=txt.replace('{"score":','[{"score":');
 		txt=txt.replace('pts "}}','pts "}}]')
 		txt=txt.replace('"},"score":','"}},{"score":');
 		txt=txt.replace('},"total":{','}},{"total":{');
 		var json=eval('(' + txt + ')');
-	}
+	}*/
 	
 	var dialog = this.controller.showDialog({
 		template: 'listtemplates/checkin-info',

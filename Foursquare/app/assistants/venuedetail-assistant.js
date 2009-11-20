@@ -1,4 +1,4 @@
-function VenuedetailAssistant(venue,u,p) {
+function VenuedetailAssistant(venue,u,p,i) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -7,6 +7,7 @@ function VenuedetailAssistant(venue,u,p) {
 	   this.venue=venue;
 	   this.username=u;
 	   this.password=p;
+	   this.uid=i;
 }
 
 VenuedetailAssistant.prototype.setup = function() {
@@ -37,7 +38,7 @@ VenuedetailAssistant.prototype.setup = function() {
              mode: 'vertical-snap'
          },
          this.scrollModel = {
-             snapElements: {'y': [$("snapMap"),$("snapMayor"),$("snapTips"),$("snapInfo")]}
+             snapElements: {'y': [$("snapMap"),$("snapMayor"),$("snapTips"),$("snapTags"),$("snapInfo")]}
          });
 
 	
@@ -95,7 +96,8 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	if(response.responseJSON.venue.stats.mayor != undefined) { //venue has a mayor
 		$("snapMayor").show();
 		$("mayorPic").src=response.responseJSON.venue.stats.mayor.user.photo;
-		$("mayorName").innerHTML=response.responseJSON.venue.stats.mayor.user.firstname+" "+response.responseJSON.venue.stats.mayor.user.lastname;
+		var lname=(response.responseJSON.venue.stats.mayor.user.lastname != undefined)? response.responseJSON.venue.stats.mayor.user.lastname: '';
+		$("mayorName").innerHTML=response.responseJSON.venue.stats.mayor.user.firstname+" "+lname;
 		var mInfo;
 		switch(response.responseJSON.venue.stats.mayor.user.gender) {
 			case "male":
@@ -126,7 +128,8 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			//<div class="palm-row single"><div class="checkin-score"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>
 			var tip=response.responseJSON.venue.tips[t].text;
 			var created=response.responseJSON.venue.tips[t].created;
-			var username=response.responseJSON.venue.tips[t].user.firstname+" "+response.responseJSON.venue.tips[t].user.lastname;
+			var tlname=(response.responseJSON.venue.tips[t].user.lastname != undefined)? response.responseJSON.venue.tips[t].user.lastname : '';
+			var username=response.responseJSON.venue.tips[t].user.firstname+" "+tlname;
 			var photo=response.responseJSON.venue.tips[t].user.photo;
 
 			tips+='<div class="palm-row single aTip"><img src="'+photo+'" width="24"/> <span class="venueTipUser">'+username+'</span><br/><span class="palm-info-text venueTip">'+tip+'</span></div>'+"\n";
@@ -156,6 +159,19 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	vinfo+=(phone != undefined)? '<img src="images/phone.png" width="20" height="20" /> <a href="tel://'+phone+'">'+phone+'</a><br/>': '';
 	Mojo.Log.error("vnfo="+vinfo);
 	$("venueInfo").innerHTML=vinfo;
+	
+	//tags
+	if(tags != undefined) {
+		var vtags='';
+		for(var t=0;t<tags.length;t++) {
+			vtags+='<span class="vtag">'+tags[t]+'</span> ';
+		}
+		$("venueTags").innerHTML=vtags;
+	}else{
+		$("snapTags").hide();
+	}
+	
+	
 	$("venueScrim").hide();
 	$("venueSpinner").mojo.stop();
 	$("venueSpinner").hide();
@@ -166,13 +182,13 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 VenuedetailAssistant.prototype.getVenueInfoFailed = function(response) {
 	Mojo.Log.error("############error!");
 }
-
+var checkinDialog;
 VenuedetailAssistant.prototype.promptCheckin = function(event) {
 	this.controller.showAlertDialog({
 		onChoose: function(value) {
 			if (value) {
 				Mojo.Log.error("#######click yeah");
-				this.checkIn(this.venue.id, this.venue.name);
+				this.checkIn(this.venue.id, this.venue.name,'','','0');
 			}
 		},
 		title:"Foursquare Check In",
@@ -180,9 +196,15 @@ VenuedetailAssistant.prototype.promptCheckin = function(event) {
 		cancelable:true,
 		choices:[ {label:'Yeah!', value:true, type:'affirmative'}, {label:'Eh, nevermind.', value:false, type:'negative'} ]
 	});
+		checkinDialog = this.controller.showDialog({
+		template: 'listtemplates/do-checkin',
+		assistant: new DoCheckinDialogAssistant(this,this.venue.id,this.venue.name)
+	});
+
 }
 
-VenuedetailAssistant.prototype.checkIn = function(id, n) {
+VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t) {
+	Mojo.Log.error("###check in please??");
 	if (auth) {
 		var url = 'http://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
@@ -192,7 +214,10 @@ VenuedetailAssistant.prototype.checkIn = function(id, n) {
 				Authorization: auth
 			},
 			parameters: {
-				vid: id
+				vid: id,
+				shout: s,
+				private: sf,
+				twitter: t
 			},
 			onSuccess: this.checkInSuccess.bind(this),
 			onFailure: this.checkInFailed.bind(this)
@@ -207,10 +232,11 @@ VenuedetailAssistant.prototype.checkInSuccess = function(response) {
 	
 	var json=response.responseJSON;
 		Mojo.Log.error("^^^^^^^^^^^^^^^^made it here...");
-	
+	checkinDialog.mojo.close();
+	//checkinDialog=null;
 	var dialog = this.controller.showDialog({
 		template: 'listtemplates/checkin-info',
-		assistant: new CheckInDialogAssistant(this, json)
+		assistant: new CheckInDialogAssistant(this, json,this.uid)
 	});
 }
 

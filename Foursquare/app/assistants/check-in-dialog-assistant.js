@@ -1,6 +1,7 @@
-function CheckInDialogAssistant(sceneAssistant, checkinJSON) {
+function CheckInDialogAssistant(sceneAssistant, checkinJSON,i) {
   this.sceneAssistant = sceneAssistant;
   this.data = checkinJSON;
+  this.uid=i;
 }
 CheckInDialogAssistant.prototype.setup = function(widget) {
   this.widget = widget;
@@ -8,14 +9,14 @@ CheckInDialogAssistant.prototype.setup = function(widget) {
   this.initData(this.data);
   
   // Setup button and event handler
-  this.sceneAssistant.controller.setupWidget("okButton",
+  this.sceneAssistant.controller.setupWidget("okButtonCheckin",
     this.attributes = {},
     this.OKButtonModel = {
       buttonLabel: "Sweet",
       disabled: false
     }
   );
-  Mojo.Event.listen(this.sceneAssistant.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
+  Mojo.Event.listen(this.sceneAssistant.controller.get('okButtonCheckin'), Mojo.Event.tap, this.okTappedCheckin.bindAsEventListener(this));
 };
 
 CheckInDialogAssistant.prototype.initData = function(checkinJSON) {
@@ -52,6 +53,19 @@ CheckInDialogAssistant.prototype.initData = function(checkinJSON) {
 		}
 	}
 	
+	
+	//handle mayorship. this is a cheap way to detect it, but it works.... for now
+	if(checkinJSON.checkin.mayor != undefined) {
+		var type=checkinJSON.checkin.mayor.type;
+		if(type=="nochange") { //same ol' mayor
+			if(checkinJSON.checkin.mayor.user== undefined) {  //we're the mayor still
+				$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';
+			}
+		}else{ //we're the new mayor!
+			$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';	
+		}
+	}
+	
 	//set the total score
 	/*
 	var totalPts = '0 pts';
@@ -71,6 +85,7 @@ CheckInDialogAssistant.prototype.initData = function(checkinJSON) {
 
 };
 
-CheckInDialogAssistant.prototype.okTapped = function() {
+CheckInDialogAssistant.prototype.okTappedCheckin = function() {
+	Mojo.Log.error("##############trying to close");
 	this.widget.mojo.close();
 };

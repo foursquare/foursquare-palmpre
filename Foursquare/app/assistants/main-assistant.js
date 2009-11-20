@@ -76,6 +76,7 @@ var userData;
 MainAssistant.prototype.loginRequestSuccess = function(response) {
 	userData = response.responseJSON.user;
 	$('message').innerHTML = '<br/>' + response.responseJSON.user.checkin.display;
+	var uid=response.responseJSON.user.id;
 
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	Mojo.Log.error('############################created cookie object.');
@@ -84,7 +85,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 		password: this.password
 	});
 	Mojo.Log.error('###########saved cookie?');
-	setTimeout(this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password),3000);
+	setTimeout(this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid),3000);
 }
 
 MainAssistant.prototype.loginRequestFailed = function(response) {
