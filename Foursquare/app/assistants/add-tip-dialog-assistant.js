@@ -1,7 +1,8 @@
-function AddTipDialogAssistant(sceneAssistant,a,vid) {
+function AddTipDialogAssistant(sceneAssistant,a,vid,t) {
   this.sceneAssistant = sceneAssistant;
   this.auth=a;
   this.vid=vid;
+  this.type=t;
 }
 AddTipDialogAssistant.prototype.setup = function(widget) {
   this.widget = widget;
@@ -28,8 +29,9 @@ AddTipDialogAssistant.prototype.setup = function(widget) {
   Mojo.Event.listen(this.sceneAssistant.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
   
   
-	this.sceneAssistant.controller.setupWidget('newtip', this.tipAttributes = {hintText:'Add a tip',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
+	this.sceneAssistant.controller.setupWidget('newtip', this.tipAttributes = {hintText:'Enter '+this.type+' here...',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
 
+	$("addtip-title").innerHTML="Add a "+this.type;
 //	this.init();
 }
 
@@ -50,7 +52,7 @@ AddTipDialogAssistant.prototype.okTapped = function() {
 			parameters: {
 				vid: this.vid,
 				text: this.tipModel.value,
-				type: "tip"
+				type: this.type
 			},
 			onSuccess: this.tipSuccess.bind(this),
 			onFailure: this.tipFailed.bind(this)

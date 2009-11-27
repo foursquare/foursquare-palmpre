@@ -9,7 +9,9 @@
 	border:1px solid #999999;
 }
 
-body {background-color: #fff !important;}
+body {
+	background: #fff !important;
+	}
 
 #message {
 	width: 100%;
@@ -20,10 +22,11 @@ body {background-color: #fff !important;}
 }
 
 #detailScroller {
-   height: 370px;
+   height: 375px;
    width: 320px;
    margin-left: auto;
    margin-right: auto;
+   margin-top: 0px;
 }
 
 #mayorAvatar{
@@ -96,19 +99,22 @@ body {background-color: #fff !important;}
 	margin-bottom: -13px !important;
 }
 #venueHeader {
-	height: 95px !important;
+	/*height: 95px !important;*/
 }
 
 
 #dropshadow {
-	position: absolute;
-	top: 94px;
+	position: relative;
+	/*top: 94px;*/
+	margin-top: 30px;
+	margin-bottom: 0;
 	left: 0;
 	z-index: 10000;
 	background: transparent url(../images/dropshadow_top.png) no-repeat left top;
 	width: 320px;
 	height: 16px;
 	-webkit-palm-mouse-target: ignore;
+	display: none;
 }
 
 .fade-bottom {
@@ -148,3 +154,50 @@ body {background-color: #fff !important;}
 	margin-top: 10px;
 	margin-bottom: 0px;
 }
+
+#venueTips {clear: both;}
+
+#docheckin {
+	background: url(../images/checkin.png) no-repeat left top;
+	text-indent: -9999px;
+	overflow: hidden;
+	width: 100px;
+	height: 35px;
+	margin-top: -5px;
+	margin-bottom: 5px;
+}
+
+
+#userAvatar{
+	float: left;
+	position: relative;
+	margin-left: 2px;
+}
+#userPic {
+	margin-left: 4px;
+	margin-top: 4px;
+}
+#userPicBorder {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+#userInfoBlock {
+	float: left;
+	margin-left: 8px;
+	}
+#userInfoHeading {
+	margin-top: 55px;
+}
+#userInfo {
+	margin-left: 0;
+	padding-left: 0;
+}
+
+#userSpinner {
+	z-index: 100000;
+	position: absolute;
+	top: 100px;
+	left: 100px;
+}
+

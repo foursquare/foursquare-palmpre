@@ -69,20 +69,30 @@ MainAssistant.prototype.login = function(uname, pass){
 	   onSuccess: this.loginRequestSuccess.bind(this),
 	   onFailure: this.loginRequestFailed.bind(this)
 	 });
+	 Mojo.Log.error("tried login.");
 }
 
 var userData;
 
 MainAssistant.prototype.loginRequestSuccess = function(response) {
+Mojo.Log.error("####"+response.responseText);
 	userData = response.responseJSON.user;
 	$('message').innerHTML = '<br/>' + response.responseJSON.user.checkin.display;
 	var uid=response.responseJSON.user.id;
+	var savetw=response.responseJSON.user.settings.sendtotwitter;
+ 	var ping=response.responseJSON.user.settings.pings;
+	var cityid=response.responseJSON.user.city.id;
+	var city=response.responseJSON.user.city.name;
 
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	Mojo.Log.error('############################created cookie object.');
 	this.cookieData.put({
 		username: this.username,
-		password: this.password
+		password: this.password,
+		savetotwitter: savetw,
+		ping: ping,
+		cityid: cityid,
+		city: city
 	});
 	Mojo.Log.error('###########saved cookie?');
 	setTimeout(this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid),3000);
@@ -90,6 +100,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 
 MainAssistant.prototype.loginRequestFailed = function(response) {
 	auth = undefined;
+Mojo.Log.error("####"+response.responseText);
 	$('message').innerHTML = 'Login Failed... Try Again';
 }
 

@@ -54,9 +54,23 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	}
 	
 	this.controller.setupWidget('go_button',this.buttonAtt1,this.buttonModel1);
+
+
+	this.avbuttonModel1 = {
+		buttonLabel : 'Add New Venue',
+		buttonClass : '',
+		disable : false
+	}
+	this.avbuttonAtt1 = {
+	}
+	
+	this.controller.setupWidget('add_venue_button',this.avbuttonAtt1,this.avbuttonModel1);
+
 	
 	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenues.bind(this));
 	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+	Mojo.Event.listen(this.controller.get('add_venue_button'),Mojo.Event.tap, this.addNewVenue.bind(this));
+
 
     this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
@@ -83,13 +97,14 @@ NearbyVenuesAssistant.prototype.setup = function() {
           visible: true,
           items: [{
           	items: [ 
-                 { icon: "back", command: "do-Previous"},
-                 { icon: "back", command: "do-Previous2"},
-                 { icon: "back", command: "do-Previous3"},
-                 { icon: "back", command: "do-Previous4"},
-                 { icon: 'forward', command: 'do-Next'}
+                 { icon: "back", command: "do-Venues"},
+                 { icon: "back", command: "do-Friends"},
+                 { icon: "back", command: "do-Tips"},
+                 { icon: "back", command: "do-Shout"},
+                 { iconPath: "images/badges_button.png", command: "do-Badges"},
+                 { icon: 'forward', command: 'do-Leaderboard'}
                  ],
-            toggleCmd: "do-Previous"
+            toggleCmd: "do-Venues"
             }]
     });
     
@@ -371,6 +386,14 @@ NearbyVenuesAssistant.prototype.groupVenues = function(data){
 	return data.grouping;
 }
 
+NearbyVenuesAssistant.prototype.addNewVenue = function(){
+	var dialog = this.controller.showDialog({
+		template: 'listtemplates/add-venue',
+		assistant: new AddVenueDialogAssistant(this)
+	});
+
+}
+
 
 
 
@@ -385,6 +408,14 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 					scroller.mojo.revealTop(0);
 					$("drawerId").mojo.toggleState();
 					this.controller.modelChanged(this.drawerModel)
+                	break;
+				case "do-Venues":
+                	var thisauth=auth;
+					this.controller.stageController.pushScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,uid);
+					break;
+                case "do-Badges":
+                	var thisauth=auth;
+					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
             }
         }

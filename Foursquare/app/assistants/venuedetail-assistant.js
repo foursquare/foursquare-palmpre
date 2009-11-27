@@ -54,7 +54,14 @@ VenuedetailAssistant.prototype.setup = function() {
         this.buttonAttributes = {
             },
         this.buttonModel = {
-            label : "Add a Tip",
+            label : "Add Tip",
+            disabled: false
+        });
+    this.controller.setupWidget("buttonAddTodo",
+        this.buttonAttributes = {
+            },
+        this.buttonModel = {
+            label : "Add To-do",
             disabled: false
         });
 
@@ -63,7 +70,15 @@ VenuedetailAssistant.prototype.setup = function() {
 	
 	/* add event handlers to listen to events from widgets */
 	Mojo.Event.listen($("docheckin"),Mojo.Event.tap,this.promptCheckin.bind(this));
+	
+	/*var userlinks=$$(".userLink");
+	for(var e=0;e<userlinks.length;e++) {
+		var eid=userlinks[e].id;
+		Mojo.Event.listen($(eid),Mojo.Event.tap,this.showUserInfo.bind(this));
+	}*/
+	
 	Mojo.Event.listen($("buttonAddTip"),Mojo.Event.tap, this.handleAddTip.bind(this));
+	Mojo.Event.listen($("buttonAddTodo"),Mojo.Event.tap, this.handleAddTodo.bind(this));
 
 }
 
@@ -96,8 +111,12 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	if(response.responseJSON.venue.stats.mayor != undefined) { //venue has a mayor
 		$("snapMayor").show();
 		$("mayorPic").src=response.responseJSON.venue.stats.mayor.user.photo;
+		$("mayorPic").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
+		$("mayorPicBorder").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
+		
 		var lname=(response.responseJSON.venue.stats.mayor.user.lastname != undefined)? response.responseJSON.venue.stats.mayor.user.lastname: '';
 		$("mayorName").innerHTML=response.responseJSON.venue.stats.mayor.user.firstname+" "+lname;
+		$("mayorName").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
 		var mInfo;
 		switch(response.responseJSON.venue.stats.mayor.user.gender) {
 			case "male":
@@ -117,6 +136,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 				
 		}
 		$("mayorInfo").innerHTML=mInfo;
+		
 	}
 	
 	
@@ -131,10 +151,11 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			var tlname=(response.responseJSON.venue.tips[t].user.lastname != undefined)? response.responseJSON.venue.tips[t].user.lastname : '';
 			var username=response.responseJSON.venue.tips[t].user.firstname+" "+tlname;
 			var photo=response.responseJSON.venue.tips[t].user.photo;
+			var uid=response.responseJSON.venue.tips[t].user.id;
 
-			tips+='<div class="palm-row single aTip"><img src="'+photo+'" width="24"/> <span class="venueTipUser">'+username+'</span><br/><span class="palm-info-text venueTip">'+tip+'</span></div>'+"\n";
+			tips+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink" data="'+uid+'"/> <span class="venueTipUser userLink" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+tip+'</span></div>'+"\n";
 		}
-		$("venueTips").innerHTML=tips;
+		$("venueTips").update(tips);
 	}
 	
 	
@@ -175,6 +196,18 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	$("venueScrim").hide();
 	$("venueSpinner").mojo.stop();
 	$("venueSpinner").hide();
+	
+	
+	
+	//atatch events to any new user links
+	var userlinks=$$(".userLink");
+	for(var e=0;e<userlinks.length;e++) {
+		var eid=userlinks[e].id;
+		Mojo.Event.stopListening($(eid),Mojo.Event.tap,this.showUserInfo);
+		Mojo.Event.listen($(eid),Mojo.Event.tap,this.showUserInfo.bind(this));
+		Mojo.Log.error("#########added event to "+eid)
+	}
+
 }
 
 
@@ -249,15 +282,31 @@ VenuedetailAssistant.prototype.handleAddTip=function(event) {
 	var thisauth=auth;
 	var dialog = this.controller.showDialog({
 		template: 'listtemplates/add-tip',
-		assistant: new AddTipDialogAssistant(this,thisauth,this.venue.id)
+		assistant: new AddTipDialogAssistant(this,thisauth,this.venue.id,"tip")
+	});
+
+}
+VenuedetailAssistant.prototype.handleAddTodo=function(event) {
+	var thisauth=auth;
+	var dialog = this.controller.showDialog({
+		template: 'listtemplates/add-tip',
+		assistant: new AddTipDialogAssistant(this,thisauth,this.venue.id,"todo")
 	});
 
 }
 
+VenuedetailAssistant.prototype.showUserInfo = function(event) {
+	Mojo.Log.error("############user info! the uid="+event.target.readAttribute("data")+",target="+event.target.id);
+	var thisauth=auth;
+	this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,event.target.readAttribute("data"));
+
+}
 
 VenuedetailAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
+	   
+	
 }
 
 

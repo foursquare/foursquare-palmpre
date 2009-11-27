@@ -27,13 +27,19 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
   );
   Mojo.Event.listen(this.sceneAssistant.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
   
+  	this.cookieData=new Mojo.Model.Cookie("credentials");
+	var credentials=this.cookieData.get();
+	var pings=(credentials.ping=="on")? '0': '1';
+	var stt=(credentials.savetotwitter==true)? '1': '0';
+  
+  
       this.sceneAssistant.controller.setupWidget("chkShowFriends",
          this.sfattributes = {
              trueValue: '1',
              falseValue: '0' 
          },
          this.sfmodel = {
-             value: '0',
+             value: pings,
              disabled: false
          });
     this.sceneAssistant.controller.setupWidget("chkTwitter",
@@ -42,10 +48,10 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
              falseValue: '0' 
          },
          this.twmodel = {
-             value: '0',
+             value: stt,
              disabled: false
          });
-
+	Mojo.Log.error("twittersave:"+credentials.savetotwitter);
   
 	this.sceneAssistant.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
 

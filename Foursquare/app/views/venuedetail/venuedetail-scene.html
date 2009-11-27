@@ -7,6 +7,7 @@
 			</div>
 			<div id="docheckin" style="width: 34%;float:left;">checkin</div>
 			<div style="clear:both;height: 2px;">&nbsp;</div>
+		  	<div id="dropshadow">&nbsp;</div>
 		</div>
 	</div>
    <div x-mojo-element="Scroller" id="detailScroller" class="scrollerClass" name="scrollerName">
@@ -34,12 +35,12 @@
 			</table>
 			<div id="venueMayor">
 				<div id="mayorAvatar">
-					<img id="mayorPic" width="75" height="75" alt="Mayor!" src="" />
-					<img id="mayorPicBorder" src="images/roundedCorner.png" />
+					<img id="mayorPic" width="75" height="75" data="" alt="Mayor!" src="" />
+					<img id="mayorPicBorder" src="images/roundedCorner.png" class="userLink" data="" alt="" />
 					<img id="mayorCrown" src="images/crown.png" />
 				</div>
 				<div id="mayorInfoBlock">
-					<div id="mayorName" class="title"></div>
+					<div id="mayorName" class="title userLink" alt=""></div>
 					<div id="mayorInfo" class="palm-info-text"></div><br class="breaker"/>
 				</div>
 			</div>
@@ -49,13 +50,14 @@
 			  <tr>
 			    <td class="left"></td>
 			    <td class="label">
-			      Tips
+			      Tips &amp; To-do's
 			    </td>
 			    <td class="right"></td>
 			  </tr>
 			</table>
 			<div id="venueTips"></div>
-			<div x-mojo-element="Button" id="buttonAddTip" class="buttonClass" name="buttonName"></div>
+			<div x-mojo-element="Button" id="buttonAddTip" class="buttonClass addtipok" name="buttonName"></div>
+			<div x-mojo-element="Button" id="buttonAddTodo" class="buttonClass addtipcancel" name="buttonName"></div>
 		</div>
 		<div id="snapTags" class="breaker">
 			<table class="palm-divider labeled">
@@ -91,5 +93,4 @@
 <div class="palm-scrim" id="venueScrim"></div>
 <div x-mojo-element="Spinner" id="venueSpinner" class="spinnerClass" name="spinnerName">
 </div>
-<div id="dropshadow">&nbsp;</div>
 <div class="fade-bottom"></div>
