@@ -157,6 +157,26 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		}
 		$("venueTips").update(tips);
 	}
+
+	//who's here? stuff
+	if(response.responseJSON.venue.checkins != undefined) {
+		$("snapUsers").show();
+		var users='';
+		for (var t=0;t<response.responseJSON.venue.checkins.length;t++) {
+			//<div class="palm-row single"><div class="checkin-score"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>
+			var shout=(response.responseJSON.venue.checkins[t].shout != undefined)? response.responseJSON.venue.checkins[t].shout: "";
+			var created=response.responseJSON.venue.checkins[t].created;
+			var tlname=(response.responseJSON.venue.checkins[t].user.lastname != undefined)? response.responseJSON.venue.checkins[t].user.lastname : '';
+			var username=response.responseJSON.venue.checkins[t].user.firstname+" "+tlname;
+			var photo=response.responseJSON.venue.checkins[t].user.photo;
+			var uid=response.responseJSON.venue.checkins[t].user.id;
+
+			users+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink" data="'+uid+'"/> <span class="venueTipUser userLink" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+shout+'</span></div>'+"\n";
+		}
+		$("venueUsers").update(users);
+	}else{
+		$("snapUsers").hide();
+	}
 	
 	
 	//venue info stuff
@@ -214,10 +234,13 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 
 VenuedetailAssistant.prototype.getVenueInfoFailed = function(response) {
 	Mojo.Log.error("############error!");
+	Mojo.Controller.getAppController().showBanner("Error getting the venue's info", {source: 'notification'});
 }
 var checkinDialog;
+
+
 VenuedetailAssistant.prototype.promptCheckin = function(event) {
-	this.controller.showAlertDialog({
+/*	this.controller.showAlertDialog({
 		onChoose: function(value) {
 			if (value) {
 				Mojo.Log.error("#######click yeah");
@@ -228,7 +251,7 @@ VenuedetailAssistant.prototype.promptCheckin = function(event) {
 		message:"Go ahead and check-in here?",
 		cancelable:true,
 		choices:[ {label:'Yeah!', value:true, type:'affirmative'}, {label:'Eh, nevermind.', value:false, type:'negative'} ]
-	});
+	});*/
 		checkinDialog = this.controller.showDialog({
 		template: 'listtemplates/do-checkin',
 		assistant: new DoCheckinDialogAssistant(this,this.venue.id,this.venue.name)
@@ -275,6 +298,7 @@ VenuedetailAssistant.prototype.checkInSuccess = function(response) {
 
 VenuedetailAssistant.prototype.checkInFailed = function(response) {
 	Mojo.Log.error('Check In Failed: ' + repsonse.responseText);
+	Mojo.Controller.getAppController().showBanner("Error checking in!", {source: 'notification'});
 }
 
 

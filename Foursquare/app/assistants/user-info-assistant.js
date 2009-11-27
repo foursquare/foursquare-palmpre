@@ -48,10 +48,17 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	//user info
 	$("userPic").src=j.user.photo;
 	var lname=(j.user.lastname != undefined)? j.user.lastname: "";
-	var tw=(j.user.twitter != undefined)? '<img src="images/bird.png" width="16" height="16" /> <a href="http://twitter.com/'+j.user.twitter+'">'+j.user.twitter+'</a>': "";
+	var tw=(j.user.twitter != undefined)? '<img src="images/bird.png" width="16" height="16" /> <a href="http://twitter.com/'+j.user.twitter+'">'+j.user.twitter+'</a><br/>': "";
+	var fb=(j.user.facebook != undefined)? '<img src="images/facebook.gif" width="16" height="16" /> <a href="http://facebook.com/profile.php?id='+j.user.facebook+'">Facebook Profile</a><br/>': "";
+	var ph=(j.user.phone != undefined)? '<img src="images/phone.png" width="16" height="16" /> <a href="tel://'+j.user.phone+'">'+j.user.phone+'</a><br/>': "";
+	var em=(j.user.email != undefined)? '<img src="images/mail.png" width="16" height="16" /> <a href="mailto:'+j.user.email+'">'+j.user.email+'</a><br/>': "";
 	$("userName").innerHTML=j.user.firstname+" "+lname+"<br class=\"breaker\"/>";
 	$("userInfo").innerHTML+=j.user.city.name+"<br/>";
-	$("userInfo").innerHTML+=tw+"<br/>";
+	$("userInfo").innerHTML+=em+ph+tw+fb;
+	if(j.user.checkin != undefined) {
+		$("userInfo").innerHTML+=j.user.checkin.display;
+	}
+	
 
 	//user's mayorships
 	if(j.user.mayor != null) {
@@ -78,6 +85,7 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 }
 
 UserInfoAssistant.prototype.getUserInfoFailed = function(response) {
+	Mojo.Controller.getAppController().showBanner("Error getting the user's info.", {source: 'notification'});
 
 }
 

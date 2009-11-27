@@ -89,20 +89,20 @@ NearbyVenuesAssistant.prototype.setup = function() {
         });
         
     this.controller.setupWidget(Mojo.Menu.commandMenu,
-        this.attributes = {
+        this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'no-fade'
         },
-        this.model = {
+        this.cmmodel = {
           visible: true,
           items: [{
           	items: [ 
                  { icon: "back", command: "do-Venues"},
                  { icon: "back", command: "do-Friends"},
                  { icon: "back", command: "do-Tips"},
-                 { icon: "back", command: "do-Shout"},
+                 { iconPath: "images/shout_button.png", command: "do-Shout"},
                  { iconPath: "images/badges_button.png", command: "do-Badges"},
-                 { icon: 'forward', command: 'do-Leaderboard'}
+                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
                  ],
             toggleCmd: "do-Venues"
             }]
@@ -154,7 +154,7 @@ function make_base_auth(user, pass) {
 
 
 NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
-	
+	Mojo.Log.error("trying to get location..");
 	
 	//hide the result list box an clear out it's model
 	$(resultListBox).style.display = 'none';
@@ -174,18 +174,24 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 }
 
 NearbyVenuesAssistant.prototype.gotLocation = function(event) {
-	
+			Mojo.Log.error("gps error: " + event.errorCode);
+
 	if(event.errorCode == 0) {
 		$('message').innerHTML = 'Found Location...';
+		Mojo.Log.error("got location");
 		//we got the location so now query it against 4square for a venue list
 		this.getVenues(event.latitude, event.longitude);
 	} else {
 		$('message').innerHTML = "gps error: " + event.errorCode;
+		Mojo.Log.error("gps error: " + event.errorCode);
+		Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
 	}
 }
 
 NearbyVenuesAssistant.prototype.failedLocation = function(event) {
 	$('message').innerHTML = 'failed to get location: ' + event.errorCode;
+	Mojo.Log.error('failed to get location: ' + event.errorCode);
+	Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
 }
 
 NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude) {
@@ -389,7 +395,7 @@ NearbyVenuesAssistant.prototype.groupVenues = function(data){
 NearbyVenuesAssistant.prototype.addNewVenue = function(){
 	var dialog = this.controller.showDialog({
 		template: 'listtemplates/add-venue',
-		assistant: new AddVenueDialogAssistant(this)
+		assistant: new AddVenueDialogAssistant(this,auth)
 	});
 
 }
@@ -407,7 +413,7 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 					//call the widget method for scrolling to the top
 					scroller.mojo.revealTop(0);
 					$("drawerId").mojo.toggleState();
-					this.controller.modelChanged(this.drawerModel)
+					this.controller.modelChanged(this.drawerModel);
                 	break;
 				case "do-Venues":
                 	var thisauth=auth;
@@ -416,6 +422,13 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
                 case "do-Badges":
                 	var thisauth=auth;
 					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+                	break;
+                case "do-Shout":
+                	var checkinDialog = this.controller.showDialog({
+						template: 'listtemplates/do-shout',
+						assistant: new DoShoutDialogAssistant(this,auth)
+					});
+
                 	break;
             }
         }

@@ -1,8 +1,6 @@
-function AddVenueDialogAssistant(sceneAssistant,a,vid,t) {
+function AddVenueDialogAssistant(sceneAssistant,a) {
   this.sceneAssistant = sceneAssistant;
   this.auth=a;
-  this.vid=vid;
-  this.type=t;
 }
 AddVenueDialogAssistant.prototype.setup = function(widget) {
   this.widget = widget;
@@ -115,7 +113,9 @@ AddVenueDialogAssistant.prototype.activate = function() {
 
 
 AddVenueDialogAssistant.prototype.okTapped = function() {
+Mojo.Log.error("### we got not auth!");
 	if (this.auth) {
+		Mojo.Log.error("############trying to add venue");
   		this.cookieData=new Mojo.Model.Cookie("credentials");
 		var credentials=this.cookieData.get();
 
@@ -148,6 +148,7 @@ AddVenueDialogAssistant.prototype.okTapped = function() {
 }
 
 AddVenueDialogAssistant.prototype.venueSuccess = function(response) {
+	Mojo.Controller.getAppController().showBanner("New venue added to Foursquare!", {source: 'notification'});
 	Mojo.Log.error(response.responseText);
 	$("okButton").mojo.deactivate();
 	this.widget.mojo.close();
@@ -155,6 +156,7 @@ AddVenueDialogAssistant.prototype.venueSuccess = function(response) {
 
 AddVenueDialogAssistant.prototype.venueFailed = function(response) {
 	Mojo.Log.error(response.responseText);
+	Mojo.Controller.getAppController().showBanner("Error savind your new venue.", {source: 'notification'});
 }
 AddVenueDialogAssistant.prototype.cancelTapped = function() {
 	this.widget.mojo.close();

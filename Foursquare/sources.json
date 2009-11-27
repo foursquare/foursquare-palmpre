@@ -11,6 +11,7 @@
     {"source": "app\/assistants\/check-in-dialog-assistant.js"},
     {"source": "app\/assistants\/add-tip-dialog-assistant.js"},
     {"source": "app\/assistants\/do-checkin-dialog-assistant.js"},
+    {"source": "app\/assistants\/do-shout-dialog-assistant.js"},
     {"source": "app\/assistants\/add-venue-dialog-assistant.js"},
     {
         "source": "app\/assistants\/venuedetail-assistant.js",

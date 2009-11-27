@@ -201,3 +201,11 @@ body {
 	left: 100px;
 }
 
+.lefthalf {
+	width: 20%;
+	float: left;
+}
+.righthalf {
+	width: 45%;
+	float: right;
+}

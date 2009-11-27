@@ -66,12 +66,14 @@ AddTipDialogAssistant.prototype.okTapped = function() {
 }
 
 AddTipDialogAssistant.prototype.tipSuccess = function() {
+	Mojo.Controller.getAppController().showBanner("Successfully added your "+this.type+"!", {source: 'notification'});
 	$("okButton").mojo.deactivate();
 	this.sceneAssistant.getVenueInfo();
 	this.widget.mojo.close();
 }
 
 AddTipDialogAssistant.prototype.tipFailed = function() {
+	Mojo.Controller.getAppController().showBanner("Error adding your "+this.type, {source: 'notification'});
 
 }
 AddTipDialogAssistant.prototype.cancelTapped = function() {
