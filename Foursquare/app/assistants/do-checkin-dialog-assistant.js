@@ -10,7 +10,7 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
   
   // Setup button and event handler
   this.sceneAssistant.controller.setupWidget("okButton",
-    this.attributes = {/*type : Mojo.Widget.activityButton*/},
+    this.attributes = {type : Mojo.Widget.activityButton},
     this.OKButtonModel = {
       buttonLabel: "Check-in",
       disabled: false

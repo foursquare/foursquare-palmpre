@@ -52,13 +52,40 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	var fb=(j.user.facebook != undefined)? '<img src="images/facebook.gif" width="16" height="16" /> <a href="http://facebook.com/profile.php?id='+j.user.facebook+'">Facebook Profile</a><br/>': "";
 	var ph=(j.user.phone != undefined)? '<img src="images/phone.png" width="16" height="16" /> <a href="tel://'+j.user.phone+'">'+j.user.phone+'</a><br/>': "";
 	var em=(j.user.email != undefined)? '<img src="images/mail.png" width="16" height="16" /> <a href="mailto:'+j.user.email+'">'+j.user.email+'</a><br/>': "";
-	$("userName").innerHTML=j.user.firstname+" "+lname+"<br class=\"breaker\"/>";
-	$("userInfo").innerHTML+=j.user.city.name+"<br/>";
-	$("userInfo").innerHTML+=em+ph+tw+fb;
-	if(j.user.checkin != undefined) {
-		$("userInfo").innerHTML+=j.user.checkin.display;
+	var friendstatus=(j.user.friendstatus != undefined)? j.user.friendstatus: "";
+
+	switch (friendstatus) {
+		case "friend":
+			var fs='<img src="images/friend.png" width="100" height="35" id="isfriend" alt="Friend" />';
+			break;
+		case "pendingthem":
+			var fs='<img src="images/pending.png" width="100" height="35" id="pendingfriend" alt="Pending" />';
+			break;
+		case "pendingyou":
+			var fs='<img src="images/approve.png" width="100" height="35" id="approvefriend" alt="Approve" /> <img src="images/deny.png" width="100" height="35" id="denyfriend" alt="Deny" />';		
+			break;
+		default:
+			var fs='<img src="images/addfriend.png" width="100" height="35" id="addfriend" alt="Add Friend" />';					
+			break;
 	}
 	
+	fs='<span id="friend_button">'+fs+'</span>';
+	
+	$("userName").innerHTML=j.user.firstname+" "+lname+"<br class=\"breaker\"/>";
+	$("userInfo").innerHTML+=j.user.city.name+"<br/>";
+	$("userInfo").innerHTML+=em+ph+tw+fb+fs;
+	if(j.user.checkin != undefined) {
+		$("userInfo").innerHTML+="<br/>"+j.user.checkin.display;
+	}
+	
+	//assign events to the new button(s)
+	if(friendstatus=="pendingyou") {
+		Mojo.Event.listen($("approvefriend"),Mojo.Event.tap,this.approveFriend.bind(this));
+		Mojo.Event.listen($("denyfriend"),Mojo.Event.tap,this.denyFriend.bind(this));
+	}
+	if(friendstatus=="") {
+		Mojo.Event.listen($("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
+	}
 
 	//user's mayorships
 	if(j.user.mayor != null) {
@@ -66,7 +93,7 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 			$("mayor-box").innerHTML+='<div class="palm-row single"><div class="checkin-score truncating-text"><span>'+j.user.mayor[m].name+'</span></div></div>';
 		}
 	}else{
-		$("mayor-box").innerHTML='<div class="palm-row single"><div class="checkin-score"><span>'+j.user.firstname+' isn\'t the mayor of anything yet.</span></div></div>';
+		$("mayor-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' isn\'t the mayor of anything yet.</span></div></div>';
 	}
 
 	//user's badges
@@ -89,11 +116,88 @@ UserInfoAssistant.prototype.getUserInfoFailed = function(response) {
 
 }
 
+UserInfoAssistant.prototype.approveFriend = function(event) {
+	var url = 'http://api.foursquare.com/v1/friend/approve.json';
+	var request = new Ajax.Request(url, {
+	   method: 'post',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization:this.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   parameters: {uid:this.uid},
+	   onSuccess: this.approveSuccess.bind(this),
+	   onFailure: this.approveFailed.bind(this)
+	 });
+}
+UserInfoAssistant.prototype.approveSuccess = function(response) {
+	if(response.responseJSON.user != undefined) {
+		Mojo.Controller.getAppController().showBanner("Friend request approved!", {source: 'notification'});
+		$("friend_button").innerHTML='<img src="images/friend.png" width="100" height="35" id="isfriend" alt="Friend" />';
+	}else{
+		Mojo.Controller.getAppController().showBanner("Error approving friend request", {source: 'notification'});
+	}
+}
+UserInfoAssistant.prototype.approveFailed = function(response) {
+	Mojo.Controller.getAppController().showBanner("Error approving friend request", {source: 'notification'});
+}
+
+UserInfoAssistant.prototype.denyFriend = function(event) {
+	var url = 'http://api.foursquare.com/v1/friend/deny.json';
+	var request = new Ajax.Request(url, {
+	   method: 'post',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization:this.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   parameters: {uid:this.uid},
+	   onSuccess: this.denySuccess.bind(this),
+	   onFailure: this.denyFailed.bind(this)
+	 });
+}
+UserInfoAssistant.prototype.denySuccess = function(response) {
+	if(response.responseJSON.user != undefined) {
+		Mojo.Controller.getAppController().showBanner("Friend request denied!", {source: 'notification'});
+		$("friend_button").innerHTML='<img src="images/addfriend.png" width="100" height="35" id="addfriend" alt="Add Friend" />';
+		Mojo.Event.listen($("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
+	}else{
+		Mojo.Controller.getAppController().showBanner("Error denying friend request", {source: 'notification'});
+	}
+}
+UserInfoAssistant.prototype.denyFailed = function(response) {
+	Mojo.Controller.getAppController().showBanner("Error denying friend request", {source: 'notification'});
+}
+
+
+
+
+UserInfoAssistant.prototype.addFriend = function(event) {
+	var url = 'http://api.foursquare.com/v1/friend/sendrequest.json';
+	var request = new Ajax.Request(url, {
+	   method: 'post',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization:this.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   parameters: {uid:this.uid},
+	   onSuccess: this.addSuccess.bind(this),
+	   onFailure: this.addFailed.bind(this)
+	 });
+}
+UserInfoAssistant.prototype.addSuccess = function(response) {
+	if(response.responseJSON.user != undefined) {
+		Mojo.Controller.getAppController().showBanner("Friend request sent!", {source: 'notification'});
+		$("friend_button").innerHTML='<img src="images/pending.png" width="100" height="35" id="pendingfriend" alt="Pending" />';
+	}else{
+		Mojo.Controller.getAppController().showBanner("Error sending friend request", {source: 'notification'});
+	}
+}
+UserInfoAssistant.prototype.addFailed = function(response) {
+	Mojo.Controller.getAppController().showBanner("Error sending friend request", {source: 'notification'});
+}
+
+
+
+
+
+
 UserInfoAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
 }
-
 
 UserInfoAssistant.prototype.deactivate = function(event) {
 	/* remove any event handlers you added in activate and do any other cleanup that should happen before

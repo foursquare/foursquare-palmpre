@@ -26,18 +26,24 @@ CheckInDialogAssistant.prototype.initData = function(checkinJSON) {
 	$('checkin-title').innerHTML = checkinJSON.checkin.message;
 	
 	
-	//set the individual scores - 
+	//set the individual scores - handle changes in JSON response...
 	if(checkinJSON.checkin.scoring != undefined){
+		var scores=checkinJSON.checkin.scoring.score;
+	}else if(checkinJSON.checkin.scores != undefined){
+		var scores=checkinJSON.checkin.scores;
+	}else{
+		var scores=undefined;
+	}
+	if(scores != undefined) {
 		var totalpoints=0;
-		for(var i = 0; i < checkinJSON.checkin.scoring.score.length; i++) {
-			if (checkinJSON.checkin.scoring.score[i] != undefined) { 
-				var imgpath = checkinJSON.checkin.scoring.score[i].icon;
-				totalpoints+=parseInt(checkinJSON.checkin.scoring.score[i].points);
-				var msg = '+' + checkinJSON.checkin.scoring.score[i].points + ' ' +checkinJSON.checkin.scoring.score[i].message;
+		for(var i = 0; i < scores.length; i++) {
+			if (checkinJSON.checkin.scores[i] != undefined) { 
+				var imgpath = scores[i].icon;
+				totalpoints+=parseInt(scores[i].points);
+				var msg = '+' + scores[i].points + ' ' +scores[i].message;
 				$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-score"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';
 			}
 		}
-		
 		var totalPts = (totalpoints != 1)? totalpoints+' pts': totalpoints+' pt';
 		$('score-title').innerHTML = "Score! That's " + totalPts;
 	}
@@ -65,6 +71,12 @@ CheckInDialogAssistant.prototype.initData = function(checkinJSON) {
 			$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';	
 		}
 	}
+	
+	
+	
+	//make sure the next stays in the white box!
+	$('scores-box').innerHTML+='<br class="breaker"/>';
+
 	
 	//set the total score
 	/*

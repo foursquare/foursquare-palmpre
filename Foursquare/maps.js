@@ -1,0 +1,66 @@
+/*
+GOOGLE MAPS HELPER OBJECT
+Code obtained from: http://bchilds.com/blog/2009/10/06/dynamically-loading-google-maps-on-the-palm-pre
+
+*/
+
+function MapsHelper() {
+    this.initialized = false;
+    
+}
+MapsHelper.prototype.isLoaded = function()
+{
+    return this.initialized;
+}
+MapsHelper.prototype.mapsLoaded = function(id)
+{
+    try
+    {
+        Mojo.Log.error("Initializing Maps");
+        
+        // Load any map objects such as Icons that you will reuse later
+
+        Mojo.Log.error("Maps Initialized");
+        
+        this.initialized = true;
+        if(this.loadCallback != undefined)
+        {
+            this.loadCallback();
+        }
+        
+    
+    } catch(error) {
+        Mojo.Log.error("Error Initializing Maps: " + error);
+    }
+};
+
+MapsHelper.prototype.createMap = function(id)
+{
+    var map = new GMap2($(id));
+	map.enableContinuousZoom();
+    return map;
+};
+
+
+MapsHelper.prototype.loadedCallback = function(callback)
+{
+    this.loadCallback = callback;
+}
+
+var Maps = new MapsHelper();
+
+function loadMaps() {
+    
+    Mojo.Log.error("Initializing Google Maps");
+    google.load("maps", "2", {"callback" : Maps.mapsLoaded.bind(Maps),"other_params":"sensor=true"});
+}
+
+function initLoader() {
+    
+    Mojo.Log.error("Initializing Google Loader");
+    // Code from Google Sample
+    var script = document.createElement("script");
+    script.src = "http://www.google.com/jsapi?key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=loadMaps";
+    script.type = "text/javascript";
+    document.getElementsByTagName("head")[0].appendChild(script);
+}

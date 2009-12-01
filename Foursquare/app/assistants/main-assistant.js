@@ -27,7 +27,7 @@ MainAssistant.prototype.setup = function() {
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
 	
 	/* setup widgets here */
-	this.controller.setupWidget('username', this.attributes = {hintText:'Email/Phone'}, this.usernameModel = {value:'', disabled:false});
+	this.controller.setupWidget('username', this.attributes = {hintText:'Email/Phone',textCase: Mojo.Widget.steModeLowerCase}, this.usernameModel = {value:'', disabled:false});
 	this.controller.setupWidget('password', this.attributes = {hintText:'Password'}, this.passwordModel = {value:'', disabled:false});
 	
 	this.controller.setupWidget('goLogin', this.attributes = {}, this.loginBtnModel = {label:'Log In', disabled:false});
@@ -77,7 +77,9 @@ var userData;
 MainAssistant.prototype.loginRequestSuccess = function(response) {
 Mojo.Log.error("####"+response.responseText);
 	userData = response.responseJSON.user;
-	$('message').innerHTML = '<br/>' + response.responseJSON.user.checkin.display;
+	var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
+	Mojo.Log.error("####got disiplay:"+disp);
+	$('message').innerHTML = '<br/>' + disp;
 	var uid=response.responseJSON.user.id;
 	var savetw=response.responseJSON.user.settings.sendtotwitter;
  	var ping=response.responseJSON.user.settings.pings;

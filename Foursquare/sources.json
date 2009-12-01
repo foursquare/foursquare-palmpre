@@ -1,24 +1,33 @@
 [
-    {"source": "app\/assistants\/stage-assistant.js"},
+    {"source": "app/assistants/stage-assistant.js"},
     {
-        "source": "app\/assistants\/main-assistant.js",
-        "scenes": "main"
+        "scenes": "main",
+        "source": "app/assistants/main-assistant.js"
+    },
+	{"source": "maps.js", "scenes": "nearby-venues-map" },
+    {
+        "scenes": "nearby-venues",
+        "source": "app/assistants/nearby-venues-assistant.js"
+    },
+    {"source": "app/assistants/check-in-dialog-assistant.js"},
+    {"source": "app/assistants/add-tip-dialog-assistant.js"},
+    {"source": "app/assistants/do-checkin-dialog-assistant.js"},
+    {"source": "app/assistants/do-shout-dialog-assistant.js"},
+    {"source": "app/assistants/add-venue-dialog-assistant.js"},
+    {
+        "scenes": "venuedetail",
+        "source": "app/assistants/venuedetail-assistant.js"
     },
     {
-        "source": "app\/assistants\/nearby-venues-assistant.js",
-        "scenes": "nearby-venues"
-    },
-    {"source": "app\/assistants\/check-in-dialog-assistant.js"},
-    {"source": "app\/assistants\/add-tip-dialog-assistant.js"},
-    {"source": "app\/assistants\/do-checkin-dialog-assistant.js"},
-    {"source": "app\/assistants\/do-shout-dialog-assistant.js"},
-    {"source": "app\/assistants\/add-venue-dialog-assistant.js"},
-    {
-        "source": "app\/assistants\/venuedetail-assistant.js",
-        "scenes": "venuedetail"
+        "scenes": "user-info",
+        "source": "app/assistants/user-info-assistant.js"
     },
     {
-        "source": "app\/assistants\/user-info-assistant.js",
-        "scenes": "user-info"
+        "scenes": "nearby-venues-map",
+        "source": "app/assistants/nearby-venues-map-assistant.js"
+    },
+    {
+        "scenes": "friends",
+        "source": "app/assistants/friends-assistant.js"
     }
 ]

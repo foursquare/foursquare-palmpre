@@ -180,6 +180,8 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 		$('message').innerHTML = 'Found Location...';
 		Mojo.Log.error("got location");
 		//we got the location so now query it against 4square for a venue list
+		this.lat=event.latitude;
+		this.long=event.longitude;
 		this.getVenues(event.latitude, event.longitude);
 	} else {
 		$('message').innerHTML = "gps error: " + event.errorCode;
@@ -415,6 +417,9 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 					$("drawerId").mojo.toggleState();
 					this.controller.modelChanged(this.drawerModel);
                 	break;
+				case "venue-map":
+					this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items);
+					break;
 				case "do-Venues":
                 	var thisauth=auth;
 					this.controller.stageController.pushScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,uid);

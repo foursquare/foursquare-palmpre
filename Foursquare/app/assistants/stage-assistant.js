@@ -5,7 +5,7 @@ StageAssistant.prototype.setup = function() {
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 	Mojo.Log.error("######got cookie");
-	if (credentials){
+	if (credentials /*&& 1==2*//*uncomment the comment before this to force the login dialog*/){
 		Mojo.Log.error("#######has a cookie: "+credentials.username+" / "+credentials.password);
 		this.username=credentials.username;
 		this.password=credentials.password;
@@ -15,3 +15,11 @@ StageAssistant.prototype.setup = function() {
 		this.controller.pushScene('main',false);
 	}
 }
+
+
+
+
+
+
+
+
