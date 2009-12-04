@@ -194,7 +194,7 @@ body {
 	padding-left: 0;
 }
 
-#userSpinner {
+#userSpinner,#mapSpinner {
 	z-index: 100000;
 	position: absolute;
 	top: 100px;

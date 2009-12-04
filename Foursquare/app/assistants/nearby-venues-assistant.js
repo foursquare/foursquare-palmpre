@@ -80,10 +80,9 @@ NearbyVenuesAssistant.prototype.setup = function() {
         this.menuModel = {
             visible: true,
             items: [ {
-                items: [{ icon: "", command: "", label: "  "},
-                { icon: "", command: "", label: "  "},
-                { label: "Venues", width: 100 },
+                items: [
                 { iconPath: 'map.png', command: 'venue-map', label: "  "},
+                { label: "Venues", width: 200 ,command: 'nearby-venues'},
                 { iconPath: 'search.png', command: 'venue-search', label: "  "}]
             }]
         });
@@ -418,7 +417,7 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 					this.controller.modelChanged(this.drawerModel);
                 	break;
 				case "venue-map":
-					this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items);
+					this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this);
 					break;
 				case "do-Venues":
                 	var thisauth=auth;

@@ -1,4 +1,4 @@
-function NearbyVenuesMapAssistant(lat,long,v) {
+function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -6,6 +6,10 @@ function NearbyVenuesMapAssistant(lat,long,v) {
 	   this.lat=lat;
 	   this.long=long;
 	   this.venues=v;
+	   this.username=u;
+	   this.password=p;
+	   this.uid=uid;
+	   this.prevScene=ps;
 }
 
 NearbyVenuesMapAssistant.prototype.setup = function() {
@@ -30,10 +34,9 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
         this.menuModel = {
             visible: true,
             items: [ {
-                items: [{ icon: "", command: "", label: "  "},
-                { icon: "", command: "", label: "  "},
-                { label: "Venues", width: 100 },
+                items: [
                 { iconPath: 'map.png', command: 'venue-map', label: "  "},
+                { label: "Venues", width: 200,command: 'nearby-venues' },
                 { iconPath: 'search.png', command: 'venue-search', label: "  "}]
             }]
         });
@@ -63,9 +66,9 @@ NearbyVenuesMapAssistant.prototype.initMap = function(event) {
 		var cafeIcon = new GIcon();
 		cafeIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=+|62195D";
 		cafeIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
-		cafeIcon.iconSize = new GSize(25, 33);
-		cafeIcon.shadowSize = new GSize(35, 33);
-		cafeIcon.iconAnchor = new GPoint(19, 33);
+		cafeIcon.iconSize = new GSize(30, 38);
+		cafeIcon.shadowSize = new GSize(40, 38);
+		cafeIcon.iconAnchor = new GPoint(24, 38);
 		cafeIcon.infoWindowAnchor = new GPoint(5, 1);
 		/*var cafeIcon = new GIcon();
 		cafeIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_icon&chld=cafe|62195D";
@@ -91,10 +94,51 @@ NearbyVenuesMapAssistant.prototype.initMap = function(event) {
 
 		for(var v=0;v<this.venues.length;v++) {
 			var point = new GLatLng(this.venues[v].geolat,this.venues[v].geolong);
-  			this.map.addOverlay(new GMarker(point, markerOptions));
+			
+			
+			var marker=new GMarker(point, markerOptions);
+			marker.venue=this.venues[v];
+			marker.vindex=v;
+			marker.username=this.username;
+			marker.password=this.password;
+			marker.uid=this.uid;
+  			this.map.addOverlay(marker);
+			/*GEvent.addListener(marker, "click",function() {
+				NearbyVenuesMapAssistant.showVenue(NearbyVenuesMapAssistant.vvv);
+			});*/
+			
+
 
 		}
 
+
+		/*Set up an Event on the clicking of the map itself.
+			Adding events to the markers themselves udner Mojo is a pain,
+			So we add the evnt to the map, then we get the instance of the clickable object
+			Under the user's finger, if any. If it's a marker, sho the info window
+			and attach an event to the Venue Info link to show the Venue Detail scene
+		*/
+		GEvent.addListener(this.map, "click",
+        function(clickable,noideawhatthisargumentis,point) {
+           if(clickable.venue != undefined) {
+           var iw=this.map.openInfoWindowHtml(point, '<div id="iw-'+clickable.venue.id+'"><b>'+clickable.venue.name+"</b><br/>"+
+           										clickable.venue.address+"<br/></div>"+
+           										'<a href="javascript:;" id="venue-'+clickable.venue.id+'" class="venueLink" data="'+clickable.vindex+'">Venue Info</a>'
+           										,{onOpenFn: function(){
+													var eid="venue-"+clickable.venue.id;
+													Mojo.Log.error("#########adding event to "+eid)
+													Mojo.Event.stopListening($(eid),Mojo.Event.tap,this.showVenueInfo); //avoid conflicts
+													Mojo.Event.listen($(eid),Mojo.Event.tap,this.showVenueInfo.bind(this));
+													Mojo.Log.error("#########added event to "+eid)
+           										
+           										
+           										
+           										
+           										}.bind(this)
+           										});
+           										
+        }}.bind(this));
+		
 
 		
 		
@@ -112,6 +156,13 @@ NearbyVenuesMapAssistant.prototype.initMap = function(event) {
         Mojo.Log.error("Error during setup: " + error);
     }
 }
+
+NearbyVenuesMapAssistant.prototype.showVenueInfo = function(event) {
+	Mojo.Log.error("trying venue info!!!!!");
+	var v=event.target.readAttribute("data");
+	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.venues[v],this.username,this.password,this.uid);
+}
+
 
 NearbyVenuesMapAssistant.prototype.activate = function(event) {
 Mojo.Log.error("protocol="+window.location.protocol);
@@ -135,18 +186,22 @@ Mojo.Log.error("protocol="+window.location.protocol);
                 }
 }
 
-NearbyVenuesAssistant.prototype.handleCommand = function(event) {
+NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
                 case "venue-search":
                 	Mojo.Log.error("===========venue search clicked");
 					//get the scroller for your scene
-					var scroller = this.controller.getSceneScroller();
+					var scroller = this.prevScene.controller.getSceneScroller();
 					//call the widget method for scrolling to the top
 					scroller.mojo.revealTop(0);
-					$("drawerId").mojo.toggleState();
-					this.controller.modelChanged(this.drawerModel);
+					this.prevScene.controller.get("drawerId").mojo.toggleState();
+					this.prevScene.controller.modelChanged(this.prevScene.drawerModel);
+					this.controller.stageController.popScene("nearby-venues-map");
                 	break;
+				case "nearby-venues":
+					this.controller.stageController.popScene("nearby-venues-map");
+					break;
 				case "venue-map":
 					this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items);
 					break;

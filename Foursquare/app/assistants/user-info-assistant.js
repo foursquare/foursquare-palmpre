@@ -57,6 +57,7 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	switch (friendstatus) {
 		case "friend":
 			var fs='<img src="images/friend.png" width="100" height="35" id="isfriend" alt="Friend" />';
+			var fs="You're friends!"
 			break;
 		case "pendingthem":
 			var fs='<img src="images/pending.png" width="100" height="35" id="pendingfriend" alt="Pending" />';
