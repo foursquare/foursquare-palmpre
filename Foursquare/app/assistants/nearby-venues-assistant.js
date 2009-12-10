@@ -96,8 +96,8 @@ NearbyVenuesAssistant.prototype.setup = function() {
           visible: true,
           items: [{
           	items: [ 
-                 { icon: "back", command: "do-Venues"},
-                 { icon: "back", command: "do-Friends"},
+                 { iconPath: "images/venue_button.png", command: "do-Venues"},
+                 { iconPath: "images/friends_button.png", command: "do-Friends"},
                  { icon: "back", command: "do-Tips"},
                  { iconPath: "images/shout_button.png", command: "do-Shout"},
                  { iconPath: "images/badges_button.png", command: "do-Badges"},
@@ -421,7 +421,11 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 					break;
 				case "do-Venues":
                 	var thisauth=auth;
-					this.controller.stageController.pushScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,uid);
+					this.controller.stageController.pushScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+					break;
+				case "do-Friends":
+                	var thisauth=auth;
+					this.controller.stageController.pushScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long);
 					break;
                 case "do-Badges":
                 	var thisauth=auth;
@@ -443,7 +447,10 @@ NearbyVenuesAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
 	     //  this.onGetNearbyVenues();
-
+	    /* 
+	     this.cmmodel.toggleCmd="do-Venues";
+	     this.controller.modelChanged(this.cmmodel);
+*/
 }
 
 

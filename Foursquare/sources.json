@@ -4,7 +4,14 @@
         "scenes": "main",
         "source": "app/assistants/main-assistant.js"
     },
-	{"source": "maps.js", "scenes": "nearby-venues-map" },
+    {
+        "scenes": "nearby-venues-map",
+        "source": "maps.js"
+    },
+    {
+        "scenes": "friends-map",
+        "source": "maps.js"
+    },
     {
         "scenes": "nearby-venues",
         "source": "app/assistants/nearby-venues-assistant.js"
@@ -27,7 +34,11 @@
         "source": "app/assistants/nearby-venues-map-assistant.js"
     },
     {
-        "scenes": "friends",
-        "source": "app/assistants/friends-assistant.js"
+        "scenes": "friends-list",
+        "source": "app/assistants/friends-list-assistant.js"
+    },
+    {
+        "scenes": "friends-map",
+        "source": "app/assistants/friends-map-assistant.js"
     }
 ]

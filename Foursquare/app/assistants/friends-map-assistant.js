@@ -1,18 +1,18 @@
-function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps) {
+function FriendsMapAssistant(lat,long,f,u,p,uid,ps) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
 	   that needs the scene controller should be done in the setup function below. */
 	   this.lat=lat;
 	   this.long=long;
-	   this.venues=v;
+	   this.friends=f;
 	   this.username=u;
 	   this.password=p;
 	   this.uid=uid;
 	   this.prevScene=ps;
 }
 
-NearbyVenuesMapAssistant.prototype.setup = function() {
+FriendsMapAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
 		
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
@@ -35,21 +35,18 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
             visible: true,
             items: [ {
                 items: [
-                { iconPath: 'map.png', command: 'venue-map', label: "  "},
-                { label: "Venues", width: 200,command: 'nearby-venues' },
-                { iconPath: 'search.png', command: 'venue-search', label: "  "}]
+                { iconPath: 'map.png', command: 'friends-map', label: "  "},
+                { label: "Friends", width: 200,command: 'friends-list' },
+                { iconPath: 'search.png', command: 'friends-search', label: "  "}]
             }]
         });
 
+	
 	/* add event handlers to listen to events from widgets */
-	
-	
-	
-
-
 }
 
-NearbyVenuesMapAssistant.prototype.initMap = function(event) {
+
+FriendsMapAssistant.prototype.initMap = function(event) {
     try
     {
         this.map = Maps.createMap('map_canvas');
@@ -92,12 +89,12 @@ NearbyVenuesMapAssistant.prototype.initMap = function(event) {
 		markerOptions = { icon:cafeIcon };
 
 
-		for(var v=0;v<this.venues.length;v++) {
-			var point = new GLatLng(this.venues[v].geolat,this.venues[v].geolong);
+		for(var v=0;v<this.friends.length;v++) {
+			var point = new GLatLng(this.friends[v].geolat,this.friends[v].geolong);
 			
 			
 			var marker=new GMarker(point, markerOptions);
-			marker.venue=this.venues[v];
+			marker.friend=this.friends[v];
 			marker.vindex=v;
 			marker.username=this.username;
 			marker.password=this.password;
@@ -120,15 +117,15 @@ NearbyVenuesMapAssistant.prototype.initMap = function(event) {
 		*/
 		GEvent.addListener(this.map, "click",
         function(clickable,noideawhatthisargumentis,point) {
-           if(clickable.venue != undefined) {
-           var iw=this.map.openInfoWindowHtml(point, '<div id="iw-'+clickable.venue.id+'"><b>'+clickable.venue.name+"</b><br/>"+
-           										clickable.venue.address+"<br/></div>"+
-           										'<a href="javascript:;" id="venue-'+clickable.venue.id+'" class="venueLink" data="'+clickable.vindex+'">Venue Info</a>'
+           if(clickable.friend != undefined) {
+           var iw=this.map.openInfoWindowHtml(point, '<div id="iw-'+clickable.friend.id+'"><b>'+clickable.friend.firstname+"</b><br/>"+
+           										clickable.friend.checkin+"<br/></div>"+
+           										'<a href="javascript:;" id="friend-'+clickable.friend.id+'" class="friendLink" data="'+clickable.vindex+'">Friend Info</a>'
            										,{onOpenFn: function(){
-													var eid="venue-"+clickable.venue.id;
+													var eid="friend-"+clickable.friend.id;
 													Mojo.Log.error("#########adding event to "+eid)
-													Mojo.Event.stopListening($(eid),Mojo.Event.tap,this.showVenueInfo); //avoid conflicts
-													Mojo.Event.listen($(eid),Mojo.Event.tap,this.showVenueInfo.bind(this));
+													Mojo.Event.stopListening($(eid),Mojo.Event.tap,this.showFriendInfo); //avoid conflicts
+													Mojo.Event.listen($(eid),Mojo.Event.tap,this.showFriendInfo.bind(this));
 													Mojo.Log.error("#########added event to "+eid)
            										
            										
@@ -216,14 +213,24 @@ this.map.addControl(new TextualZoomControl());
     }
 }
 
-NearbyVenuesMapAssistant.prototype.showVenueInfo = function(event) {
-	Mojo.Log.error("trying venue info!!!!!");
-	var v=event.target.readAttribute("data");
-	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.venues[v],this.username,this.password,this.uid);
+var auth;
+
+function make_base_auth(user, pass) {
+  var tok = user + ':' + pass;
+  var hash = Base64.encode(tok);
+  //$('message').innerHTML += '<br/>'+ hash;
+  return "Basic " + hash;
 }
 
 
-NearbyVenuesMapAssistant.prototype.activate = function(event) {
+FriendsMapAssistant.prototype.showVenueInfo = function(event) {
+	Mojo.Log.error("trying friend info!!!!!");
+	var v=event.target.readAttribute("data");
+	this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade, disableSceneScroller: true},make_base_auth(this.username,this.password),this.friends[v].id);
+}
+
+
+FriendsMapAssistant.prototype.activate = function(event) {
 Mojo.Log.error("protocol="+window.location.protocol);
                 if (this.map === undefined)
                 {
@@ -245,10 +252,10 @@ Mojo.Log.error("protocol="+window.location.protocol);
                 }
 }
 
-NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
+FriendsMapAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
-                case "venue-search":
+                case "friend-search":
                 	Mojo.Log.error("===========venue search clicked");
 					//get the scroller for your scene
 					var scroller = this.prevScene.controller.getSceneScroller();
@@ -256,13 +263,12 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
 					scroller.mojo.revealTop(0);
 					this.prevScene.controller.get("drawerId").mojo.toggleState();
 					this.prevScene.controller.modelChanged(this.prevScene.drawerModel);
-					this.controller.stageController.popScene("nearby-venues-map");
+					this.controller.stageController.popScene("friends-map");
                 	break;
-				case "nearby-venues":
-					this.controller.stageController.popScene("nearby-venues-map");
+				case "friends-list":
+					this.controller.stageController.popScene("friends-map");
 					break;
-				case "venue-map":
-					this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items);
+				case "friend-map":
 					break;
 				case "do-Venues":
                 	var thisauth=auth;
@@ -284,18 +290,12 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
     }
 
 
-NearbyVenuesMapAssistant.prototype.deactivate = function(event) {
+FriendsMapAssistant.prototype.deactivate = function(event) {
 	/* remove any event handlers you added in activate and do any other cleanup that should happen before
 	   this scene is popped or another scene is pushed on top */
 }
 
-NearbyVenuesMapAssistant.prototype.cleanup = function(event) {
+FriendsMapAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
 }
-
-
-
-
-
-
