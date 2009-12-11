@@ -161,17 +161,29 @@ TextualZoomControl.prototype.initialize = function(map) {
   var zoomInDiv = document.createElement("div");
   this.setButtonStyle_(zoomInDiv);
   container.appendChild(zoomInDiv);
-  zoomInDiv.appendChild(document.createTextNode("Zoom In"));
+  zoomInDiv.appendChild(document.createTextNode("+"));
   GEvent.addDomListener(zoomInDiv, "click", function() {
     map.zoomIn();
+  });
+  GEvent.addDomListener(zoomInDiv, "mousedown", function() {
+    zoomInDiv.style.backgroundPosition="-4px -54px"
+  });
+  GEvent.addDomListener(zoomInDiv, "mouseup", function() {
+    zoomInDiv.style.backgroundPosition="-4px -4px"
   });
 
   var zoomOutDiv = document.createElement("div");
   this.setButtonStyle_(zoomOutDiv);
   container.appendChild(zoomOutDiv);
-  zoomOutDiv.appendChild(document.createTextNode("Zoom Out"));
+  zoomOutDiv.appendChild(document.createTextNode("-"));
   GEvent.addDomListener(zoomOutDiv, "click", function() {
     map.zoomOut();
+  });
+  GEvent.addDomListener(zoomOutDiv, "mousedown", function() {
+    zoomOutDiv.style.backgroundPosition="-4px -54px"
+  });
+  GEvent.addDomListener(zoomOutDiv, "mouseup", function() {
+    zoomOutDiv.style.backgroundPosition="-4px -4px"
   });
 
   map.getContainer().appendChild(container);
@@ -181,20 +193,23 @@ TextualZoomControl.prototype.initialize = function(map) {
 // By default, the control will appear in the top left corner of the
 // map with 7 pixels of padding.
 TextualZoomControl.prototype.getDefaultPosition = function() {
-  return new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(7, 50));
+  return new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(9, 60));
 }
 
 // Sets the proper CSS for the given button element.
 TextualZoomControl.prototype.setButtonStyle_ = function(button) {
-  button.style.textDecoration = "underline";
-  button.style.color = "#0000cc";
-  button.style.backgroundColor = "white";
-  button.style.font = "small Arial";
-  button.style.border = "1px solid black";
-  button.style.padding = "2px";
+  button.style.textDecoration = "none";
+  button.style.color = "#fff";
+  //button.style.backgroundColor = "white";
+  button.style.background="transparent url(images/palm-menu-button.png) no-repeat -4px -4px"
+  button.style.font = "22px Arial";
+  button.style.fontWeight="bold";
+  //button.style.border = "1px solid black";
+  button.style.paddingTop = "5px";
   button.style.marginBottom = "3px";
   button.style.textAlign = "center";
-  button.style.width = "6em";
+  button.style.width = "43px";
+  button.style.height="42px";
   button.style.cursor = "pointer";
 }
 

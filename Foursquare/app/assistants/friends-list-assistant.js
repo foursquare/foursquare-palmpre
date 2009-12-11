@@ -92,13 +92,13 @@ FriendsListAssistant.prototype.setup = function() {
           items: [{
           	items: [ 
                  { iconPath: "images/venue_button.png", command: "do-Venues"},
-                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+                 { iconPath: "images/friends_button.png", command: "do-Nothing"},
                  { icon: "back", command: "do-Tips"},
                  { iconPath: "images/shout_button.png", command: "do-Shout"},
                  { iconPath: "images/badges_button.png", command: "do-Badges"},
                  { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
-                 ],
-            toggleCmd: "do-Venues"
+                 ]/*,
+            toggleCmd: "do-Venues"*/
             }]
     });
     
@@ -285,8 +285,9 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.pushScene({name: "friends-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this);
 					break;
 				case "do-Venues":
-                	var thisauth=auth;
-					this.controller.stageController.pushScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+                	//var thisauth=auth;
+					//this.controller.stageController.pushScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+					this.controller.stageController.popScene("friends-list");
 					break;
 				case "do-Friends":
                 	var thisauth=auth;

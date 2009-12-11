@@ -67,21 +67,18 @@ FriendsMapAssistant.prototype.initMap = function(event) {
 		cafeIcon.shadowSize = new GSize(40, 38);
 		cafeIcon.iconAnchor = new GPoint(24, 38);
 		cafeIcon.infoWindowAnchor = new GPoint(5, 1);
-		/*var cafeIcon = new GIcon();
-		cafeIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_icon&chld=cafe|62195D";
-		cafeIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
-		cafeIcon.iconSize = new GSize(25, 33);
-		cafeIcon.shadowSize = new GSize(35, 33);
-		cafeIcon.iconAnchor = new GPoint(19, 33);
-		cafeIcon.infoWindowAnchor = new GPoint(5, 1);*/
 
-		var airportIcon = new GIcon();
-		airportIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_icon&chld=airport|62195D";
-		airportIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
-		airportIcon.iconSize = new GSize(25, 33);
-		airportIcon.shadowSize = new GSize(35, 33);
-		airportIcon.iconAnchor = new GPoint(19, 33);
-		airportIcon.infoWindowAnchor = new GPoint(5, 1);
+		var friendsfaces=[];
+	/*	for (var f=0;f<this.friends.length;f++) {
+			friendsfaces[f] = new GIcon();
+			friendsfaces[f].image = this.friends[f].photo;
+			friendsfaces[f].shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
+			friendsfaces[f].iconSize = new GSize(32, 32);
+			friendsfaces[f].shadowSize = new GSize(40, 38);
+			friendsfaces[f].iconAnchor = new GPoint(24, 38);
+			friendsfaces[f].infoWindowAnchor = new GPoint(5, 1);
+		}*/
+
 		
 		
 		
@@ -90,10 +87,18 @@ FriendsMapAssistant.prototype.initMap = function(event) {
 
 
 		for(var v=0;v<this.friends.length;v++) {
+			friendsfaces[f] = new GIcon();
+			friendsfaces[f].image = this.friends[v].photo;
+			friendsfaces[f].shadow = "images/map-marker-bg.png";
+			friendsfaces[f].iconSize = new GSize(43, 43);
+			friendsfaces[f].shadowSize = new GSize(58, 65);
+			friendsfaces[f].iconAnchor = new GPoint(22, 45);
+			friendsfaces[f].infoWindowAnchor = new GPoint(5, 1);
+
 			var point = new GLatLng(this.friends[v].geolat,this.friends[v].geolong);
 			
 			
-			var marker=new GMarker(point, markerOptions);
+			var marker=new GMarker(point, {icon:friendsfaces[f]});
 			marker.friend=this.friends[v];
 			marker.vindex=v;
 			marker.username=this.username;
@@ -158,17 +163,29 @@ TextualZoomControl.prototype.initialize = function(map) {
   var zoomInDiv = document.createElement("div");
   this.setButtonStyle_(zoomInDiv);
   container.appendChild(zoomInDiv);
-  zoomInDiv.appendChild(document.createTextNode("Zoom In"));
+  zoomInDiv.appendChild(document.createTextNode("+"));
   GEvent.addDomListener(zoomInDiv, "click", function() {
     map.zoomIn();
+  });
+  GEvent.addDomListener(zoomInDiv, "mousedown", function() {
+    zoomInDiv.style.backgroundPosition="-4px -54px"
+  });
+  GEvent.addDomListener(zoomInDiv, "mouseup", function() {
+    zoomInDiv.style.backgroundPosition="-4px -4px"
   });
 
   var zoomOutDiv = document.createElement("div");
   this.setButtonStyle_(zoomOutDiv);
   container.appendChild(zoomOutDiv);
-  zoomOutDiv.appendChild(document.createTextNode("Zoom Out"));
+  zoomOutDiv.appendChild(document.createTextNode("-"));
   GEvent.addDomListener(zoomOutDiv, "click", function() {
     map.zoomOut();
+  });
+  GEvent.addDomListener(zoomOutDiv, "mousedown", function() {
+    zoomOutDiv.style.backgroundPosition="-4px -54px"
+  });
+  GEvent.addDomListener(zoomOutDiv, "mouseup", function() {
+    zoomOutDiv.style.backgroundPosition="-4px -4px"
   });
 
   map.getContainer().appendChild(container);
@@ -178,20 +195,23 @@ TextualZoomControl.prototype.initialize = function(map) {
 // By default, the control will appear in the top left corner of the
 // map with 7 pixels of padding.
 TextualZoomControl.prototype.getDefaultPosition = function() {
-  return new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(7, 50));
+  return new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(9, 60));
 }
 
 // Sets the proper CSS for the given button element.
 TextualZoomControl.prototype.setButtonStyle_ = function(button) {
-  button.style.textDecoration = "underline";
-  button.style.color = "#0000cc";
-  button.style.backgroundColor = "white";
-  button.style.font = "small Arial";
-  button.style.border = "1px solid black";
-  button.style.padding = "2px";
+  button.style.textDecoration = "none";
+  button.style.color = "#fff";
+  //button.style.backgroundColor = "white";
+  button.style.background="transparent url(images/palm-menu-button.png) no-repeat -4px -4px"
+  button.style.font = "22px Arial";
+  button.style.fontWeight="bold";
+  //button.style.border = "1px solid black";
+  button.style.paddingTop = "5px";
   button.style.marginBottom = "3px";
   button.style.textAlign = "center";
-  button.style.width = "6em";
+  button.style.width = "43px";
+  button.style.height="42px";
   button.style.cursor = "pointer";
 }
 
@@ -223,10 +243,10 @@ function make_base_auth(user, pass) {
 }
 
 
-FriendsMapAssistant.prototype.showVenueInfo = function(event) {
+FriendsMapAssistant.prototype.showFriendInfo = function(event) {
 	Mojo.Log.error("trying friend info!!!!!");
 	var v=event.target.readAttribute("data");
-	this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade, disableSceneScroller: true},make_base_auth(this.username,this.password),this.friends[v].id);
+	this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade, disableSceneScroller: false},make_base_auth(this.username,this.password),this.friends[v].id);
 }
 
 

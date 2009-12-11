@@ -14,6 +14,7 @@ StageAssistant.prototype.setup = function() {
 		Mojo.Log.error("###########no cookie");
 		this.controller.pushScene('main',false);
 	}
+	
 }
 
 

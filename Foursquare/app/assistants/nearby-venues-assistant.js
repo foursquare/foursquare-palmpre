@@ -96,6 +96,22 @@ NearbyVenuesAssistant.prototype.setup = function() {
           visible: true,
           items: [{
           	items: [ 
+                 { iconPath: "images/venue_button.png", command: "do-Nothing"/*"do-Venues"*/},
+                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+                 { icon: "back", command: "do-Tips"},
+                 { iconPath: "images/shout_button.png", command: "do-Shout"},
+                 { iconPath: "images/badges_button.png", command: "do-Badges"},
+                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
+                 ]/*,
+            toggleCmd: "do-Venues"*/
+            }]
+    }
+);
+    
+    /*        this.cmmodel = {
+          visible: true,
+          items: [{
+          	items: [ 
                  { iconPath: "images/venue_button.png", command: "do-Venues"},
                  { iconPath: "images/friends_button.png", command: "do-Friends"},
                  { icon: "back", command: "do-Tips"},
@@ -105,7 +121,9 @@ NearbyVenuesAssistant.prototype.setup = function() {
                  ],
             toggleCmd: "do-Venues"
             }]
-    });
+    }
+*/
+    
     
     
         this.controller.setupWidget("drawerId",
