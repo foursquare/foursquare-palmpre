@@ -91,6 +91,7 @@ Mojo.Log.error("####"+response.responseText);
 	this.cookieData.put({
 		username: this.username,
 		password: this.password,
+		uid: uid,
 		savetotwitter: savetw,
 		ping: ping,
 		cityid: cityid,

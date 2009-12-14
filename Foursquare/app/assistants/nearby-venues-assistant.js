@@ -412,10 +412,11 @@ NearbyVenuesAssistant.prototype.groupVenues = function(data){
 }
 
 NearbyVenuesAssistant.prototype.addNewVenue = function(){
-	var dialog = this.controller.showDialog({
+	/*var dialog = this.controller.showDialog({
 		template: 'listtemplates/add-venue',
 		assistant: new AddVenueDialogAssistant(this,auth)
-	});
+	});*/
+	this.controller.stageController.pushScene({name: "add-venue", transition: Mojo.Transition.crossFade},auth);
 
 }
 

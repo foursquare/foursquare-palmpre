@@ -40,5 +40,9 @@
     {
         "scenes": "friends-map",
         "source": "app/assistants/friends-map-assistant.js"
+    },
+    {
+        "scenes": "add-venue",
+        "source": "app/assistants/add-venue-assistant.js"
     }
 ]

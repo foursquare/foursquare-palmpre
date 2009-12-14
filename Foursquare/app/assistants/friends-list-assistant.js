@@ -51,6 +51,30 @@ FriendsListAssistant.prototype.setup = function() {
 	}
 	
 	this.controller.setupWidget('go_button',this.buttonAtt1,this.buttonModel1);
+	
+	//Set up button handlers
+	this.buttonModelT = {
+		buttonLabel : 'Find Friends via Twitter',
+		buttonClass : '',
+		disable : false
+	}
+	this.buttonAttT = {
+		type : Mojo.Widget.activityButton
+	}
+	
+	this.controller.setupWidget('go_twitter_button',this.buttonAttT,this.buttonModelT);
+
+	//Set up button handlers
+	this.buttonModelP = {
+		buttonLabel : 'Show Pending Requests',
+		buttonClass : '',
+		disable : false
+	}
+	this.buttonAttP = {
+		type : Mojo.Widget.activityButton
+	}
+	
+	this.controller.setupWidget('go_pending_button',this.buttonAttP,this.buttonModelP);
 
 
 	this.avbuttonModel1 = {
@@ -64,6 +88,8 @@ FriendsListAssistant.prototype.setup = function() {
 
 	
 	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onSearchFriends.bind(this));
+	Mojo.Event.listen(this.controller.get('go_twitter_button'),Mojo.Event.tap, this.onSearchTwitterFriends.bind(this));
+	Mojo.Event.listen(this.controller.get('go_pending_button'),Mojo.Event.tap, this.onPendingFriends.bind(this));
 	Mojo.Event.listen(this.controller.get('results-friends-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 
 
@@ -126,7 +152,7 @@ FriendsListAssistant.prototype.setup = function() {
     Mojo.Log.error("#########setup friends");
     
     $("message").hide();
-    
+    this.requestList=[];
     	       this.getFriends();
 
 }
@@ -214,7 +240,7 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 					   parameters: {uid: theuser},
 					   onSuccess: function(uresponse){
 							Mojo.Log.error("***friend["+(this.onfriend)+"] ("+this.friendList[this.onfriend].firstname+") info="+uresponse.responseText);	
-							this.friendList[this.onfriend].checkin=(uresponse.responseJSON.user.checkin.venue != undefined)? uresponse.responseJSON.user.checkin.venue.name: "[Off the Grid]";
+							this.friendList[this.onfriend].checkin=(uresponse.responseJSON.user.checkin.venue != undefined)? "@ "+uresponse.responseJSON.user.checkin.venue.name: "[Off the Grid]";
 							this.friendList[this.onfriend].geolat=(uresponse.responseJSON.user.checkin.venue != undefined)? uresponse.responseJSON.user.checkin.venue.geolat: "0";
 							this.friendList[this.onfriend].geolong=(uresponse.responseJSON.user.checkin.venue != undefined)? uresponse.responseJSON.user.checkin.venue.geolong: "0";
 			   				Mojo.Log.error("***checkin="+this.friendList[this.onfriend].checkin);
@@ -237,15 +263,163 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 	}
 }
 FriendsListAssistant.prototype.getUserInfoFailed = function(event) {
+ Mojo.Log.error("########ERROR GETTING USER INFO!");
+		var mybutton = $('go_button');
+		mybutton.mojo.deactivate();
+		$("spinnerId").mojo.stop();
+		$("spinnerId").hide();
+		$('resultListBox').style.display = 'block';
 
 }
 FriendsListAssistant.prototype.getFriendsFailed = function(event) {
-
+ Mojo.Log.error("########ERROR GETTING FRIENDS LIST!");
+		var mybutton = $('go_button');
+		mybutton.mojo.deactivate();
+		$("spinnerId").mojo.stop();
+		$("spinnerId").hide();
+		$('resultListBox').style.display = 'block';
 }
 
 FriendsListAssistant.prototype.onSearchFriends = function(event) {
+  //gotta figure out how we're searching
+  //text/mixed-data string means username search. numeric string means phone number search
+  var how;
+  if (this.textModel.value == parseFloat(this.textModel.value)) {
+  	//it's numeric
+  	how="phone";
+  }else{
+  	//not numeric
+  	how="name";
+  }
+  
+  this.searchFriends(how);
+}
+
+FriendsListAssistant.prototype.onSearchTwitterFriends = function(event) {
+  this.searchFriends("twitter");
+}
+
+FriendsListAssistant.prototype.searchFriends = function(how) {
+Mojo.Log.error("###trying to find freinds by..."+how);
+	var what=(how=="twitter")? {}: {q: this.textModel.value};
+	var url = 'http://api.foursquare.com/v1/findfriends/by'+how+'.json';
+	auth = make_base_auth(this.username, this.password);
+	var request = new Ajax.Request(url, {
+	   method: 'get',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+	   parameters: what,
+	   onSuccess: this.searchFriendsSuccess.bind(this),
+	   onFailure: this.getFriendsFailed.bind(this)
+	 });
+
+	
+}
+
+FriendsListAssistant.prototype.onPendingFriends = function(event) {
+Mojo.Log.error("###pending friends...");
+	if(this.requestList==[]) {
+	
+	//var what=(how=="twitter")? {}: {q: this.textModel.value};
+	var url = 'http://api.foursquare.com/v1/friends/requests.json';
+	auth = make_base_auth(this.username, this.password);
+	var request = new Ajax.Request(url, {
+	   method: 'get',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+	   parameters: {},
+	   onSuccess: this.requestFriendsSuccess.bind(this),
+	   onFailure: this.getFriendsFailed.bind(this)
+	 });
+	}else{
+		var mybutton = $('go_pending_button');
+		mybutton.mojo.deactivate();
+		$("spinnerId").mojo.stop();
+		$("spinnerId").hide();
+		$('resultListBox').style.display = 'block';
+		Mojo.Controller.getAppController().showBanner("No pending requests", {source: 'notification'});
+	}
+	
+}
+
+FriendsListAssistant.prototype.searchFriendsSuccess = function(response) {
+	//var mybutton = $('go_button');
+	//mybutton.mojo.deactivate();
+	Mojo.Log.error("****friends="+response.responseText);
+
+	if (response.responseJSON == undefined) {
+		$('message').innerHTML = 'No Results Found';
+	}
+	else {
+		//$("spinnerId").mojo.stop();
+		//$("spinnerId").hide();
+		//$('resultListBox').style.display = 'block';
+		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
+		this.searchList = [];
+		this.looping=false;
+		
+		if(response.responseJSON.users != undefined) {
+			for(var f=0;f<response.responseJSON.users.length;f++) {
+				this.searchList.push(response.responseJSON.users[f]);
+			}
+		}
+		this.resultsModel.items =this.searchList; //update list with basic user info
+		this.controller.modelChanged(this.resultsModel);
+		
+		
+		var mybutton = $('go_button');
+		mybutton.mojo.deactivate();
+		mybutton = $('go_twitter_button');
+		mybutton.mojo.deactivate();
+		$("spinnerId").mojo.stop();
+		$("spinnerId").hide();
+		$('resultListBox').style.display = 'block';
+
+	}
+		
 
 }
+
+FriendsListAssistant.prototype.requestFriendsSuccess = function(response) {
+	//var mybutton = $('go_button');
+	//mybutton.mojo.deactivate();
+	Mojo.Log.error("****friends="+response.responseText);
+
+	if (response.responseJSON == undefined) {
+		$('message').innerHTML = 'No Results Found';
+	}
+	else {
+		//$("spinnerId").mojo.stop();
+		//$("spinnerId").hide();
+		//$('resultListBox').style.display = 'block';
+		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
+		this.requestList = [];
+		this.looping=false;
+		
+		if(response.responseJSON.requests != undefined) {
+			for(var f=0;f<response.responseJSON.requests.length;f++) {
+				this.requestList.push(response.responseJSON.requests[f]);
+			}
+		}
+		this.resultsModel.items =this.requestList; //update list with basic user info
+		this.controller.modelChanged(this.resultsModel);
+		
+		
+		var mybutton = $('go_button');
+		mybutton.mojo.deactivate();
+		mybutton = $('go_twitter_button');
+		mybutton.mojo.deactivate();
+		mybutton = $('go_pending_button');
+		mybutton.mojo.deactivate();
+		$("spinnerId").mojo.stop();
+		$("spinnerId").hide();
+		$('resultListBox').style.display = 'block';
+
+	}
+		
+
+}
+
 
 FriendsListAssistant.prototype.listWasTapped = function(event) {
 	
@@ -272,7 +446,7 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
                 case "friend-search":
-                	Mojo.Log.error("===========venue search clicked");
+                	Mojo.Log.error("===========friend search clicked");
 					//get the scroller for your scene
 					var scroller = this.controller.getSceneScroller();
 					//call the widget method for scrolling to the top
@@ -283,6 +457,11 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 				case "friend-map":
 					Mojo.Log.error("lat="+this.lat+", long="+this.long);
 					this.controller.stageController.pushScene({name: "friends-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this);
+					break;
+				case "friends-list":
+					$("drawerId").mojo.setOpenState(false);
+					this.resultsModel.items =this.friendList;
+					this.controller.modelChanged(this.resultsModel);
 					break;
 				case "do-Venues":
                 	//var thisauth=auth;
@@ -302,7 +481,7 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 						template: 'listtemplates/do-shout',
 						assistant: new DoShoutDialogAssistant(this,auth)
 					});
-
+	
                 	break;
             }
         }
