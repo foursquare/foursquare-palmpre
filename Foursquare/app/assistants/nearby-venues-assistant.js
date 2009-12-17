@@ -1,4 +1,4 @@
-function NearbyVenuesAssistant(a, ud, un, pw,i) {
+function NearbyVenuesAssistant(a, ud, un, pw,i,ss) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -9,6 +9,12 @@ function NearbyVenuesAssistant(a, ud, un, pw,i) {
 	 this.username=un;
 	 this.password=pw;
 	 this.uid=i;
+	 this.showSearch=ss;
+	 
+	 _globals.userData=ud;
+	 _globals.username=un;
+	 _globals.password=pw;
+	 _globals.uid=i;
 }
 
 NearbyVenuesAssistant.prototype.setup = function() {
@@ -70,7 +76,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenues.bind(this));
 	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 	Mojo.Event.listen(this.controller.get('add_venue_button'),Mojo.Event.tap, this.addNewVenue.bind(this));
-
+	Mojo.Event.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bind(this));
 
     this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
@@ -92,20 +98,21 @@ NearbyVenuesAssistant.prototype.setup = function() {
            spacerHeight: 0,
            menuClass: 'no-fade'
         },
-        this.cmmodel = {
+        /*this.cmmodel = {
           visible: true,
           items: [{
           	items: [ 
-                 { iconPath: "images/venue_button.png", command: "do-Nothing"/*"do-Venues"*/},
+                 { iconPath: "images/venue_button.png", command: "do-Nothing"/*"do-Venues"*//*},
                  { iconPath: "images/friends_button.png", command: "do-Friends"},
-                 { icon: "back", command: "do-Tips"},
+                 { iconPath: "images/todo_button.png", command: "do-Tips"},
                  { iconPath: "images/shout_button.png", command: "do-Shout"},
                  { iconPath: "images/badges_button.png", command: "do-Badges"},
                  { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
-                 ]/*,
-            toggleCmd: "do-Venues"*/
+                 ],
+            toggleCmd: "do-Nothing",
+            checkEnabled: true
             }]
-    }
+    }*/_globals.cmmodel
 );
     
     /*        this.cmmodel = {
@@ -173,20 +180,28 @@ function make_base_auth(user, pass) {
 NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 	Mojo.Log.error("trying to get location..");
 	
-	//hide the result list box an clear out it's model
-	$(resultListBox).style.display = 'none';
-	this.resultsModel.items = $A([]);
-	this.controller.modelChanged(this.resultsModel);
+	if(_globals.nearbyVenues==undefined) {
 	
-	$('message').innerHTML = 'Calculating Location';
+		//hide the result list box an clear out it's model
+		$(resultListBox).style.display = 'none';
+		this.resultsModel.items = $A([]);
+		this.controller.modelChanged(this.resultsModel);
+		
+		$('message').innerHTML = 'Calculating Location';
 	
-	//get the location
-	this.controller.serviceRequest('palm://com.palm.location', {
-		method: "getCurrentPosition",
-		parameters: {},
-		onSuccess: this.gotLocation.bind(this),
-		onFailure: this.failedLocation.bind(this)
-	});
+		//get the location
+		this.controller.serviceRequest('palm://com.palm.location', {
+			method: "getCurrentPosition",
+			parameters: {},
+			onSuccess: this.gotLocation.bind(this),
+			onFailure: this.failedLocation.bind(this)
+		});
+	}else{
+		this.resultsModel.items = _globals.nearbyVenues;
+		this.controller.modelChanged(this.resultsModel);
+		this.lat=_globals.lat;
+		this.long=_globals.long;
+	}
 
 }
 
@@ -199,6 +214,8 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 		//we got the location so now query it against 4square for a venue list
 		this.lat=event.latitude;
 		this.long=event.longitude;
+		_globals.lat=this.lat;
+		_globals.long=this.long;
 		this.getVenues(event.latitude, event.longitude);
 	} else {
 		$('message').innerHTML = "gps error: " + event.errorCode;
@@ -305,6 +322,11 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 				Mojo.Log.error("########grouping="+grouping);
 				for(var v=0;v<varray.length;v++) {
 					venueList.push(varray[v]);
+					var dist=venueList[venueList.length-1].distance;
+					var amile=0.000621371192;
+					dist=roundNumber(dist*amile,1);
+					if(dist==1){dist=dist+" mile";}else{dist=dist+" miles";}
+					venueList[venueList.length-1].distance=dist;
 					venueList[venueList.length-1].grouping=grouping;
 				}
 			}
@@ -315,9 +337,15 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 
 		
 		//now set the result list to the list's model
+		_globals.nearbyVenues=venueList;
 		this.resultsModel.items =venueList;// $A(venueList);
 		this.controller.modelChanged(this.resultsModel);
 	}
+}
+
+function roundNumber(num, dec) {
+	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
+	return result;
 }
 
 NearbyVenuesAssistant.prototype.nearbyVenueRequestFailed = function(response) {
@@ -421,7 +449,15 @@ NearbyVenuesAssistant.prototype.addNewVenue = function(){
 }
 
 
-
+NearbyVenuesAssistant.prototype.onKeyPressHandler = function(event) {
+	$("sendField").mojo.focus();
+	var scroller = this.controller.getSceneScroller();
+	scroller.mojo.revealTop(0);
+	$("drawerId").mojo.setOpenState(true);
+	this.controller.modelChanged(this.drawerModel);
+	//this.textModel.value=String.fromCharCode(event.originalEvent.keyCode);
+	//wthis.controller.modelChanged(this.textModel);
+}
 
 NearbyVenuesAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
@@ -439,23 +475,27 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this);
 					break;
 				case "do-Venues":
-                	var thisauth=auth;
-					this.controller.stageController.pushScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+                //	var thisauth=auth;
+				// 	this.controller.stageController.pushScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
 					break;
 				case "do-Friends":
                 	var thisauth=auth;
-					this.controller.stageController.pushScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long);
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
 					break;
                 case "do-Badges":
                 	var thisauth=auth;
-					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Shout":
-                	var checkinDialog = this.controller.showDialog({
-						template: 'listtemplates/do-shout',
-						assistant: new DoShoutDialogAssistant(this,auth)
-					});
+                //	var checkinDialog = this.controller.showDialog({
+				//		template: 'listtemplates/do-shout',
+				//		assistant: new DoShoutDialogAssistant(this,auth)
+				//	});
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
 
+                	break;
+                case "do-Nothing":
                 	break;
             }
         }
@@ -466,10 +506,22 @@ NearbyVenuesAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
 	     //  this.onGetNearbyVenues();
-	    /* 
-	     this.cmmodel.toggleCmd="do-Venues";
-	     this.controller.modelChanged(this.cmmodel);
-*/
+	//    this.cmmodel.items[0].toggleCmd="do-Nothing";
+	  //  this.controller.modelChanged(this.cmmodel);
+
+	   if(_globals.nearbyVenues!=undefined){
+			$("resultListBox").style.display = 'block';
+	   		$("spinnerId").mojo.stop();
+			$("spinnerId").hide();
+	   }
+	   
+	   if(this.showSearch) {
+			var scroller = this.controller.getSceneScroller();
+			scroller.mojo.revealTop(0);
+			this.controller.get("drawerId").mojo.setOpenState(true);
+			this.controller.modelChanged(this.drawerModel);
+
+	   }
 }
 
 

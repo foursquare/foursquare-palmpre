@@ -1,4 +1,4 @@
-function UserInfoAssistant(a,u) {
+function UserInfoAssistant(a,u,ps) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -6,6 +6,7 @@ function UserInfoAssistant(a,u) {
 	   
 	   this.auth=a;
 	   this.uid=u;
+	   this.prevScene=ps;
 }
 
 UserInfoAssistant.prototype.setup = function() {
@@ -22,6 +23,26 @@ UserInfoAssistant.prototype.setup = function() {
          this.model = {
              spinning: true 
          });
+         
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+        this.cmattributes = {
+           spacerHeight: 0,
+           menuClass: 'no-fade'
+        },
+        /*this.cmmodel = {
+          visible: true,
+          items: [{
+          	items: [ 
+                 { iconPath: "images/venue_button.png", command: "do-Venues"},
+                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+                 { iconPath: "images/todo_button.png", command: "do-Tips"},
+                 { iconPath: "images/shout_button.png", command: "do-Shout"},
+                 { iconPath: "images/badges_button.png", command: "do-Nothing"},
+                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
+                 ],
+            toggleCmd: "do-Nothing"
+            }]
+    }*/_globals.cmmodel);
 
 	/* add event handlers to listen to events from widgets */
 	
@@ -249,9 +270,50 @@ UserInfoAssistant.prototype.historyFailed = function(response) {
 
 }
 
+UserInfoAssistant.prototype.handleCommand = function(event) {
+        if (event.type === Mojo.Event.command) {
+            switch (event.command) {
+				case "do-Venues":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+					//this.prevScene.cmmodel.items[0].toggleCmd="do-Nothing";
+				    //this.prevScene.controller.modelChanged(this.prevScene.cmmodel);
+
+					//this.controller.stageController.popScene("user-info");
+					break;
+				case "do-Friends":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+					break;
+                case "do-Badges":
+                	//var thisauth=auth;
+				//	this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+                	break;
+                case "do-Shout":
+                //	var checkinDialog = this.controller.showDialog({
+				//		template: 'listtemplates/do-shout',
+				//		assistant: new DoShoutDialogAssistant(this,auth)
+				//	});
+                	var thisauth=this.auth;
+					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+
+                	break;
+      			case "do-Nothing":
+      				break;
+            }
+            var scenes=this.controller.stageController.getScenes();
+            //Mojo.Log.error("########this scene="+scenes[scenes.length-1].name+", below is "+scenes[scenes.length-2].name);
+            //scenes[scenes.length-2].getSceneController().cmmodel.items[0].toggleCmd="do-Nothing";
+            //scenes[scenes.length-2].getSceneController().modelChanged(scenes[scenes.length-2].getSceneController().cmmodel);
+        }
+    }
+
+
 UserInfoAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
+	   //this.cmmodel.items[0].toggleCmd="do-Nothing";
+	  // this.controller.modelChanged(this.cmmodel);
 }
 
 UserInfoAssistant.prototype.deactivate = function(event) {

@@ -82,6 +82,7 @@ Mojo.Log.error("####"+response.responseText);
 	$('message').innerHTML = '<br/>' + disp;
 	var uid=response.responseJSON.user.id;
 	var savetw=response.responseJSON.user.settings.sendtotwitter;
+	var savefb=response.responseJSON.user.settings.sendtofacebook;
  	var ping=response.responseJSON.user.settings.pings;
 	var cityid=response.responseJSON.user.city.id;
 	var city=response.responseJSON.user.city.name;
@@ -93,6 +94,7 @@ Mojo.Log.error("####"+response.responseText);
 		password: this.password,
 		uid: uid,
 		savetotwitter: savetw,
+		savetofacebook: savefb,
 		ping: ping,
 		cityid: cityid,
 		city: city

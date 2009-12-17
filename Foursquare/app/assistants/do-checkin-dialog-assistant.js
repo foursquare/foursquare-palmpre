@@ -31,6 +31,7 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
 	var credentials=this.cookieData.get();
 	var pings=(credentials.ping=="on")? '0': '1';
 	var stt=(credentials.savetotwitter==true)? '1': '0';
+	var stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
   
   
       this.sceneAssistant.controller.setupWidget("chkShowFriends",
@@ -51,7 +52,17 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
              value: stt,
              disabled: false
          });
+    this.sceneAssistant.controller.setupWidget("chkFacebook",
+         this.fbattributes = {
+             trueValue: '1',
+             falseValue: '0' 
+         },
+         this.fbmodel = {
+             value: stf,
+             disabled: false
+         });
 	Mojo.Log.error("twittersave:"+credentials.savetotwitter);
+	Mojo.Log.error("facebooksave:"+stf);
   
 	this.sceneAssistant.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
 
@@ -87,7 +98,7 @@ DoCheckinDialogAssistant.prototype.okTapped = function() {
 
 //	this.widget.mojo.close();
 
-	this.sceneAssistant.checkIn(this.vid,this.vname,this.tipModel.value,this.sfmodel.value,this.twmodel.value);
+	this.sceneAssistant.checkIn(this.vid,this.vname,this.tipModel.value,this.sfmodel.value,this.twmodel.value,this.fbmodel.value);
 	//this.widget.mojo.close();
 }
 

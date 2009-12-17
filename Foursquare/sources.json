@@ -44,5 +44,9 @@
     {
         "scenes": "add-venue",
         "source": "app/assistants/add-venue-assistant.js"
+    },
+    {
+        "scenes": "shout",
+        "source": "app/assistants/shout-assistant.js"
     }
 ]

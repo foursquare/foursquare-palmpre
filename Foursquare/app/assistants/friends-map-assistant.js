@@ -41,7 +41,28 @@ FriendsMapAssistant.prototype.setup = function() {
             }]
         });
 
-	
+	    this.controller.setupWidget(Mojo.Menu.commandMenu,
+        this.cmattributes = {
+           spacerHeight: 0,
+           menuClass: 'no-fade'
+        },
+        /*this.cmmodel = {
+          visible: true,
+          items: [{
+          	items: [ 
+                 { iconPath: "images/venue_button.png", command: "do-Nothing"/*"do-Venues"*//*},
+                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+                 { iconPath: "images/todo_button.png", command: "do-Tips"},
+                 { iconPath: "images/shout_button.png", command: "do-Shout"},
+                 { iconPath: "images/badges_button.png", command: "do-Badges"},
+                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
+                 ],
+            toggleCmd: "do-Nothing",
+            checkEnabled: true
+            }]
+    }*/_globals.cmmodel
+);
+
 	/* add event handlers to listen to events from widgets */
 }
 
@@ -275,34 +296,45 @@ Mojo.Log.error("protocol="+window.location.protocol);
 FriendsMapAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
-                case "friend-search":
+                case "friends-search":
                 	Mojo.Log.error("===========venue search clicked");
 					//get the scroller for your scene
-					var scroller = this.prevScene.controller.getSceneScroller();
+//					var scroller = this.prevScene.controller.getSceneScroller();
 					//call the widget method for scrolling to the top
-					scroller.mojo.revealTop(0);
-					this.prevScene.controller.get("drawerId").mojo.toggleState();
-					this.prevScene.controller.modelChanged(this.prevScene.drawerModel);
-					this.controller.stageController.popScene("friends-map");
+//					scroller.mojo.revealTop(0);
+//					this.prevScene.controller.get("drawerId").mojo.toggleState();
+//					this.prevScene.controller.modelChanged(this.prevScene.drawerModel);
+//					this.controller.stageController.popScene("friends-map");
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this,true);
+
                 	break;
 				case "friends-list":
-					this.controller.stageController.popScene("friends-map");
+					//this.controller.stageController.popScene("friends-map");
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
 					break;
 				case "friend-map":
 					break;
+				case "do-Friends":
+                	//var thisauth=auth;
+					//this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
+					break;
 				case "do-Venues":
                 	var thisauth=auth;
-					this.controller.stageController.pushScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,uid);
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
 					break;
                 case "do-Badges":
                 	var thisauth=auth;
-					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
                 case "do-Shout":
-                	var checkinDialog = this.controller.showDialog({
-						template: 'listtemplates/do-shout',
-						assistant: new DoShoutDialogAssistant(this,auth)
-					});
+                //	var checkinDialog = this.controller.showDialog({
+				//		template: 'listtemplates/do-shout',
+				//		assistant: new DoShoutDialogAssistant(this,auth)
+				//	});
+                	var thisauth=this.auth;
+					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
 
                 	break;
             }

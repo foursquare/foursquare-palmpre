@@ -259,7 +259,7 @@ VenuedetailAssistant.prototype.promptCheckin = function(event) {
 
 }
 
-VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t) {
+VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 	Mojo.Log.error("###check in please??");
 	if (auth) {
 		var url = 'http://api.foursquare.com/v1/checkin.json';
@@ -273,7 +273,8 @@ VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t) {
 				vid: id,
 				shout: s,
 				private: sf,
-				twitter: t
+				twitter: t,
+				facebook: fb
 			},
 			onSuccess: this.checkInSuccess.bind(this),
 			onFailure: this.checkInFailed.bind(this)
