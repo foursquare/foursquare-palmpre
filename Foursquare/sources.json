@@ -48,5 +48,13 @@
     {
         "scenes": "shout",
         "source": "app/assistants/shout-assistant.js"
+    },
+    {
+        "scenes": "nearby-tips",
+        "source": "app/assistants/nearby-tips-assistant.js"
+    },
+    {
+        "scenes": "leaderboard",
+        "source": "app/assistants/leaderboard-assistant.js"
     }
 ]

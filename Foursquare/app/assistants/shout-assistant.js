@@ -31,7 +31,9 @@ ShoutAssistant.prototype.setup = function() {
     this.controller.setupWidget("chkTwitter",
          this.twattributes = {
              trueValue: '1',
-             falseValue: '0' 
+             falseValue: '0', 
+             trueLabel: 'On',
+             falseLabel: 'Off'
          },
          this.twmodel = {
              value: stt,
@@ -40,7 +42,9 @@ ShoutAssistant.prototype.setup = function() {
     this.controller.setupWidget("chkFacebook",
          this.fbattributes = {
              trueValue: '1',
-             falseValue: '0' 
+             falseValue: '0',
+             trueLabel: 'On',
+             falseLabel: 'Off'
          },
          this.fbmodel = {
              value: stf,
@@ -136,16 +140,20 @@ ShoutAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
 				case "do-Venues":
-                	var thisauth=this.auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid);
 					break;
 				case "do-Friends":
-                	var thisauth=this.auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
 					break;
                 case "do-Badges":
-                	var thisauth=this.auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Tips":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Shout":
                 //	var checkinDialog = this.controller.showDialog({
@@ -155,6 +163,10 @@ ShoutAssistant.prototype.handleCommand = function(event) {
                 	//var thisauth=auth;
 				//	this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
 
+                	break;
+                case "do-Leaderboard":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Nothing":
                 	break;

@@ -1,5 +1,5 @@
 function FriendsListAssistant(a, ud, un, pw,i,la,lo,ps,ss) {
-	 this.auth = a;
+	 this.auth = _globals.auth;
 	 this.userData = ud;
 	 this.username=un;
 	 this.password=pw;
@@ -506,9 +506,17 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 				//		template: 'listtemplates/do-shout',
 				//		assistant: new DoShoutDialogAssistant(this,auth)
 				//	});
-                	var thisauth=this.auth;
+                	var thisauth=auth;
 					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
 
+                	break;
+                case "do-Tips":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Leaderboard":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
       			case "do-Nothing":
       				break;

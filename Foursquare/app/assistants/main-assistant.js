@@ -52,6 +52,7 @@ function make_base_auth(user, pass) {
   var tok = user + ':' + pass;
   var hash = Base64.encode(tok);
   //$('message').innerHTML += '<br/>'+ hash;
+  _globals.auth="Basic " + hash;
   return "Basic " + hash;
 }
 
@@ -86,6 +87,9 @@ Mojo.Log.error("####"+response.responseText);
  	var ping=response.responseJSON.user.settings.pings;
 	var cityid=response.responseJSON.user.city.id;
 	var city=response.responseJSON.user.city.name;
+	_globals.uid=uid;
+	_globals.username=this.username;
+	_globals.password=this.password;
 
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	Mojo.Log.error('############################created cookie object.');

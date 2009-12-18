@@ -1,5 +1,13 @@
-function AddVenueAssistant(a) {
+function AddVenueAssistant(a,ed,v) {
   this.auth=a;
+  this.editing=ed;
+  this.venue=v;
+  
+  if(ed) {
+  	this.bl="Save";
+  }else{
+  	this.bl="Add";
+  }
 }
 AddVenueAssistant.prototype.setup = function(widget) {
   this.widget = widget;
@@ -11,7 +19,7 @@ AddVenueAssistant.prototype.setup = function(widget) {
   this.controller.setupWidget("okButton",
     this.attributes = {type : Mojo.Widget.activityButton},
     this.OKButtonModel = {
-      buttonLabel: "Add",
+      buttonLabel: this.bl,
       disabled: false
     }
   );
@@ -108,6 +116,33 @@ Mojo.Log.error("setuplist");
 
 AddVenueAssistant.prototype.activate = function() {
 	$('venue-name').mojo.focus();
+	
+	//if we're proposing an edit to a venue, populate the fields
+	if(this.editing) {
+		this.nameModel.value=this.venue.name;
+		this.controller.modelChanged(this.nameModel);
+
+		this.addressModel.value=this.venue.address;
+		this.controller.modelChanged(this.addressModel);
+
+		this.crossstreetModel.value=this.venue.crossstreet;
+		this.controller.modelChanged(this.crossstreetModel);
+
+		this.cityModel.value=this.venue.city;
+		this.controller.modelChanged(this.cityModel);
+
+		this.zipModel.value=this.venue.zip;
+		this.controller.modelChanged(this.zipModel);
+
+		this.phoneModel.value=this.venue.phone;
+		this.controller.modelChanged(this.phoneModel);
+
+		this.statemodel.value=this.venue.state;
+		this.controller.modelChanged(this.statemodel);
+		
+		$("addvenue-header").innerHTML="Edit Venue";
+		
+	}
 }
 
 
@@ -118,14 +153,9 @@ Mojo.Log.error("### we got not auth!");
   		this.cookieData=new Mojo.Model.Cookie("credentials");
 		var credentials=this.cookieData.get();
 
-		var url = 'http://api.foursquare.com/v1/addvenue.json';
-		var request = new Ajax.Request(url, {
-			method: 'post',
-			evalJSON: 'true',
-			requestHeaders: {
-				Authorization: this.auth
-			},
-			parameters: {
+		if(!this.editing) {
+			var url = 'http://api.foursquare.com/v1/addvenue.json';
+			var params={
 				name: this.nameModel.value,
 				address: this.addressModel.value,
 				crossstreet: this.crossstreetModel.value,
@@ -134,7 +164,30 @@ Mojo.Log.error("### we got not auth!");
 				zip: this.zipModel.value,
 				cityid: credentials.cityid,
 				phone: this.phoneModel.value
+			};
+		}else{
+			var url = 'http://api.foursquare.com/v1/venue/proposeedit.json';
+			var params={
+				name: this.nameModel.value,
+				address: this.addressModel.value,
+				crossstreet: this.crossstreetModel.value,
+				city: this.cityModel.value,
+				state: this.statemodel.value,
+				zip: this.zipModel.value,
+				cityid: credentials.cityid,
+				phone: this.phoneModel.value,
+				geolat: _globals.lat,
+				geolong: _globals.long,
+				vid: this.venue.id
+			};
+		}
+		var request = new Ajax.Request(url, {
+			method: 'post',
+			evalJSON: 'true',
+			requestHeaders: {
+				Authorization: this.auth
 			},
+			parameters: params,
 			onSuccess: this.venueSuccess.bind(this),
 			onFailure: this.venueFailed.bind(this)
 		});
@@ -147,7 +200,7 @@ Mojo.Log.error("### we got not auth!");
 }
 
 AddVenueAssistant.prototype.venueSuccess = function(response) {
-	Mojo.Controller.getAppController().showBanner("New venue added to Foursquare!", {source: 'notification'});
+	Mojo.Controller.getAppController().showBanner("Venue saved to Foursquare!", {source: 'notification'});
 	Mojo.Log.error(response.responseText);
 	$("okButton").mojo.deactivate();
 	this.controller.stageController.popScene("add-venue");
@@ -155,7 +208,7 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 
 AddVenueAssistant.prototype.venueFailed = function(response) {
 	Mojo.Log.error(response.responseText);
-	Mojo.Controller.getAppController().showBanner("Error saving your new venue.", {source: 'notification'});
+	Mojo.Controller.getAppController().showBanner("Error saving your venue.", {source: 'notification'});
 }
 AddVenueAssistant.prototype.cancelTapped = function() {
 	this.controller.stageController.popScene("add-venue");

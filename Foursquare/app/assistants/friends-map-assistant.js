@@ -305,13 +305,13 @@ FriendsMapAssistant.prototype.handleCommand = function(event) {
 //					this.prevScene.controller.get("drawerId").mojo.toggleState();
 //					this.prevScene.controller.modelChanged(this.prevScene.drawerModel);
 //					this.controller.stageController.popScene("friends-map");
-                	var thisauth=auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this,true);
 
                 	break;
 				case "friends-list":
 					//this.controller.stageController.popScene("friends-map");
-                	var thisauth=auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
 					break;
 				case "friend-map":
@@ -321,11 +321,11 @@ FriendsMapAssistant.prototype.handleCommand = function(event) {
 					//this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
 					break;
 				case "do-Venues":
-                	var thisauth=auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
 					break;
                 case "do-Badges":
-                	var thisauth=auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
                 case "do-Shout":
@@ -333,13 +333,26 @@ FriendsMapAssistant.prototype.handleCommand = function(event) {
 				//		template: 'listtemplates/do-shout',
 				//		assistant: new DoShoutDialogAssistant(this,auth)
 				//	});
-                	var thisauth=this.auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
 
                 	break;
+                case "do-Leaderboard":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Tips":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
             }
-        }
-    }
+        }else if(event.type===Mojo.Event.back) {
+			event.preventDefault();
+			var thisauth=_globals.auth;
+			this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
+
+		}
+}
 
 
 FriendsMapAssistant.prototype.deactivate = function(event) {

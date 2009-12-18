@@ -5,9 +5,9 @@ function VenuedetailAssistant(venue,u,p,i) {
 	   that needs the scene controller should be done in the setup function below. */
 	   
 	   this.venue=venue;
-	   this.username=u;
-	   this.password=p;
-	   this.uid=i;
+	   this.username=_globals.username;
+	   this.password=_globals.password;
+	   this.uid=_globals.uid;
 }
 
 VenuedetailAssistant.prototype.setup = function() {
@@ -64,6 +64,20 @@ VenuedetailAssistant.prototype.setup = function() {
             label : "Add To-do",
             disabled: false
         });
+    this.controller.setupWidget("buttonMarkClosed",
+        this.buttonAttributesClosed = {
+            },
+        this.buttonModelClosed = {
+            label : "Flag Closed",
+            disabled: false
+        });
+    this.controller.setupWidget("buttonProposeEdit",
+        this.buttonAttributesEdit = {
+            },
+        this.buttonModelEdit = {
+            label : "Propose Edit",
+            disabled: false
+        });
 
 	
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
@@ -79,6 +93,28 @@ VenuedetailAssistant.prototype.setup = function() {
 	
 	Mojo.Event.listen($("buttonAddTip"),Mojo.Event.tap, this.handleAddTip.bind(this));
 	Mojo.Event.listen($("buttonAddTodo"),Mojo.Event.tap, this.handleAddTodo.bind(this));
+	Mojo.Event.listen($("buttonMarkClosed"),Mojo.Event.tap, this.handleMarkClosed.bind(this));
+	Mojo.Event.listen($("buttonProposeEdit"),Mojo.Event.tap, this.handleProposeEdit.bind(this));
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+        this.cmattributes = {
+           spacerHeight: 0/*,
+           menuClass: 'no-fade'*/
+        },
+        /*this.cmmodel = {
+          visible: true,
+          items: [{
+          	items: [ 
+                 { iconPath: "images/venue_button.png", command: "do-Venues"},
+                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+                 { iconPath: "images/todo_button.png", command: "do-Tips"},
+                 { iconPath: "images/shout_button.png", command: "do-Shout"},
+                 { iconPath: "images/badges_button.png", command: "do-Nothing"},
+                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
+                 ],
+            toggleCmd: "do-Nothing"
+            }]
+    }*/_globals.cmmodel);
+
 
 }
 
@@ -283,6 +319,26 @@ VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 		//$('message').innerHTML = 'Not Logged In';
 	}
 }
+VenuedetailAssistant.prototype.markClosed = function() {
+	Mojo.Log.error("###mark closed");
+	if (auth) {
+		var url = 'http://api.foursquare.com/v1/venue/flagclosed.json';
+		var request = new Ajax.Request(url, {
+			method: 'post',
+			evalJSON: 'true',
+			requestHeaders: {
+				Authorization: auth
+			},
+			parameters: {
+				vid: this.venue.id,
+			},
+			onSuccess: this.markClosedSuccess.bind(this),
+			onFailure: this.markClosedFailed.bind(this)
+		});
+	} else {
+		//$('message').innerHTML = 'Not Logged In';
+	}
+}
 
 VenuedetailAssistant.prototype.checkInSuccess = function(response) {
 	Mojo.Log.error(response.responseText);
@@ -300,6 +356,12 @@ VenuedetailAssistant.prototype.checkInSuccess = function(response) {
 VenuedetailAssistant.prototype.checkInFailed = function(response) {
 	Mojo.Log.error('Check In Failed: ' + repsonse.responseText);
 	Mojo.Controller.getAppController().showBanner("Error checking in!", {source: 'notification'});
+}
+VenuedetailAssistant.prototype.markClosedSuccess = function(response) {
+	Mojo.Controller.getAppController().showBanner("Venue has been marked closed!", {source: 'notification'});
+}
+VenuedetailAssistant.prototype.markClosedFailed = function(response) {
+	Mojo.Controller.getAppController().showBanner("Error marking venue as closed!", {source: 'notification'});
 }
 
 
@@ -319,6 +381,23 @@ VenuedetailAssistant.prototype.handleAddTodo=function(event) {
 	});
 
 }
+VenuedetailAssistant.prototype.handleMarkClosed=function(event) {
+this.controller.showAlertDialog({
+		onChoose: function(value) {
+			if (value) {
+				this.markClosed();
+			}
+		},
+		title:this.venue.name,
+		message:"Do you want to mark this venue as closed?",
+		cancelable:true,
+		choices:[ {label:'Yep!', value:true, type:'affirmative'}, {label:'Nevermind', value:false, type:'negative'} ]
+	});
+}
+VenuedetailAssistant.prototype.handleProposeEdit=function(event) {
+	var thisauth=auth;
+	this.controller.stageController.pushScene({name: "add-venue", transition: Mojo.Transition.crossFade},thisauth,true,this.venue);
+}
 
 VenuedetailAssistant.prototype.showUserInfo = function(event) {
 	Mojo.Log.error("############user info! the uid="+event.target.readAttribute("data")+",target="+event.target.id);
@@ -332,6 +411,56 @@ VenuedetailAssistant.prototype.activate = function(event) {
 	   example, key handlers that are observing the document */
 	   
 	
+}
+VenuedetailAssistant.prototype.handleCommand = function(event) {
+        if (event.type === Mojo.Event.command) {
+            switch (event.command) {
+				case "do-Venues":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid);
+					//this.prevScene.cmmodel.items[0].toggleCmd="do-Nothing";
+				    //this.prevScene.controller.modelChanged(this.prevScene.cmmodel);
+
+					//this.controller.stageController.popScene("user-info");
+					break;
+                case "do-Badges":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+                	break;
+				case "do-Friends":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
+					break;
+                case "do-Shout":
+                //	var checkinDialog = this.controller.showDialog({
+				//		template: 'listtemplates/do-shout',
+				//		assistant: new DoShoutDialogAssistant(this,auth)
+				//	});
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+
+                	break;
+                case "do-Tips":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Leaderboard":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+      			case "do-Nothing":
+      				break;
+            }
+           // var scenes=this.controller.stageController.getScenes();
+            //Mojo.Log.error("########this scene="+scenes[scenes.length-1].name+", below is "+scenes[scenes.length-2].name);
+            //scenes[scenes.length-2].getSceneController().cmmodel.items[0].toggleCmd="do-Nothing";
+            //scenes[scenes.length-2].getSceneController().modelChanged(scenes[scenes.length-2].getSceneController().cmmodel);
+        }else if(event.type===Mojo.Event.back) {
+			event.preventDefault();
+	        var thisauth=_globals.auth;
+			this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid);
+	    }
+
 }
 
 

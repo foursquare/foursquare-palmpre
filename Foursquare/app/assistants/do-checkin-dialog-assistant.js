@@ -37,7 +37,9 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
       this.sceneAssistant.controller.setupWidget("chkShowFriends",
          this.sfattributes = {
              trueValue: '1',
-             falseValue: '0' 
+             trueLabel: 'On',
+             falseValue: '0',
+             falseLabel: 'Off'
          },
          this.sfmodel = {
              value: pings,
@@ -46,6 +48,8 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
     this.sceneAssistant.controller.setupWidget("chkTwitter",
          this.twattributes = {
              trueValue: '1',
+             trueLabel: 'On',
+             falseLabel: 'Off',
              falseValue: '0' 
          },
          this.twmodel = {
@@ -55,6 +59,8 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
     this.sceneAssistant.controller.setupWidget("chkFacebook",
          this.fbattributes = {
              trueValue: '1',
+             trueLabel: 'On',
+             falseLabel: 'Off',
              falseValue: '0' 
          },
          this.fbmodel = {

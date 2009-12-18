@@ -73,7 +73,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	this.controller.setupWidget('add_venue_button',this.avbuttonAtt1,this.avbuttonModel1);
 
 	
-	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenues.bind(this));
+	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenuesSearch.bind(this));
 	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 	Mojo.Event.listen(this.controller.get('add_venue_button'),Mojo.Event.tap, this.addNewVenue.bind(this));
 	Mojo.Event.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bind(this));
@@ -173,7 +173,10 @@ function make_base_auth(user, pass) {
 
 
 
-
+NearbyVenuesAssistant.prototype.onGetNearbyVenuesSearch = function(event) {
+	_globals.nearbyVenues=undefined;
+	this.onGetNearbyVenues();
+}
 
 
 
@@ -368,7 +371,7 @@ NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
 	});
 	*/
 	
-	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid);
+	this.controller.stageController.swapScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid);
 }
 
 NearbyVenuesAssistant.prototype.checkIn = function(id, n) {
@@ -485,6 +488,14 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
                 case "do-Badges":
                 	var thisauth=auth;
 					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Tips":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Leaderboard":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Shout":
                 //	var checkinDialog = this.controller.showDialog({

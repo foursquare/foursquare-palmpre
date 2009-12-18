@@ -293,35 +293,43 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
 					//this.prevScene.controller.get("drawerId").mojo.toggleState();
 					//this.prevScene.controller.modelChanged(this.prevScene.drawerModel);
 					//this.controller.stageController.popScene("nearby-venues-map");
-                	var thisauth=auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,true);
                 	break;
 				case "nearby-venues":
 //					this.controller.stageController.popScene("nearby-venues-map");
-                	var thisauth=auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
 					break;
 				case "venue-map":
 					//this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items);
 					break;
 				case "do-Venues":
-                	var thisauth=auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,uid);
 					break;
                 case "do-Badges":
-                	var thisauth=auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
 				case "do-Friends":
-                	var thisauth=auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
 					break;
+                case "do-Tips":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Leaderboard":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
                 case "do-Shout":
                 //	var checkinDialog = this.controller.showDialog({
 				//		template: 'listtemplates/do-shout',
 				//		assistant: new DoShoutDialogAssistant(this,auth)
 				//	});
-                	var thisauth=this.auth;
+                	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
 
                 	break;

@@ -274,16 +274,16 @@ UserInfoAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
 				case "do-Venues":
-                	var thisauth=auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,_globals.username,_globals.password,this.uid);
 					//this.prevScene.cmmodel.items[0].toggleCmd="do-Nothing";
 				    //this.prevScene.controller.modelChanged(this.prevScene.cmmodel);
 
 					//this.controller.stageController.popScene("user-info");
 					break;
 				case "do-Friends":
-                	var thisauth=auth;
-					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,_globals.username,_globals.password,this.uid);
 					break;
                 case "do-Badges":
                 	//var thisauth=auth;
@@ -297,6 +297,14 @@ UserInfoAssistant.prototype.handleCommand = function(event) {
                 	var thisauth=this.auth;
 					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
 
+                	break;
+                case "do-Tips":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Leaderboard":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
       			case "do-Nothing":
       				break;
