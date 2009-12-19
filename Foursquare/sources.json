@@ -56,5 +56,9 @@
     {
         "scenes": "leaderboard",
         "source": "app/assistants/leaderboard-assistant.js"
+    },
+    {
+        "scenes": "checkin-result",
+        "source": "app/assistants/checkin-result-assistant.js"
     }
 ]

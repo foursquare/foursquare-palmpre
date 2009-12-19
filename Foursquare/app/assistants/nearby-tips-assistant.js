@@ -51,6 +51,7 @@ NearbyTipsAssistant.prototype.setup = function() {
 
 NearbyTipsAssistant.prototype.getTips = function() {
 	if(_globals.tipsList==undefined) {
+	Mojo.Log.error("lat="+_globals.lat+", long="+_globals.long);
 		var url = 'http://api.foursquare.com/v1/tips.json';
 		var request = new Ajax.Request(url, {
 		   method: 'get',
@@ -125,17 +126,25 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 	Mojo.Log.error("****yay tips="+response.responseText);
 
 	if (response.responseJSON == undefined) {
-		$('message').innerHTML = 'No Results Found';
+				Mojo.Log.error("****no tips");
+		$("spinnerId").mojo.stop();
+		$("spinnerId").hide();
+
+		$('message').innerHTML = 'There was an error parsing the results from Foursquare. Give it another shot later on.';
+		$('message').show();
 	}
 	else {
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.tipsList = [];
-		
+					Mojo.Log.error("****handling tips");
+
 		if(response.responseJSON.groups[0] != undefined) { //actually got some tips
+			Mojo.Log.error("****in tips group loop");
 			for(var g=0;g<response.responseJSON.groups.length;g++) {
 				var tarray=response.responseJSON.groups[g].tips;
 				var grouping=response.responseJSON.groups[g].type;
 				for(var t=0;t<tarray.length;t++) {
+			Mojo.Log.error("****in tips loop");
 					this.tipsList.push(tarray[t]);
 					var dist=this.tipsList[this.tipsList.length-1].distance;
 					var amile=0.000621371192;

@@ -345,12 +345,14 @@ VenuedetailAssistant.prototype.checkInSuccess = function(response) {
 	
 	var json=response.responseJSON;
 		Mojo.Log.error("^^^^^^^^^^^^^^^^made it here...");
-	checkinDialog.mojo.close();
+	//checkinDialog.mojo.close();
 	//checkinDialog=null;
-	var dialog = this.controller.showDialog({
-		template: 'listtemplates/checkin-info',
-		assistant: new CheckInDialogAssistant(this, json,this.uid)
-	});
+	//var dialog = this.controller.showDialog({
+	//	template: 'listtemplates/checkin-info',
+	//	assistant: new CheckInDialogAssistant(this, json,this.uid)
+	//});
+	this.controller.stageController.pushScene({name: "checkin-result", transition: Mojo.Transition.crossFade},json,this.uid);
+
 }
 
 VenuedetailAssistant.prototype.checkInFailed = function(response) {
