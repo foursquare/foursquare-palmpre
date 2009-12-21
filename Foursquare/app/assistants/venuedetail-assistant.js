@@ -38,10 +38,13 @@ VenuedetailAssistant.prototype.setup = function() {
              mode: 'vertical-snap'
          },
          this.scrollModel = {
-             snapElements: {'y': [$("snapMap"),$("snapMayor"),$("snapTips"),$("snapTags"),$("snapInfo")]}
+            /* snapElements: {'y': [$("snapMap"),$("snapMayor"),$("snapTips"),$("snapTags"),$("snapInfo")]}*/
          });
 
-	
+		this.controller.setupWidget(Mojo.Menu.appMenu,
+       _globals.amattributes,
+       _globals.ammodel);
+
     this.controller.setupWidget("venueSpinner",
          this.attributes = {
              spinnerSize: 'large'
@@ -449,6 +452,19 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-About":
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Prefs":
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Refresh":
+					$("venueScrim").show();
+					$("venueSpinner").mojo.start();
+					$("venueSpinner").show();
+                	//_globals.friendList=undefined;
+					this.getVenueInfo();
                 	break;
       			case "do-Nothing":
       				break;

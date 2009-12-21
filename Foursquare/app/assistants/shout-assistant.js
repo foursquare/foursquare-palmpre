@@ -27,7 +27,10 @@ ShoutAssistant.prototype.setup = function() {
 	var stt=(credentials.savetotwitter==true)? '1': '0';
 	var stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
   
-  
+	this.controller.setupWidget(Mojo.Menu.appMenu,
+       _globals.amattributes,
+       _globals.ammodel);
+
     this.controller.setupWidget("chkTwitter",
          this.twattributes = {
              trueValue: '1',
@@ -73,6 +76,8 @@ ShoutAssistant.prototype.setup = function() {
             toggleCmd: "do-Nothing"
             }]
     }*/_globals.cmmodel);
+_globals.ammodel.items[0].disabled=true;
+this.controller.modelChanged(_globals.ammodel);
 
 //	this.init();
 }
@@ -167,6 +172,12 @@ ShoutAssistant.prototype.handleCommand = function(event) {
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-About":
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Prefs":
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Nothing":
                 	break;

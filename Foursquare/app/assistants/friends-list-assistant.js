@@ -109,6 +109,9 @@ FriendsListAssistant.prototype.setup = function() {
                 { iconPath: 'search.png', command: 'friend-search', label: "  "}]
             }]
         });
+	this.controller.setupWidget(Mojo.Menu.appMenu,
+       _globals.amattributes,
+       _globals.ammodel);
         
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
@@ -171,7 +174,9 @@ function make_base_auth(user, pass) {
 FriendsListAssistant.prototype.getFriends = function() {
 	$('message').innerHTML += '<br/>Friends Venues...';
 	
-	if(_globals.friendList==undefined) {
+	if(_globals.friendList==undefined || _globals.reloadFriends==true) {
+		_globals.reloadFriends=false;
+		_globals.friendList=undefined;
 		var url = 'http://api.foursquare.com/v1/friends.json';
 		auth = make_base_auth(this.username, this.password);
 		var request = new Ajax.Request(url, {
@@ -518,6 +523,19 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
                 	var thisauth=auth;
 					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
+                case "do-About":
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Prefs":
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Refresh":
+                	$("spinnerId").mojo.start();
+					$("spinnerId").show();
+					$("resultListBox").style.display = 'none';
+                	_globals.friendList=undefined;
+					this.getFriends();
+                	break;
       			case "do-Nothing":
       				break;
             }
@@ -540,6 +558,15 @@ FriendsListAssistant.prototype.activate = function(event) {
 		scroller.mojo.revealTop(0);
 		this.controller.get("drawerId").mojo.setOpenState(true);
 		this.controller.modelChanged(this.drawerModel);
+	}
+	
+	if(_globals.reloadFriends) {
+                	$("spinnerId").mojo.start();
+					$("spinnerId").show();
+					$("resultListBox").style.display = 'none';
+                	_globals.friendList=undefined;
+					this.getFriends();
+	
 	}
 }
 

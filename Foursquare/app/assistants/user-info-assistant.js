@@ -23,26 +23,16 @@ UserInfoAssistant.prototype.setup = function() {
          this.model = {
              spinning: true 
          });
+	this.controller.setupWidget(Mojo.Menu.appMenu,
+       _globals.amattributes,
+       _globals.ammodel);
          
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'no-fade'
         },
-        /*this.cmmodel = {
-          visible: true,
-          items: [{
-          	items: [ 
-                 { iconPath: "images/venue_button.png", command: "do-Venues"},
-                 { iconPath: "images/friends_button.png", command: "do-Friends"},
-                 { iconPath: "images/todo_button.png", command: "do-Tips"},
-                 { iconPath: "images/shout_button.png", command: "do-Shout"},
-                 { iconPath: "images/badges_button.png", command: "do-Nothing"},
-                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
-                 ],
-            toggleCmd: "do-Nothing"
-            }]
-    }*/_globals.cmmodel);
+    _globals.cmmodel);
 
 	/* add event handlers to listen to events from widgets */
 	
@@ -129,9 +119,23 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 
 	//user's badges
 	if(j.user.badges != null && credentials.cityid==j.user.city.id) {
+		var o='';
+		o += '<table border=0 cellspacing=0 cellpadding=2>';
+		var id=0
 		for(var m=0;m<j.user.badges.length;m++) {
-			$("badges-box").innerHTML+='<div class="palm-row single"><div class="checkin-badge"><img src="'+j.user.badges[m].icon+'" width="48" height="48" style="float:left" /> <span>'+j.user.badges[m].name+'</span><br/><span class="palm-info-text" style="margin-left:0;padding-left:0">'+j.user.badges[m].description+'</span></div></div>';
+//			$("badges-box").innerHTML+='<div class="palm-row single"><div class="checkin-badge"><img src="'+j.user.badges[m].icon+'" width="48" height="48" style="float:left" /> <span>'+j.user.badges[m].name+'</span><br/><span class="palm-info-text" style="margin-left:0;padding-left:0">'+j.user.badges[m].description+'</span></div></div>';
+			id++;
+			
+			if(id==1) {
+				o += '<tr>';
+			}
+			o += '<td align="center" width="25%" class="medium-text"><img src="'+j.user.badges[m].icon+'" width="48" height="48"/><br/>'+j.user.badges[m].name+'</td>';
+			if(id==4) {
+				o += '</tr>';
+				id=0;
+			}
 		}
+		$("badges-box").innerHTML=o+"</table>";
 	}else{
 		$("badges-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' doesn\'t have any badges in '+credentials.city+' yet.</span></div></div>';
 	}
@@ -305,6 +309,22 @@ UserInfoAssistant.prototype.handleCommand = function(event) {
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-About":
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Prefs":
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Refresh":
+					$("userInfo").innerHTML="";
+					$("history-box").innerHTML="";
+					$("badges-box").innerHTML="";
+					$("mayor-box").innerHTML="";
+					$("userScrim").show();
+					$("userSpinner").mojo.start();
+					$("userSpinner").show();
+					this.getUserInfo();
                 	break;
       			case "do-Nothing":
       				break;

@@ -25,6 +25,9 @@ FriendsMapAssistant.prototype.setup = function() {
          this.spinnerModel = {
              spinning: true 
          });
+	this.controller.setupWidget(Mojo.Menu.appMenu,
+       _globals.amattributes,
+       _globals.ammodel);
    
     this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
@@ -62,6 +65,10 @@ FriendsMapAssistant.prototype.setup = function() {
             }]
     }*/_globals.cmmodel
 );
+
+
+_globals.ammodel.items[0].disabled=true;
+this.controller.modelChanged(_globals.ammodel);
 
 	/* add event handlers to listen to events from widgets */
 }
@@ -344,6 +351,12 @@ FriendsMapAssistant.prototype.handleCommand = function(event) {
                 case "do-Tips":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-About":
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Prefs":
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
                 	break;
             }
         }else if(event.type===Mojo.Event.back) {

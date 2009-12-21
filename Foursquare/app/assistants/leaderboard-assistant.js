@@ -19,6 +19,10 @@ LeaderboardAssistant.prototype.setup = function() {
         this.model = {
             }
     );
+    	this.controller.setupWidget(Mojo.Menu.appMenu,
+       _globals.amattributes,
+       _globals.ammodel);
+
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
@@ -56,6 +60,14 @@ LeaderboardAssistant.prototype.handleCommand = function(event) {
                 case "do-Shout":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-About":
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Prefs":
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Refresh":
                 	break;
                 case "do-Nothing":
                 	break;

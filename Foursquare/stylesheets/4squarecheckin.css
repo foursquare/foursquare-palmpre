@@ -217,3 +217,11 @@ body {
 	margin-top: -5px !important;
 	margin-left: -5px !important;
 }
+
+.medium-text {
+	font-size: 14px;
+}
+
+#badges-box {
+	margin: 4px;
+}

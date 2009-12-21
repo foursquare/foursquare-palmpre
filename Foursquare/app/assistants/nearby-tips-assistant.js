@@ -26,6 +26,9 @@ NearbyTipsAssistant.prototype.setup = function() {
            menuClass: 'no-fade'
         },
       _globals.cmmodel);
+	this.controller.setupWidget(Mojo.Menu.appMenu,
+       _globals.amattributes,
+       _globals.ammodel);
     
     
     Mojo.Log.error("#########setup menu");
@@ -50,7 +53,9 @@ NearbyTipsAssistant.prototype.setup = function() {
 }
 
 NearbyTipsAssistant.prototype.getTips = function() {
-	if(_globals.tipsList==undefined) {
+	if(_globals.tipsList==undefined || _globals.reloadTips==true) {
+		_globals.reloadTips=false;
+		_globals.tipsList=undefined;
 	Mojo.Log.error("lat="+_globals.lat+", long="+_globals.long);
 		var url = 'http://api.foursquare.com/v1/tips.json';
 		var request = new Ajax.Request(url, {
@@ -199,6 +204,19 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
+                case "do-About":
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Prefs":
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Refresh":
+                	$("spinnerId").mojo.start();
+					$("spinnerId").show();
+					$("resultListBox").style.display = 'none';
+                	_globals.tipsList=undefined;
+					this.getTips();
+                	break;
       			case "do-Nothing":
       				break;
 
@@ -211,6 +229,14 @@ NearbyTipsAssistant.prototype.activate = function(event) {
 			$("resultListBox").style.display = 'block';
 	   		$("spinnerId").mojo.stop();
 			$("spinnerId").hide();
+	   }
+	   
+	   if(_globals.reloadTips) {
+                	$("spinnerId").mojo.start();
+					$("spinnerId").show();
+					$("resultListBox").style.display = 'none';
+                	_globals.tipsList=undefined;
+					this.getTips();
 	   }
 }
 

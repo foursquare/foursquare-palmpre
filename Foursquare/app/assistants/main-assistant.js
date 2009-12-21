@@ -1,4 +1,4 @@
-function MainAssistant(expressLogin,credentials) {
+function MainAssistant(expressLogin,credentials,fp) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -6,6 +6,9 @@ function MainAssistant(expressLogin,credentials) {
 	   
 	   this.expressLogin=expressLogin;
 	   this.credentials=credentials;
+	   this.fromPrefs=fp;
+	   	Mojo.Log.error('############################fp='+fp);
+
 	   if(credentials) {
 		   this.username=this.credentials.username;
 		   this.password=this.credentials.password;
@@ -104,7 +107,16 @@ Mojo.Log.error("####"+response.responseText);
 		city: city
 	});
 	Mojo.Log.error('###########saved cookie?');
-	setTimeout(this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid),3000);
+	if(this.fromPrefs){
+		_globals.reloadVenues=true;
+		_globals.reloadFriends=true;
+		_globals.reloadTips=true;
+		
+		this.controller.stageController.popScene('preferences');
+		this.controller.stageController.popScene('main');
+	}else{
+		setTimeout(this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid),3000);
+	}
 }
 
 MainAssistant.prototype.loginRequestFailed = function(response) {

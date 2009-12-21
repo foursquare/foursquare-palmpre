@@ -92,7 +92,10 @@ NearbyVenuesAssistant.prototype.setup = function() {
                 { iconPath: 'search.png', command: 'venue-search', label: "  "}]
             }]
         });
-        
+	this.controller.setupWidget(Mojo.Menu.appMenu,
+       _globals.amattributes,
+       _globals.ammodel);
+
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
@@ -183,8 +186,9 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenuesSearch = function(event) {
 NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 	Mojo.Log.error("trying to get location..");
 	
-	if(_globals.nearbyVenues==undefined) {
-	
+	if(_globals.nearbyVenues==undefined || _globals.reloadVenues==true) {
+		_globals.reloadVenues=false;
+		_globals.nearbyVenues=undefined;
 		//hide the result list box an clear out it's model
 		$(resultListBox).style.display = 'none';
 		this.resultsModel.items = $A([]);
@@ -513,6 +517,19 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
 
                 	break;
+                case "do-About":
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Prefs":
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Refresh":
+                	$("spinnerId").mojo.start();
+					$("spinnerId").show();
+					$("resultListBox").style.display = 'none';
+                	_globals.nearbyVenues=undefined;
+					this.onGetNearbyVenues();
+                	break;
                 case "do-Nothing":
                 	break;
             }
@@ -539,6 +556,14 @@ NearbyVenuesAssistant.prototype.activate = function(event) {
 			this.controller.get("drawerId").mojo.setOpenState(true);
 			this.controller.modelChanged(this.drawerModel);
 
+	   }
+	   
+	   if(_globals.reloadVenues) {
+                	$("spinnerId").mojo.start();
+					$("spinnerId").show();
+					$("resultListBox").style.display = 'none';
+                	_globals.nearbyVenues=undefined;
+					this.onGetNearbyVenues();
 	   }
 }
 

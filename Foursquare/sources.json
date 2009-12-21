@@ -60,5 +60,13 @@
     {
         "scenes": "checkin-result",
         "source": "app/assistants/checkin-result-assistant.js"
+    },
+    {
+        "scenes": "about",
+        "source": "app/assistants/about-assistant.js"
+    },
+    {
+        "scenes": "preferences",
+        "source": "app/assistants/preferences-assistant.js"
     }
 ]

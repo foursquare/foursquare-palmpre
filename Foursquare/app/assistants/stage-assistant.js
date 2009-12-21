@@ -37,3 +37,15 @@ _globals.cmmodel = {
             }]
     };
 
+_globals.ammodel = {
+	visible: true,
+	items: [
+		{label: "Refresh", command: "do-Refresh"},
+		{label: "Preferences", command: "do-Prefs"},
+		Mojo.Menu.editItem,
+		{label: "About", command: "do-About"}
+	]
+};
+_globals.amattributes = {
+	omitDefaultItems: true
+};

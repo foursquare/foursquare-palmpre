@@ -40,6 +40,10 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
                 { iconPath: 'search.png', command: 'venue-search', label: "  "}]
             }]
         });
+	this.controller.setupWidget(Mojo.Menu.appMenu,
+       _globals.amattributes,
+       _globals.ammodel);
+
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
@@ -66,6 +70,8 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
 	
 	
 	
+_globals.ammodel.items[0].disabled=true;
+this.controller.modelChanged(_globals.ammodel);
 
 
 }
@@ -323,6 +329,12 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-About":
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Prefs":
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Shout":
                 //	var checkinDialog = this.controller.showDialog({
