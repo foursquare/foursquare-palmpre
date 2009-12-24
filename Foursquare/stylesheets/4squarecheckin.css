@@ -4,13 +4,14 @@
 }
 
 .listWhiteBox {
-	background-color:#ffffff;
+	background-color: transparent;
 	margin:10px;
 	border:1px solid #999999;
 }
 
 body {
-	background: #fff !important;
+	/*background: #fff !important;*/
+	background: #166bb4 url(../images/bg.png) no-repeat left top !important;
 	}
 
 #message {
@@ -140,10 +141,10 @@ body {
 .vtag {
 	border-width: 8px;
 	-webkit-border-image: url(../images/tag.png) 0 18 0 18;
-	color: #fff;
+	color: #fff !important;
 	padding: 2px;
 	text-align: center;
-	-webkit-text-stroke:0 1px 0 rgb(173, 41, 159);
+	text-shadow: 0 1px 1px rgb(173, 41, 159) ;
 	font-size: 17px;
 	margin-left: 5px;
 	margin-bottom: 11px;
@@ -225,3 +226,36 @@ body {
 #badges-box {
 	margin: 4px;
 }
+
+.palm-info-text {
+	color: #001f32 !important;
+}
+
+.label {
+	color: #003b5e !important;
+	text-shadow: 0px 1px 1px #006999 !important;
+}
+.linefix {
+	line-height: 31px;
+}
+
+.blue-view {
+	background-image: url(../images/view-menu-gradient.png) !important;
+}
+.blue-command {
+	background-image: url(../images/command-menu-gradient.png) !important;
+}
+
+#main {
+	/*padding-top: 40px;*/
+}
+
+.filter-field-container {
+	margin-top: 48px !important;
+}
+
+
+/*a {
+	color: #6e1965 !important;
+	text-shadow: #360c32 0px 1px 0px !important;
+}*/

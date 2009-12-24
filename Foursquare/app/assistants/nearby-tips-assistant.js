@@ -184,8 +184,8 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
 					//this.controller.stageController.popScene("friends-list");
 					break;
 				case "do-Friends":
-                	//var thisauth=auth;
-					//this.controller.stageController.pushScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},this.auth,userData,_globals.username,_globals.password,_globals.uid);
 					break;
                 case "do-Badges":
                 	var thisauth=_globals.auth;

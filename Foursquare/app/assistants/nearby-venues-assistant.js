@@ -25,7 +25,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
 			textFieldName:	'name', 
 			multiline:		false,
 			disabledProperty: 'disabled',
-			focus: 			true, 
+			focus: 			false, 
 			modifierState: 	Mojo.Widget.capsLock,
 			limitResize: 	false, 
 			holdToEnable:  false, 
@@ -33,7 +33,8 @@ NearbyVenuesAssistant.prototype.setup = function() {
 			changeOnKeyPress: true,
 			textReplacement: false,
 			maxLength: 30,
-			requiresEnterKey: false
+			requiresEnterKey: false,
+			autoFocus:		false
 	};
 	//Create the model for the text field
 	this.textModel = {
@@ -46,7 +47,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
     
 	// Set up the attributes & model for the List widget:
 	this.controller.setupWidget('results-venue-list', 
-					      {itemTemplate:'listtemplates/venueItems',dividerFunction: this.groupVenues,dividerTemplate: 'listtemplates/dividertemplate'},
+					      {itemTemplate:'listtemplates/venueItems',dividerFunction: this.groupVenues,dividerTemplate: 'listtemplates/dividertemplate',filterFunction: this.filterFunction.bind(this)},
 					      this.resultsModel);
 
 	//Set up button handlers
@@ -81,7 +82,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
            spacerHeight: 0,
-           menuClass: 'no-fade'
+           menuClass: 'blue-view'
         },
         this.menuModel = {
             visible: true,
@@ -99,7 +100,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
-           menuClass: 'no-fade'
+           menuClass: 'blue-command'
         },
         /*this.cmmodel = {
           visible: true,
@@ -159,7 +160,6 @@ NearbyVenuesAssistant.prototype.setup = function() {
     Mojo.Log.error("#########setup nearby");
     
     $("message").hide();
-    
     	       this.onGetNearbyVenues();
 
 }
@@ -252,7 +252,7 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,va
 	//$('message').innerHTML += "("+query+")";
 	//var query='';
 	var url = 'http://api.foursquare.com/v1/venues.json';
-	auth = make_base_auth(this.username, this.password);
+	auth = make_base_auth(_globals.username, _globals.password);
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
@@ -354,6 +354,7 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 		_globals.nearbyVenues=venueList;
 		this.resultsModel.items =venueList;// $A(venueList);
 		this.controller.modelChanged(this.resultsModel);
+
 	}
 }
 
@@ -464,13 +465,13 @@ NearbyVenuesAssistant.prototype.addNewVenue = function(){
 
 
 NearbyVenuesAssistant.prototype.onKeyPressHandler = function(event) {
-	$("sendField").mojo.focus();
+	/*$("sendField").mojo.focus();
 	var scroller = this.controller.getSceneScroller();
 	scroller.mojo.revealTop(0);
 	$("drawerId").mojo.setOpenState(true);
 	this.controller.modelChanged(this.drawerModel);
 	//this.textModel.value=String.fromCharCode(event.originalEvent.keyCode);
-	//wthis.controller.modelChanged(this.textModel);
+	//wthis.controller.modelChanged(this.textModel);*/
 }
 
 NearbyVenuesAssistant.prototype.handleCommand = function(event) {
@@ -484,6 +485,12 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 					scroller.mojo.revealTop(0);
 					$("drawerId").mojo.toggleState();
 					this.controller.modelChanged(this.drawerModel);
+					var os=$("drawerId").mojo.getOpenState();
+					if(os) {
+						$("sendField").mojo.focus();
+					}else{
+						$("sendField").mojo.blur();
+					}
                 	break;
 				case "venue-map":
 					this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this);
@@ -524,18 +531,40 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Refresh":
-                	$("spinnerId").mojo.start();
+                	/*$("spinnerId").mojo.start();
 					$("spinnerId").show();
 					$("resultListBox").style.display = 'none';
-                	_globals.nearbyVenues=undefined;
-					this.onGetNearbyVenues();
+                	//_globals.nearbyVenues=$A([]);
+                	_globals.reloadVenues=true;
+					this.onGetNearbyVenues();*/
+					this.controller.stageController.swapScene('nearby-venues',auth,userData,_globals.username,_globals.password,_globals.uid)
                 	break;
                 case "do-Nothing":
                 	break;
             }
         }
     }
-
+NearbyVenuesAssistant.prototype.filterFunction = function(filterString, widget, offset, limit) {
+ // var matchingSubset = this.getMatches(filterString, offset, limit);
+ // listWidget.mojo.noticeUpdatedItems(offset, matchingSubset);
+//  listWidget.mojo.setLength(matchingSubset.length);
+Mojo.Log.error("###filter="+filterString+", offset="+offset+", limit="+limit+", widget="+widget.id);
+	var matches=Array();
+	if(filterString=="") {
+		matches=_globals.nearbyVenues;
+	}else{
+		for(var m=0;m<_globals.nearbyVenues.length;m++) {
+			var vname=_globals.nearbyVenues[m].name;
+	  		if(vname.toLowerCase().indexOf(filterString.toLowerCase())>-1) {
+	  			Mojo.Log.error("##This is one:"+_globals.nearbyVenues[m].name);
+	  			matches.push(_globals.nearbyVenues[m]);
+	  		}
+		}
+	}
+	widget.mojo.noticeUpdatedItems(offset, matches);
+  	widget.mojo.setLength(matches.length);
+	
+}
 
 NearbyVenuesAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
@@ -543,6 +572,7 @@ NearbyVenuesAssistant.prototype.activate = function(event) {
 	     //  this.onGetNearbyVenues();
 	//    this.cmmodel.items[0].toggleCmd="do-Nothing";
 	  //  this.controller.modelChanged(this.cmmodel);
+    $("sendField").mojo.blur();
 
 	   if(_globals.nearbyVenues!=undefined){
 			$("resultListBox").style.display = 'block';

@@ -1,5 +1,5 @@
-<div id="userinfo-main" class="palm-hasheader">
-	<div class="palm-header center" id="list-header">
+<div id="main" class="noheader">
+<!--	<div class="palm-header center" id="list-header">
 		User Info
 	</div>
 	<div>
@@ -13,35 +13,51 @@
 					<div id="userInfo" class="palm-info-text"></div><br class="breaker"/>
 				</div>
 			</div>
-	</div>	
-	<br class="breaker"/>
-	<div class="palm-group" id='mayorof'>
-		<div id='mayor-title' class="palm-group-title" x-mojo-loc=''>Mayorships</div>
-		<div class="palm-list">
-			<div id='mayor-box' class='listWhiteBox'>
+	</div>	-->
+	<div class="palm-page-header multi-line" id="userHeader">
+		<div class="palm-page-header-wrapper">
+			<div id="userAvatar" style="width: 70px;float:left;">
+				<img id="userPic" width="60" height="60" data="" alt="" src="" style="border: 2px solid #003e61;" />
+				<!--<img id="userPicBorder" src="images/roundedCorner.png" class="userLink" data="" alt="" />-->
+				
 			</div>
+			<div style="width: 248px; float: left;">
+			    <div id="userName" class="title left capitalize" ></div>                         
+				<div id="userCity" class="subtitle capitalize"></div>
+			</div>
+			<div style="clear:both;height: 2px;">&nbsp;</div>
+		  	<div id="dropshadow">&nbsp;</div>
 		</div>
 	</div>
-	<br class="breaker"/>
+
+  	<div class="palm-group" id='mayorof'>
+		<div id='mayor-title' class="palm-group-title" x-mojo-loc=''>Mayorships</div>
+		<div id="mayorshipList" x-mojo-element="List" >
+			<!--<div id='mayor-box' class='listWhiteBox'>
+			</div>-->
+		</div>
+	</div>
 	<div class="palm-group" id='ubadges'>
 		<div id='badges-title' class="palm-group-title" x-mojo-loc=''>Badges</div>
 			<div class="palm-list">
 				<div id='badges-box'></div>
 			</div>
-		</div>
 	</div>
 
-	<br class="breaker"/>
 	<div class="palm-group" id='uhistory'>
 		<div id='history-title' class="palm-group-title" x-mojo-loc=''>History</div>
-		<div class="palm-list">
-			<div id='history-box' class='listWhiteBox'>
-			</div>
+		<div id="checkinHistory" x-mojo-element="List" >
+			<!--<div id='history-box' class='listWhiteBox'>
+			</div>-->
 		</div>
 	</div>
-<br/><br/>
 
+	<div class="palm-group" id='uinfo'>
+		<div id='info-title' class="palm-group-title" x-mojo-loc=''>Info</div>
+  					<div id="userInfo" class="subtitle capitalize"></div>
+	</div>
+
+<br/><br/><br/><br/>
+</div>
 	<div class="palm-scrim" id="userScrim"></div>
 	<div x-mojo-element="Spinner" id="userSpinner" class="spinnerClass" name="spinnerName"></div>
-
-</div>

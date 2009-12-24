@@ -98,7 +98,7 @@ FriendsListAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
            spacerHeight: 0,
-           menuClass: 'no-fade'
+           menuClass: 'blue-view'
         },
         this.menuModel = {
             visible: true,
@@ -116,7 +116,7 @@ FriendsListAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
-           menuClass: 'no-fade'
+           menuClass: 'blue-command'
         },
        /* this.cmmodel = {
           visible: true,
@@ -178,7 +178,7 @@ FriendsListAssistant.prototype.getFriends = function() {
 		_globals.reloadFriends=false;
 		_globals.friendList=undefined;
 		var url = 'http://api.foursquare.com/v1/friends.json';
-		auth = make_base_auth(this.username, this.password);
+		auth = make_base_auth(_globals.username, _globals.password);
 		var request = new Ajax.Request(url, {
 		   method: 'get',
 		   evalJSON: 'force',
@@ -423,13 +423,15 @@ FriendsListAssistant.prototype.requestFriendsSuccess = function(response) {
 		this.requestList = [];
 		this.looping=false;
 		
-		if(response.responseJSON.requests != undefined) {
+		if(response.responseJSON.requests != undefined && response.responseJSON.requests != null) {
 			for(var f=0;f<response.responseJSON.requests.length;f++) {
 				this.requestList.push(response.responseJSON.requests[f]);
 			}
+			this.resultsModel.items =this.requestList; //update list with basic user info
+			this.controller.modelChanged(this.resultsModel);
+		}else{
+			$("results-friends-list").innerHTML="No pending friend requests.";
 		}
-		this.resultsModel.items =this.requestList; //update list with basic user info
-		this.controller.modelChanged(this.resultsModel);
 		
 		
 		var mybutton = $('go_button');
