@@ -58,10 +58,11 @@ NearbyTipsAssistant.prototype.getTips = function() {
 		_globals.tipsList=undefined;
 	Mojo.Log.error("lat="+_globals.lat+", long="+_globals.long);
 		var url = 'http://api.foursquare.com/v1/tips.json';
+		//Mojo.Log.error("###version: "+Mojo.appInfo.version);
 		var request = new Ajax.Request(url, {
 		   method: 'get',
 		   evalJSON: 'force',
-		   requestHeaders: {Authorization: this.auth}, //Not doing a search with auth due to malformed JSON results from it
+		   requestHeaders: {"user-agent":"Foursquare for webOS/"+Mojo.appInfo.version,Authorization: this.auth}, //Not doing a search with auth due to malformed JSON results from it
 		   parameters: {geolat: _globals.lat,geolong: _globals.long},
 		   onSuccess: this.getTipsSuccess.bind(this),
 		   onFailure: this.getTipsFailed.bind(this)
@@ -172,12 +173,14 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 		$("resultListBox").style.display = 'block';
 
 }
+
+
 NearbyTipsAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
             	case "do-Venues":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,_globals.username,_globals.password,_globals.uid);
 					//this.prevScene.cmmodel.items[0].toggleCmd="do-Nothing";
 				    //this.prevScene.controller.modelChanged(this.prevScene.cmmodel);
 

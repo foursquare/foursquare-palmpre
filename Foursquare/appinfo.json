@@ -1,6 +1,6 @@
 {
 	"id": "com.andrewwalpole.foursquare",
-	"version": "0.6.0",
+	"version": "0.6.2",
 	"vendor": "FourFans",
 	"type": "web",
 	"main": "index.html",

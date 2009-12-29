@@ -257,7 +257,7 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,va
 	   method: 'get',
 	   evalJSON: 'force',
 	   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
-	   parameters: {geolat:latitude, geolong:longitude, geohacc:hacc,geovacc:vacc, geoalt:alt,r:.5, l:50, q:query},
+	   parameters: {geolat:latitude, geolong:longitude, geohacc:hacc,geovacc:vacc, geoalt:alt,r:.5, l:15, q:query},
 	   onSuccess: this.nearbyVenueRequestSuccess.bind(this),
 	   onFailure: this.nearbyVenueRequestFailed.bind(this)
 	 });

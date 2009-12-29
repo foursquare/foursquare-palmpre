@@ -48,7 +48,7 @@ UserInfoAssistant.prototype.setup = function() {
 
 	/* add event handlers to listen to events from widgets */
 		Mojo.Event.listen(this.controller.get('mayorshipList'),Mojo.Event.listTap, this.listWasTapped.bind(this));
-	Mojo.Event.listen(this.controller.get('checkinHistory'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+	Mojo.Event.listen(this.controller.get('checkinHistory'),Mojo.Event.listTap, this.historyListWasTapped.bind(this));
 
 	$("uhistory").hide();
 
@@ -234,20 +234,13 @@ UserInfoAssistant.prototype.denyFailed = function(response) {
 
 UserInfoAssistant.prototype.listWasTapped = function(event) {
 	
-	/*this.controller.showAlertDialog({
-		onChoose: function(value) {
-			if (value) {
-				this.checkIn(event.item.id, event.item.name);
-			}
-		},
-		title:"Foursquare Check In",
-		message:"Do you want to check in here?",
-		cancelable:true,
-		choices:[ {label:'Yes', value:true, type:'affirmative'}, {label:'No', value:false, type:'negative'} ]
-	});
-	*/
+	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,_globals.username,_globals.password,_globals.uid,true);
+}
+
+
+UserInfoAssistant.prototype.historyListWasTapped = function(event) {
 	
-//	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,_globals.username,_globals.password,_globals.uid);
+	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item.venue,_globals.username,_globals.password,_globals.uid,true);
 }
 
 
@@ -282,7 +275,7 @@ UserInfoAssistant.prototype.getHistory = function(event) {
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization:this.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization:this.auth}, 
 	   parameters: {},
 	   onSuccess: this.historySuccess.bind(this),
 	   onFailure: this.historyFailed.bind(this)

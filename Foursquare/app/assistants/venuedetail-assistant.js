@@ -1,4 +1,4 @@
-function VenuedetailAssistant(venue,u,p,i) {
+function VenuedetailAssistant(venue,u,p,i,fui) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -8,6 +8,7 @@ function VenuedetailAssistant(venue,u,p,i) {
 	   this.username=_globals.username;
 	   this.password=_globals.password;
 	   this.uid=_globals.uid;
+	   this.fromuserinfo=fui;
 }
 
 VenuedetailAssistant.prototype.setup = function() {
@@ -81,6 +82,47 @@ VenuedetailAssistant.prototype.setup = function() {
             label : "Propose Edit",
             disabled: false
         });
+	this.controller.setupWidget("mayorDrawer",
+         this.attributes = {
+             modelProperty: 'open',
+             unstyled: true
+         },
+         this.model = {
+             open: true
+         });
+	this.controller.setupWidget("venueTipsContainer",
+         this.attributes = {
+             modelProperty: 'open',
+             unstyled: true
+         },
+         this.model = {
+             open: false
+         });
+
+	this.controller.setupWidget("tagsDrawer",
+         this.attributes = {
+             modelProperty: 'open',
+             unstyled: true
+         },
+         this.model = {
+             open: false
+         });
+	this.controller.setupWidget("venueInfoContainer",
+         this.attributes = {
+             modelProperty: 'open',
+             unstyled: true
+         },
+         this.model = {
+             open: false
+         });
+	this.controller.setupWidget("mapDrawer",
+         this.attributes = {
+             modelProperty: 'open',
+             unstyled: true
+         },
+         this.model = {
+             open: true
+         });
 
 	
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
@@ -100,8 +142,8 @@ VenuedetailAssistant.prototype.setup = function() {
 	Mojo.Event.listen($("buttonProposeEdit"),Mojo.Event.tap, this.handleProposeEdit.bind(this));
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
-           spacerHeight: 0/*,
-           menuClass: 'no-fade'*/
+           spacerHeight: 0,
+           menuClass: 'blue-command'
         },
         /*this.cmmodel = {
           visible: true,
@@ -118,6 +160,12 @@ VenuedetailAssistant.prototype.setup = function() {
             }]
     }*/_globals.cmmodel);
 
+	Mojo.Event.listen($("mayorDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+	Mojo.Event.listen($("tipsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+	Mojo.Event.listen($("tagsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+	Mojo.Event.listen($("infoDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+	Mojo.Event.listen($("mapDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+
 
 }
 
@@ -132,7 +180,7 @@ function make_base_auth(user, pass) {
 
 VenuedetailAssistant.prototype.getVenueInfo = function() {
 	var url = 'http://api.foursquare.com/v1/venue.json';
-	auth = make_base_auth(this.username, this.password);
+	auth = make_base_auth(_globals.username, _globals.password);
 	Mojo.Log.error("un="+this.username);
 	var request = new Ajax.Request(url, {
 	   method: 'get',
@@ -145,6 +193,13 @@ VenuedetailAssistant.prototype.getVenueInfo = function() {
 }
 VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	Mojo.Log.error(response.responseText);
+	$("checkinVenueAddress").innerHTML=response.responseJSON.venue.address;
+	if (response.responseJSON.venue.crossstreet) {
+	 $("checkinVenueAddress").innerHTML += "<br/>(at "+response.responseJSON.venue.crossstreet+")";
+	}
+	if($("venueMap").src!="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x175&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA") {
+		$("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x175&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA";
+	}
 	
 	//mayorial stuff
 	if(response.responseJSON.venue.stats.mayor != undefined) { //venue has a mayor
@@ -186,13 +241,14 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		for (var t=0;t<response.responseJSON.venue.tips.length;t++) {
 			//<div class="palm-row single"><div class="checkin-score"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>
 			var tip=response.responseJSON.venue.tips[t].text;
+			var tipid=response.responseJSON.venue.tips[t].id;
 			var created=response.responseJSON.venue.tips[t].created;
 			var tlname=(response.responseJSON.venue.tips[t].user.lastname != undefined)? response.responseJSON.venue.tips[t].user.lastname : '';
 			var username=response.responseJSON.venue.tips[t].user.firstname+" "+tlname;
 			var photo=response.responseJSON.venue.tips[t].user.photo;
 			var uid=response.responseJSON.venue.tips[t].user.id;
 
-			tips+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink" data="'+uid+'"/> <span class="venueTipUser userLink" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+tip+'</span></div>'+"\n";
+			tips+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink" data="'+uid+'"/> <span class="venueTipUser userLink" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+tip+'</span><br class="breaker"/><div class="tip-buttons"><span class="vtip tipsave" id="tip-save-'+t+'" data="'+tipid+'">Save Tip</span> <span class="vtip-black tipdone" id="tip-done-'+t+'" data="'+tipid+'">I\'ve Done This</span></div></div>'+"\n";
 		}
 		$("venueTips").update(tips);
 	}
@@ -267,12 +323,30 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		Mojo.Log.error("#########added event to "+eid)
 	}
 
+	//atatch events to any new save tip links
+	var savetips=$$(".tipsave");
+	for(var e=0;e<savetips.length;e++) {
+		var eid=savetips[e].id;
+		Mojo.Event.stopListening($(eid),Mojo.Event.tap,this.tipTapped);
+		Mojo.Event.listen($(eid),Mojo.Event.tap,this.tipTapped.bind(this));
+		Mojo.Log.error("#########added event to "+eid)
+	}
+
+	var donetips=$$(".tipdone");
+	for(var e=0;e<donetips.length;e++) {
+		var eid=donetips[e].id;
+		Mojo.Event.stopListening($(eid),Mojo.Event.tap,this.tipTapped);
+		Mojo.Event.listen($(eid),Mojo.Event.tap,this.tipTapped.bind(this));
+		Mojo.Log.error("#########added event to "+eid)
+	}
+
 }
 
 
 
 VenuedetailAssistant.prototype.getVenueInfoFailed = function(response) {
-	Mojo.Log.error("############error!");
+	Mojo.Log.error("############error! "+response.status);
+	Mojo.Log.error("############error! "+response.responseText);
 	Mojo.Controller.getAppController().showBanner("Error getting the venue's info", {source: 'notification'});
 }
 var checkinDialog;
@@ -473,12 +547,123 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
             //Mojo.Log.error("########this scene="+scenes[scenes.length-1].name+", below is "+scenes[scenes.length-2].name);
             //scenes[scenes.length-2].getSceneController().cmmodel.items[0].toggleCmd="do-Nothing";
             //scenes[scenes.length-2].getSceneController().modelChanged(scenes[scenes.length-2].getSceneController().cmmodel);
-        }else if(event.type===Mojo.Event.back) {
+        }else if(event.type===Mojo.Event.back && this.fromuserinfo!=true) {
 			event.preventDefault();
 	        var thisauth=_globals.auth;
 			this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid);
 	    }
 
+}
+
+VenuedetailAssistant.prototype.tipTapped = function(event) {
+	
+    switch(event.target.hasClassName("tipsave")) {
+                           		case true:
+                           			this.markTip(event.target.readAttribute("data"),"todo");
+                           			break;
+                           		case false:
+                           			this.markTip(event.target.readAttribute("data"),"done");
+                           			break;
+    }
+
+
+
+}
+VenuedetailAssistant.prototype.markTip = function(tip,how){
+		var url = 'http://api.foursquare.com/v1/tip/mark'+how+'.json';
+		var request = new Ajax.Request(url, {
+		   method: 'post',
+		   evalJSON: 'force',
+		   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+		   parameters: {tid: tip},
+		   onSuccess: this.markTipSuccess.bind(this),
+		   onFailure: this.markTipFailed.bind(this)
+		 });
+}
+VenuedetailAssistant.prototype.markTipSuccess = function(response){
+	Mojo.Log.error(response.responseText);
+	if(response.responseJSON.tip!=undefined){
+		Mojo.Controller.getAppController().showBanner("Tip was marked!", {source: 'notification'});
+	}else{
+		Mojo.Controller.getAppController().showBanner("Error marking tip!", {source: 'notification'});
+	}
+}
+VenuedetailAssistant.prototype.markTipFailed = function(response){
+		Mojo.Log.error(response.responseText);
+		Mojo.Controller.getAppController().showBanner("Error marking tip!", {source: 'notification'});
+}
+
+
+VenuedetailAssistant.prototype.handleDividerTap = function(event) {
+	Mojo.Log.error("divider tapped: "+event.target.id);
+	switch(event.target.id) {
+		case "mayorArrow":
+		case "mayorLine":
+			Mojo.Log.error("mayor divider");
+			if($("mayorArrow").hasClassName("palm-arrow-closed")) {
+				$("mayorArrow").removeClassName("palm-arrow-closed");
+				$("mayorArrow").addClassName("palm-arrow-expanded");
+				$("mayorDrawer").mojo.setOpenState(true);
+			}else{
+				$("mayorArrow").removeClassName("palm-arrow-expanded");
+				$("mayorArrow").addClassName("palm-arrow-closed");
+				$("mayorDrawer").mojo.setOpenState(false);
+			
+			}
+			break;
+		case "tipsArrow":
+		case "tipsLine":
+			if($("tipsArrow").hasClassName("palm-arrow-closed")) {
+				$("tipsArrow").removeClassName("palm-arrow-closed");
+				$("tipsArrow").addClassName("palm-arrow-expanded");
+				$("venueTipsContainer").mojo.setOpenState(true);
+			}else{
+				$("tipsArrow").removeClassName("palm-arrow-expanded");
+				$("tipsArrow").addClassName("palm-arrow-closed");
+				$("venueTipsContainer").mojo.setOpenState(false);
+			
+			}
+			break;
+		case "tagsArrow":
+		case "tagsLine":
+			if($("tagsArrow").hasClassName("palm-arrow-closed")) {
+				$("tagsArrow").removeClassName("palm-arrow-closed");
+				$("tagsArrow").addClassName("palm-arrow-expanded");
+				$("tagsDrawer").mojo.setOpenState(true);
+			}else{
+				$("tagsArrow").removeClassName("palm-arrow-expanded");
+				$("tagsArrow").addClassName("palm-arrow-closed");
+				$("tagsDrawer").mojo.setOpenState(false);
+			
+			}
+			break;
+		case "infoArrow":
+		case "infoLine":
+			if($("infoArrow").hasClassName("palm-arrow-closed")) {
+				$("infoArrow").removeClassName("palm-arrow-closed");
+				$("infoArrow").addClassName("palm-arrow-expanded");
+				$("venueInfoContainer").mojo.setOpenState(true);
+			}else{
+				$("infoArrow").removeClassName("palm-arrow-expanded");
+				$("infoArrow").addClassName("palm-arrow-closed");
+				$("venueInfoContainer").mojo.setOpenState(false);
+			
+			}
+			break;
+		case "mapArrow":
+		case "mapLine":
+			if($("mapArrow").hasClassName("palm-arrow-closed")) {
+				$("mapArrow").removeClassName("palm-arrow-closed");
+				$("mapArrow").addClassName("palm-arrow-expanded");
+				$("mapDrawer").mojo.setOpenState(true);
+			}else{
+				$("mapArrow").removeClassName("palm-arrow-expanded");
+				$("mapArrow").addClassName("palm-arrow-closed");
+				$("mapDrawer").mojo.setOpenState(false);
+			
+			}
+			break;
+	}
 }
 
 

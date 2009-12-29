@@ -251,7 +251,7 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 					var request = new Ajax.Request(url, {
 					   method: 'get',
 					   evalJSON: 'force',
-					   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+					   requestHeaders: {"user-agent":"Foursquare for webOS/"+Mojo.appInfo.version,Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
 					   parameters: {uid: theuser},
 					   onSuccess: function(uresponse){
 							Mojo.Log.error("***friend["+(this.onfriend)+"] ("+this.friendList[this.onfriend].firstname+") info="+uresponse.responseText);	

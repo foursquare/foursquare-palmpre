@@ -12,28 +12,35 @@
 	</div>
    <div x-mojo-element="Scroller" id="detailScroller" class="scrollerClass" name="scrollerName">
 		<div id="snapMap">
-			<table class="palm-divider labeled">
+			<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="mapDivider">
 			  <tr>
 			    <td class="left"></td>
 			    <td class="label">
 			      Map
 			    </td>
+			    <td class="line" width="100%" id="mapLine"></td>
+			    <td><div class="palm-arrow-expanded arrow_button" id="mapArrow"></div></td>
 			    <td class="right"></td>
 			  </tr>
 			</table>
-			<img id="venueMap" src="" width="320" height="175" />
+			<div id="mapDrawer" x-mojo-element="Drawer">
+				<img id="venueMap" src="" width="320" height="175" />
+			</div>
 		</div>
 		<div id="snapMayor">
-			<table class="palm-divider labeled">
+			<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="mayorDivider">
 			  <tr>
 			    <td class="left"></td>
 			    <td class="label">
 			      Mayor
 			    </td>
+			    <td class="line" width="100%" id="mayorLine"></td>
+			    <td><div class="palm-arrow-expanded arrow_button" id="mayorArrow"></div></td>
 			    <td class="right"></td>
 			  </tr>
 			</table>
-			<div id="venueMayor">
+			<div id="mayorDrawer" x-mojo-element="Drawer">
+			<div id="venueMayor" >
 				<div id="mayorAvatar">
 					<img id="mayorPic" width="75" height="75" data="" alt="Mayor!" src="" />
 					<img id="mayorPicBorder" src="images/roundedCorner.png" class="userLink" data="" alt="" />
@@ -43,6 +50,7 @@
 					<div id="mayorName" class="title userLink" alt=""></div>
 					<div id="mayorInfo" class="palm-info-text"></div><br class="breaker"/>
 				</div>
+			</div>
 			</div>
 		</div>
 		<div id="snapUsers" class="breaker">
@@ -58,45 +66,55 @@
 			<div id="venueUsers"></div>
 		</div>
 		<div id="snapTips" class="breaker">
-			<table class="palm-divider labeled">
+			<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="tipsDivider">
 			  <tr>
 			    <td class="left"></td>
 			    <td class="label">
 			      Tips &amp; To-do's
 			    </td>
+			    <td class="line" width="100%" id="tipsLine"></td>
+			    <td><div class="palm-arrow-closed arrow_button" id="tipsArrow"></div></td>
 			    <td class="right"></td>
 			  </tr>
 			</table>
-			<div id="venueTips"></div>
-			<br class="breaker"/>
-			<div x-mojo-element="Button" id="buttonAddTip" class="buttonClass addtipok" name="buttonName"></div>
-			<div x-mojo-element="Button" id="buttonAddTodo" class="buttonClass addtipcancel" name="buttonName"></div>
+			<div id="venueTipsContainer"  x-mojo-element="Drawer">
+				<div id="venueTips"></div>
+				<br class="breaker"/>
+				<div x-mojo-element="Button" id="buttonAddTip" class="buttonClass addtipok" name="buttonName"></div>
+				<div x-mojo-element="Button" id="buttonAddTodo" class="buttonClass addtipcancel" name="buttonName"></div>
+			</div>
 		</div>
 		<div id="snapTags" class="breaker">
-			<table class="palm-divider labeled">
+			<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="tagsDivider">
 			  <tr>
 			    <td class="left"></td>
 			    <td class="label">
 			      Tags
 			    </td>
+			    <td class="line" width="100%" id="tagsLine"></td>
+			    <td><div class="palm-arrow-closed arrow_button" id="tagsArrow"></div></td>
 			    <td class="right"></td>
 			  </tr>
 			</table>
-			<div id="venueTags"></div>
+			<div id="tagsDrawer"  x-mojo-element="Drawer"><div id="venueTags"></div></div>
 		</div>
 		<div id="snapInfo" class="breaker">
-			<table class="palm-divider labeled">
+			<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="infoDivider">
 			  <tr>
 			    <td class="left"></td>
 			    <td class="label">
 			      Venue Info
 			    </td>
+			    <td class="line" width="100%" id="infoLine"></td>
+			    <td><div class="palm-arrow-closed arrow_button" id="infoArrow"></div></td>
 			    <td class="right"></td>
 			  </tr>
 			</table>
-			<div id="venueInfo"></div>
-			<div x-mojo-element="Button" id="buttonMarkClosed" class="buttonClass addtipok" name="buttonName"></div>
-			<div x-mojo-element="Button" id="buttonProposeEdit" class="buttonClass addtipcancel" name="buttonName"></div>
+			<div id="venueInfoContainer" x-mojo-element="Drawer">
+				<div id="venueInfo"></div>
+				<div x-mojo-element="Button" id="buttonMarkClosed" class="buttonClass addtipok" name="buttonName"></div>
+				<div x-mojo-element="Button" id="buttonProposeEdit" class="buttonClass addtipcancel" name="buttonName"></div>
+			</div>
 			<br/><br/>			<br/><br/>			<br/><br/>
 		</div>
     </div> 
