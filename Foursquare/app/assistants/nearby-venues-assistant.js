@@ -187,15 +187,23 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 	Mojo.Log.error("trying to get location..");
 	
 	if(_globals.nearbyVenues==undefined || _globals.reloadVenues==true) {
+		Mojo.Log.error("using new location..");
+
 		_globals.reloadVenues=false;
 		_globals.nearbyVenues=undefined;
-		//hide the result list box an clear out it's model
-		$(resultListBox).style.display = 'none';
-		this.resultsModel.items = $A([]);
-		this.controller.modelChanged(this.resultsModel);
-		
+			Mojo.Log.error("set globals");
+
+		//hide the result list box and clear out it's model
+		$("resultListBox").style.display = 'none';
+			Mojo.Log.error("hid box");
+
+		//this.resultsModel.items = $A([]);
+		//this.controller.modelChanged(this.resultsModel);
+					Mojo.Log.error("model changed..");
+
 		$('message').innerHTML = 'Calculating Location';
-	
+			Mojo.Log.error("actually querying gps..");
+
 		//get the location
 		this.controller.serviceRequest('palm://com.palm.location', {
 			method: "getCurrentPosition",
@@ -204,6 +212,7 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 			onFailure: this.failedLocation.bind(this)
 		});
 	}else{
+		Mojo.Log.error("using cached venues..");
 		this.resultsModel.items = _globals.nearbyVenues;
 		this.controller.modelChanged(this.resultsModel);
 		this.lat=_globals.lat;
@@ -253,11 +262,13 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,va
 	//var query='';
 	var url = 'http://api.foursquare.com/v1/venues.json';
 	auth = make_base_auth(_globals.username, _globals.password);
+	var radius=(query!="")? 1.5: 0.5;
+	var vlimit=(query!="")? 20: 15;
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
 	   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
-	   parameters: {geolat:latitude, geolong:longitude, geohacc:hacc,geovacc:vacc, geoalt:alt,r:.5, l:15, q:query},
+	   parameters: {geolat:latitude, geolong:longitude, geohacc:hacc,geovacc:vacc, geoalt:alt,r:radius, l:vlimit, q:query},
 	   onSuccess: this.nearbyVenueRequestSuccess.bind(this),
 	   onFailure: this.nearbyVenueRequestFailed.bind(this)
 	 });

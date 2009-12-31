@@ -40,8 +40,8 @@ AddVenueAssistant.prototype.setup = function(widget) {
 	this.controller.setupWidget('venue-address', this.addressAttributes = {hintText:'Address',multiline:false,focus:false}, this.addressModel = {value:'', disabled:false});
 	this.controller.setupWidget('venue-crossstreet', this.crossstreetAttributes = {hintText:'Cross Street',multiline:false,focus:false}, this.crossstreetModel = {value:'', disabled:false});
 	this.controller.setupWidget('venue-city', this.cityAttributes = {hintText:'City',multiline:false,focus:false}, this.cityModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-zip', this.zipAttributes = {hintText:'Zip',multiline:false,focus:false}, this.zipModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-phone', this.phoneAttributes = {hintText:'Phone',multiline:false,focus:false}, this.phoneModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-zip', this.zipAttributes = {hintText:'Zip',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.zipModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-phone', this.phoneAttributes = {hintText:'Phone',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.phoneModel = {value:'', disabled:false});
 
 Mojo.Log.error("setup textbxes");
 
@@ -142,9 +142,53 @@ AddVenueAssistant.prototype.activate = function() {
 		
 		$("addvenue-header").innerHTML="Edit Venue";
 		
+	}else{
+		Mojo.Log.error("trying to get addy...lat="+_globals.lat+", long="+_globals.long);
+		//try and get the reverse location...
+			this.controller.serviceRequest('palm://com.palm.location', {
+			method: "getReverseLocation",
+			parameters: {latitude: _globals.lat, longitude:_globals.long},
+			onSuccess: this.gotLocation.bind(this),
+			onFailure: this.failedLocation.bind(this)
+		});
+
 	}
 }
 
+function trim(stringToTrim) {
+	return stringToTrim.replace(/^\s+|\s+$/g,"");
+}
+
+
+AddVenueAssistant.prototype.gotLocation = function(event) {
+	//example response: 123 Abc Street ; Your Town, ST 12345 ; USA 
+	//we're worried about the middle line, so we get to do some fun parsing.
+	//no, seriously, parsing's the most fun part of programming.
+	//i wish this whole app was just parsing text. boresquare, some would call it.
+	Mojo.Log.error("addy="+event.address);
+	var addylines=event.address.split(";");
+	if(addylines.length>1) {
+		var loca=addylines[1].split(", ");
+		var city=trim(loca[0]);
+		var statezip=loca[1].split(" ");
+		var state=trim(statezip[0]);
+		var zip=trim(statezip[1]);
+
+		this.cityModel.value=city;
+		this.controller.modelChanged(this.cityModel);
+
+		this.zipModel.value=zip;
+		this.controller.modelChanged(this.zipModel);
+		
+		this.statemodel.value=state;
+		this.controller.modelChanged(this.statemodel);
+
+	}
+}
+AddVenueAssistant.prototype.failedLocation = function(event) {
+	//don't worry about it. make them manually enter the info in.
+	Mojo.Log.error("error getting addy: "+event.errorCode);
+}
 
 AddVenueAssistant.prototype.okTapped = function() {
 Mojo.Log.error("### we got not auth!");

@@ -12,7 +12,7 @@ CheckinResultAssistant.prototype.setup = function() {
   this.controller.setupWidget("okButtonCheckin",
     this.attributes = {},
     this.OKButtonModel = {
-      buttonLabel: "Sweet",
+      buttonLabel: "Sweet!",
       disabled: false
     }
   );
@@ -68,7 +68,9 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - badges done");
 
 	
-	//handle mayorship. this is a cheap way to detect it, but it works.... for now
+	//handle mayorship. the response lets us know whether we're the new mayor, still the mayor, or some other dork still is the mayor.
+	//the response also already has some language for this information ("Congrats! You're still the mayor!") so
+	//I don't see the need to handle the different mayorships. maybe in the future if we make the check-in result super bad-ass.
 	if(checkinJSON.checkin.mayor != undefined) {
 		/*var type=checkinJSON.checkin.mayor.type;
 		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - got a mayor");

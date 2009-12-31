@@ -299,6 +299,10 @@ body {
 #about-main a {
 	color: #000;
 }
+
+.black-text {
+	color: #000;
+}
 /*a {
 	color: #6e1965 !important;
 	text-shadow: #360c32 0px 1px 0px !important;

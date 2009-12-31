@@ -255,6 +255,7 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 					   parameters: {uid: theuser},
 					   onSuccess: function(uresponse){
 							Mojo.Log.error("***friend["+(this.onfriend)+"] ("+this.friendList[this.onfriend].firstname+") info="+uresponse.responseText);	
+						if(uresponse.responseJSON.user.checkin != undefined) {
 							this.friendList[this.onfriend].checkin=(uresponse.responseJSON.user.checkin.venue != undefined)? "@ "+uresponse.responseJSON.user.checkin.venue.name: "[Off the Grid]";
 							this.friendList[this.onfriend].shout=(uresponse.responseJSON.user.checkin.shout != undefined)? "\n"+uresponse.responseJSON.user.checkin.shout: "";
 							this.friendList[this.onfriend].geolat=(uresponse.responseJSON.user.checkin.venue != undefined)? uresponse.responseJSON.user.checkin.venue.geolat: "0";
@@ -263,6 +264,7 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 			   				_globals.friendList=this.friendList;
 							this.resultsModel.items =this.friendList;// $A(venueList);
 							this.controller.modelChanged(this.resultsModel);
+						}
 							this.onfriend++;
 							Mojo.Log.error("#####totalfriends="+this.totalfriends+", onfriend="+this.onfriend);
 							this.getFriendsInfo();
