@@ -307,3 +307,22 @@ body {
 	color: #6e1965 !important;
 	text-shadow: #360c32 0px 1px 0px !important;
 }*/
+
+#about-main {
+	padding: 4px;
+}
+
+#leaderboard {
+	margin-top: 50px;
+}
+
+tr.header {
+	display: none;
+}
+
+#leaderboard table {
+	width: 300px !important;
+}
+#leaderboard td{
+	font-size: 14px;
+}

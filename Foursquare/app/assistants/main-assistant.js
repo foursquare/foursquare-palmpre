@@ -93,6 +93,7 @@ Mojo.Log.error("####"+response.responseText);
 	_globals.uid=uid;
 	_globals.username=this.username;
 	_globals.password=this.password;
+	_globals.city=city;
 
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	Mojo.Log.error('############################created cookie object.');

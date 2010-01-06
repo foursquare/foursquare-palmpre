@@ -155,7 +155,9 @@ FriendsListAssistant.prototype.setup = function() {
 
     
     Mojo.Log.error("#########setup friends");
-    
+    _globals.ammodel.items[0].disabled=false;
+this.controller.modelChanged(_globals.ammodel);
+
     $("message").hide();
    // this.requestList=[];
     	       this.getFriends();

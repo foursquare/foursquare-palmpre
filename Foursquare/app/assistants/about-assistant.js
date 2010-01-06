@@ -7,7 +7,8 @@ function AboutAssistant() {
 
 AboutAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
-		
+			   $("about-header").innerHTML="About Foursquare v"+Mojo.appInfo.version;
+
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
 	
 	/* setup widgets here */
@@ -18,6 +19,7 @@ AboutAssistant.prototype.setup = function() {
 AboutAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
+	   
 }
 
 

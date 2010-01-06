@@ -11,14 +11,14 @@ LeaderboardAssistant.prototype.setup = function() {
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
 	
 	/* setup widgets here */
-	    this.controller.setupWidget("WebId",
+	/*    this.controller.setupWidget("WebId",
         this.attributes = {
             url:    'http://foursquare.com/mobile/leaderboard',
             minFontSize:18
             },
         this.model = {
             }
-    );
+    );*/
     	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
@@ -30,12 +30,91 @@ LeaderboardAssistant.prototype.setup = function() {
         },
       _globals.cmmodel);
 
+
+    this.controller.setupWidget(Mojo.Menu.viewMenu,
+        this.menuAttributes = {
+           spacerHeight: 0,
+           menuClass: 'blue-view'
+        },
+        this.menuModel = {
+            visible: true,
+            items: [ {
+                items: [
+                { iconPath: 'images/friends_button_single.png', command: 'lb-friends', label: "  "},
+                { label: "Leaderboard", width: 200},
+                { iconPath: 'images/venue_button_single.png', command: 'lb-all', label: "  "}]
+            }]
+        });
+
 	/* add event handlers to listen to events from widgets */
 }
 
 LeaderboardAssistant.prototype.activate = function(event) {
-	/* put in event handlers here that should only be in effect when this scene is active. For
-	   example, key handlers that are observing the document */
+	/* OK, we're gonna do a for real leaderboard. I considered a webview, but that'll look assy.
+		So instead, we'll download the HTML of the special URL and the parse the hell out of the response.
+		Mmmmm.... parsing text... */
+	
+	//step one, get the HTML. let's start by displaying the friends leaderboard.
+	var url = 'http://foursquare.com/iphone/me?uid='+_globals.uid+'&view=mini&geolat='+_globals.lat+'geolong='+_globals.long+'&scope=friends';
+	var request = new Ajax.Request(url, {
+	   method: 'get',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization:this.auth}, 
+	   parameters: {},
+	   onSuccess: this.friendboardSuccess.bind(this),
+	   onFailure: this.leaderboardFailed.bind(this)
+	 });
+
+}
+
+LeaderboardAssistant.prototype.friendboardSuccess = function(response) {
+	var html=response.responseText;
+	Mojo.Log.error(response.responseText);
+	
+	var s=html.indexOf("<table");
+	var e=html.indexOf("</table>");
+	var l=(e+8);
+	this.friendBoard=html.substring(s,l);
+	this.friendBoard=this.friendBoard.replace(new RegExp('src="/img/bar_blue.gif"',"gi"),'src="images/bar_dark.png"');
+	this.friendBoard=this.friendBoard.replace(new RegExp('src="/img/bar_red.gif"',"gi"),'src="images/bar_purple.png"');
+	
+	//make sure we have some things to display. if not, tell the user
+	this.friendBoard=(this.friendBoard.indexOf("<tr>")>-1)? this.friendBoard: "None of your friends have checked-in in "+_globals.city+" yet!";
+		
+	$("leaderboard").innerHTML=this.friendBoard; 
+	
+	
+	
+	//step 2: download city leaderboard in background
+	var url = 'http://foursquare.com/iphone/me?uid='+_globals.uid+'&view=all&geolat='+_globals.lat+'geolong='+_globals.long+'&scope=all';
+	var request = new Ajax.Request(url, {
+	   method: 'get',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization:this.auth}, 
+	   parameters: {},
+	   onSuccess: this.cityboardSuccess.bind(this),
+	   onFailure: this.leaderboardFailed.bind(this)
+	 });
+
+}
+
+LeaderboardAssistant.prototype.cityboardSuccess = function(response) {
+	var html=response.responseText;
+	Mojo.Log.error(response.responseText);
+	
+	var s=html.indexOf("<table");
+	var e=html.indexOf("</table>");
+	var l=(e+8);
+	this.cityBoard=html.substring(s,l);
+	this.cityBoard=this.cityBoard.replace(new RegExp('src="/img/bar_blue.gif"',"gi"),'src="images/bar_dark.png"');
+	this.cityBoard=this.cityBoard.replace(new RegExp('src="/img/bar_red.gif"',"gi"),'src="images/bar_purple.png"');
+		
+	//make sure we have some things to display. if not, tell the user
+	this.cityBoard=(this.cityBoard.indexOf("<tr>")>-1)? this.cityBoard: "No one has checked-in in "+_globals.city+" yet!";
+
+}
+
+LeaderboardAssistant.prototype.leaderboardFailed = function(response) {
 }
 
 LeaderboardAssistant.prototype.handleCommand = function(event) {
@@ -70,6 +149,14 @@ LeaderboardAssistant.prototype.handleCommand = function(event) {
                 case "do-Refresh":
                 	break;
                 case "do-Nothing":
+                	break;
+                case "lb-all":
+                	$("leaderboard").innerHTML=this.cityBoard;
+                	$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
+                	break;
+                case "lb-friends":
+                	$("leaderboard").innerHTML=this.friendBoard;
+                	$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
                 	break;
             }
         }
