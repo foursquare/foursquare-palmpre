@@ -215,6 +215,7 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 		});
 	}else{
 		Mojo.Log.error("using cached venues..");
+		$('getting-gps-alert').hide();
 		this.resultsModel.items = _globals.nearbyVenues;
 		this.controller.modelChanged(this.resultsModel);
 		this.lat=_globals.lat;
@@ -227,6 +228,7 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 			Mojo.Log.error("gps error: " + event.errorCode);
 
 	if(event.errorCode == 0) {
+		$('getting-gps-alert').hide();
 		$('message').innerHTML = 'Found Location...';
 		Mojo.Log.error("got location");
 		//we got the location so now query it against 4square for a venue list
@@ -243,6 +245,7 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 		_globals.altitude=this.altitude;
 		this.getVenues(event.latitude, event.longitude,event.horizAccuracy,event.vertAccuracy,event.altitude);
 	} else {
+		$('getting-gps-alert').hide();
 		$('message').innerHTML = "gps error: " + event.errorCode;
 		Mojo.Log.error("gps error: " + event.errorCode);
 		Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
@@ -269,7 +272,7 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,va
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization: auth}, 
 	   parameters: {geolat:latitude, geolong:longitude, geohacc:hacc,geovacc:vacc, geoalt:alt,r:radius, l:vlimit, q:query},
 	   onSuccess: this.nearbyVenueRequestSuccess.bind(this),
 	   onFailure: this.nearbyVenueRequestFailed.bind(this)

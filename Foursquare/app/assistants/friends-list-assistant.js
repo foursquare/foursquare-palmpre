@@ -234,11 +234,19 @@ FriendsListAssistant.prototype.getFriendsSuccess = function(response) {
 		//now start that loop!
 		this.totalfriends=response.responseJSON.friends.length;
 		this.onfriend=0;
+		
+		var mybutton = $('go_button');
+		mybutton.mojo.deactivate();
+		$("spinnerId").mojo.stop();
+		$("spinnerId").hide();
+		$('resultListBox').style.display = 'block';
+
+
 		this.getFriendsInfo();
 		
 
 	}
-		
+	
 
 }
 

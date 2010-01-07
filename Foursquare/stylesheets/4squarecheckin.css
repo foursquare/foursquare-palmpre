@@ -95,7 +95,7 @@ body {
 	padding: 2px !important;
 }
 .checkin-score {
-	height: 20px !important;
+	/*height: 20px !important;*/
 	margin-top: 0 !important;
 	margin-bottom: -13px !important;
 }
@@ -314,6 +314,7 @@ body {
 
 #leaderboard {
 	margin-top: 50px;
+	padding-bottom: 50px;
 }
 
 tr.header {
@@ -325,4 +326,30 @@ tr.header {
 }
 #leaderboard td{
 	font-size: 14px;
+}
+
+.alert-overlay {
+	background: url(../images/alertbg.png) no-repeat left top;
+	width: 296px;
+	height: 72px;
+	color: #fff;
+	font-weight: bold;
+	font-size: 18px;
+	position: absolute;
+	z-index: 999999;
+	left: 10px;
+	top: 50%;
+	margin-top: -76px;
+	padding: 4px;
+	line-height: 76px;
+	text-align: center;
+}
+
+.big-icon {
+	width: 27px;
+	height: 76px;
+	padding: 10px;
+	margin-left: 5px;
+	float: left;
+	background: url(../images/radar.png) no-repeat left middle;
 }

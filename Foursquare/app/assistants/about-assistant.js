@@ -14,8 +14,21 @@ AboutAssistant.prototype.setup = function() {
 	/* setup widgets here */
 	
 	/* add event handlers to listen to events from widgets */
-}
+			Mojo.Event.listen($("testbutton"),Mojo.Event.tap,this.getUA.bind(this));
 
+}
+AboutAssistant.prototype.getUA = function(event) {
+		var request = new Ajax.Request("http://zhephree.com/foursquare/ua.php", {
+	   method: 'get',
+	   evalJSON: 'true',
+	   requestHeaders: {Authorization:auth,"User-Agent":"tetsing user agent"},
+	   onSuccess: this.yay.bind(this)
+	 });
+
+}
+AboutAssistant.prototype.yay = function(event) {
+	Mojo.Log.error(event.responseText);
+}
 AboutAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */

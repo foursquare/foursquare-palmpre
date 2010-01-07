@@ -68,12 +68,37 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
 
 	/* add event handlers to listen to events from widgets */
 	
+	            Mojo.Event.listen(this.controller.document, 'gesturestart', this.handleGestureStart.bindAsEventListener(this), false);
+            Mojo.Event.listen(this.controller.document, 'gesturechange', this.handleGestureChange.bindAsEventListener(this), false);
+            Mojo.Event.listen(this.controller.document, 'gestureend', this.handleGestureEnd.bindAsEventListener(this), false);
 	
 	
 _globals.ammodel.items[0].disabled=true;
 this.controller.modelChanged(_globals.ammodel);
 
+this.lastScale=0;
+}
 
+NearbyVenuesMapAssistant.prototype.handleGestureStart = function(event) {
+
+}
+NearbyVenuesMapAssistant.prototype.handleGestureChange = function(event) {
+	Mojo.Log.error("scale:"+(event.scale)+", type="+event.type);
+	var cntr=this.map.getCenter();
+	
+	if (event.scale>this.lastScale) { //getting bigger
+		var zlevel=this.map.getZoom()+Math.round(event.scale);
+		if(this.map.getZoom()!=zlevel) {this.map.setZoom(zlevel);}
+	}else{ //getting smaller
+		var zlevel=this.map.getZoom()-Math.round(event.scale);
+		if(this.map.getZoom()!=zlevel) {this.map.setZoom(zlevel);}	
+	}
+	this.map.panTo(cntr);
+	this.lastScale=event.scale;
+}
+NearbyVenuesMapAssistant.prototype.handleGestureEnd = function(event) {
+//	var zlevel=15+Math.round(event.scale);
+//	if(this.map.getZoom()!=zlevel) {this.map.setZoom(zlevel);}
 }
 
 NearbyVenuesMapAssistant.prototype.initMap = function(event) {

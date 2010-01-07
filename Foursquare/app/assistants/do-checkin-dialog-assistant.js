@@ -7,7 +7,7 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
   this.widget = widget;
   //Mojo.Log.error("################checkin: "+this.data);
   //this.initData(this.data);
-  
+  Mojo.Log.error("name="+this.vname+", vid="+this.vid);
   // Setup button and event handler
   this.sceneAssistant.controller.setupWidget("okButton",
     this.attributes = {type : Mojo.Widget.activityButton},
@@ -103,7 +103,7 @@ DoCheckinDialogAssistant.prototype.okTapped = function() {
 */	
 
 //	this.widget.mojo.close();
-
+Mojo.Log.error("trying to check into:"+this.vname+" ("+this.vid+")");
 	this.sceneAssistant.checkIn(this.vid,this.vname,this.tipModel.value,this.sfmodel.value,this.twmodel.value,this.fbmodel.value);
 	//this.widget.mojo.close();
 }

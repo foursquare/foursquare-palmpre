@@ -42,6 +42,7 @@ AddVenueAssistant.prototype.setup = function(widget) {
 	this.controller.setupWidget('venue-city', this.cityAttributes = {hintText:'City',multiline:false,focus:false}, this.cityModel = {value:'', disabled:false});
 	this.controller.setupWidget('venue-zip', this.zipAttributes = {hintText:'Zip',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.zipModel = {value:'', disabled:false});
 	this.controller.setupWidget('venue-phone', this.phoneAttributes = {hintText:'Phone',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.phoneModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-twitter', this.twitterAttributes = {hintText:'Twitter Username',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.twitterModel = {value:'', disabled:false});
 
 Mojo.Log.error("setup textbxes");
 
@@ -137,6 +138,9 @@ AddVenueAssistant.prototype.activate = function() {
 		this.phoneModel.value=this.venue.phone;
 		this.controller.modelChanged(this.phoneModel);
 
+		this.twitterModel.value=this.venue.twitter;
+		this.controller.modelChanged(this.twitterModel);
+
 		this.statemodel.value=this.venue.state;
 		this.controller.modelChanged(this.statemodel);
 		
@@ -206,8 +210,10 @@ Mojo.Log.error("### we got not auth!");
 				city: this.cityModel.value,
 				state: this.statemodel.value,
 				zip: this.zipModel.value,
-				cityid: credentials.cityid,
-				phone: this.phoneModel.value
+				geolat: _globals.lat,
+				geolong: _globals.long,
+				phone: this.phoneModel.value,
+				twitter: this.twitterModel.value
 			};
 		}else{
 			var url = 'http://api.foursquare.com/v1/venue/proposeedit.json';
@@ -220,6 +226,7 @@ Mojo.Log.error("### we got not auth!");
 				zip: this.zipModel.value,
 				cityid: credentials.cityid,
 				phone: this.phoneModel.value,
+				twitter: this.twitterModel.value,
 				geolat: _globals.lat,
 				geolong: _globals.long,
 				vid: this.venue.id
@@ -247,8 +254,88 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 	Mojo.Controller.getAppController().showBanner("Venue saved to Foursquare!", {source: 'notification'});
 	Mojo.Log.error(response.responseText);
 	$("okButton").mojo.deactivate();
+	
+	if(response.responseJSON.venue != undefined) {
+	
+	var vid=response.responseJSON.venue.id;
+	var vname=response.responseJSON.venue.name;
+	
 	this.controller.stageController.popScene("add-venue");
+
+	this.controller.stageController.swapScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},response.responseJSON.venue,_globals.username,_globals.password,_globals.uid);
+	
+	}
+	
 }
+
+
+AddVenueAssistant.prototype.promptCheckin = function(vid,vname) {
+/*	this.controller.showAlertDialog({
+		onChoose: function(value) {
+			if (value) {
+				Mojo.Log.error("#######click yeah");
+				this.checkIn(this.venue.id, this.venue.name,'','','0');
+			}
+		},
+		title:"Foursquare Check In",
+		message:"Go ahead and check-in here?",
+		cancelable:true,
+		choices:[ {label:'Yeah!', value:true, type:'affirmative'}, {label:'Eh, nevermind.', value:false, type:'negative'} ]
+	});*/
+		checkinDialog = this.controller.showDialog({
+		template: 'listtemplates/do-checkin',
+		assistant: new DoCheckinDialogAssistant(this,vid,vname)
+	});
+
+}
+
+AddVenueAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
+	Mojo.Log.error("###check in please??");
+	if (auth) {
+		var url = 'http://api.foursquare.com/v1/checkin.json';
+		var request = new Ajax.Request(url, {
+			method: 'post',
+			evalJSON: 'true',
+			requestHeaders: {
+				Authorization: this.auth
+			},
+			parameters: {
+				vid: id,
+				shout: s,
+				private: sf,
+				twitter: t,
+				facebook: fb
+			},
+			onSuccess: this.checkInSuccess.bind(this),
+			onFailure: this.checkInFailed.bind(this)
+		});
+	} else {
+		//$('message').innerHTML = 'Not Logged In';
+	}
+}
+
+AddVenueAssistant.prototype.checkInSuccess = function(response) {
+	Mojo.Log.error(response.responseText);
+	
+	var json=response.responseJSON;
+		Mojo.Log.error("^^^^^^^^^^^^^^^^made it here...");
+	//checkinDialog.mojo.close();
+	//checkinDialog=null;
+	//var dialog = this.controller.showDialog({
+	//	template: 'listtemplates/checkin-info',
+	//	assistant: new CheckInDialogAssistant(this, json,this.uid)
+	//});
+	this.controller.stageController.popScene("add-venue");
+	this.controller.stageController.pushScene({name: "checkin-result", transition: Mojo.Transition.crossFade},json,this.uid);
+
+}
+
+AddVenueAssistant.prototype.checkInFailed = function(response) {
+	this.controller.stageController.popScene("add-venue");
+	Mojo.Log.error('Check In Failed: ' + repsonse.responseText);
+	Mojo.Controller.getAppController().showBanner("Error checking in!", {source: 'notification'});
+}
+
 
 AddVenueAssistant.prototype.venueFailed = function(response) {
 	Mojo.Log.error(response.responseText);
