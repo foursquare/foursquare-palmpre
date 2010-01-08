@@ -11,7 +11,8 @@
 
 body {
 	/*background: #fff !important;*/
-	background: #166bb4 url(../images/bg.png) no-repeat left top !important;
+	/*background: #166bb4 url(../images/bg.png) no-repeat left top !important;*/
+	background: #cdd3dc !important;
 	}
 
 #message {
@@ -352,4 +353,73 @@ tr.header {
 	margin-left: 5px;
 	float: left;
 	background: url(../images/radar.png) no-repeat left middle;
+}
+
+.centered {
+	text-align: center;
+}
+
+a.vtag {
+	text-decoration: none;
+}
+
+.venue-info-wrap {
+	width: 215px;
+	float: left;
+	padding-bottom: 5px;
+}
+.venue-name {
+
+}
+.venue-address {
+	font-size: 14px;
+}
+.venue-distance {
+	float: right;
+	width: 50px;
+	height: 50px;
+	background: url(../images/distancebg.png) no-repeat left top;
+	color: #fff;
+	padding-bottom: 8px;
+}
+.distance-num {
+	font-size: 20px;
+	text-align: center;
+	font-weight: bold;
+	margin-bottom: 2px;
+	width: 100%;
+	height: 50%;
+	overflow: hidden;
+}
+.distance-unit {
+	font-size: 12px;
+	text-align: center;
+	text-transform: uppercase;
+	margin-top: 2px;
+	width: 100%;
+}
+.vlistrow {
+	clear: both;
+}
+
+#resultListBox {
+	padding: 7px;
+}
+
+.friend-avatar {
+	-webkit-border-image: url(file:///var/usr/palm/applications/com.foursquare.foursquare/images/list-view-avatar-frame.png) 6 7 8 7 stretch stretch;
+	border-width: 4px 5px 5px 5px;
+}
+.friend-shout {
+	font-size: 16px;
+}
+.friend-checkin, .tip-info {
+	font-size: 14px;
+	font-style: italic;
+}
+.tip-text {
+	font-size: 16px;
+}
+.tip-user {
+	font-style: normal !important;
 }

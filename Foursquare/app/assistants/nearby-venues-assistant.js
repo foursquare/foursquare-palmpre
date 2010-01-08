@@ -18,7 +18,6 @@ function NearbyVenuesAssistant(a, ud, un, pw,i,ss) {
 }
 
 NearbyVenuesAssistant.prototype.setup = function() {
-	Mojo.Log.error("#####setting up nearby");
 	//Create the attributes for the textfield
 	this.textFieldAtt = {
 			hintText: 'Leave Blank to Search All Nearby',
@@ -82,7 +81,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
            spacerHeight: 0,
-           menuClass: 'blue-view'
+           menuClass: 'blue-view-not'
         },
         this.menuModel = {
             visible: true,
@@ -100,40 +99,11 @@ NearbyVenuesAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
-           menuClass: 'blue-command'
+           menuClass: 'blue-command-not'
         },
-        /*this.cmmodel = {
-          visible: true,
-          items: [{
-          	items: [ 
-                 { iconPath: "images/venue_button.png", command: "do-Nothing"/*"do-Venues"*//*},
-                 { iconPath: "images/friends_button.png", command: "do-Friends"},
-                 { iconPath: "images/todo_button.png", command: "do-Tips"},
-                 { iconPath: "images/shout_button.png", command: "do-Shout"},
-                 { iconPath: "images/badges_button.png", command: "do-Badges"},
-                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
-                 ],
-            toggleCmd: "do-Nothing",
-            checkEnabled: true
-            }]
-    }*/_globals.cmmodel
+    _globals.cmmodel
 );
     
-    /*        this.cmmodel = {
-          visible: true,
-          items: [{
-          	items: [ 
-                 { iconPath: "images/venue_button.png", command: "do-Venues"},
-                 { iconPath: "images/friends_button.png", command: "do-Friends"},
-                 { icon: "back", command: "do-Tips"},
-                 { iconPath: "images/shout_button.png", command: "do-Shout"},
-                 { iconPath: "images/badges_button.png", command: "do-Badges"},
-                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
-                 ],
-            toggleCmd: "do-Venues"
-            }]
-    }
-*/
     
     
     
@@ -157,7 +127,6 @@ NearbyVenuesAssistant.prototype.setup = function() {
 
 
     
-    Mojo.Log.error("#########setup nearby");
     _globals.ammodel.items[0].disabled=false;
 this.controller.modelChanged(_globals.ammodel);
 
@@ -172,7 +141,6 @@ var auth;
 function make_base_auth(user, pass) {
   var tok = user + ':' + pass;
   var hash = Base64.encode(tok);
-  //$('message').innerHTML += '<br/>'+ hash;
   return "Basic " + hash;
 }
 
@@ -180,6 +148,7 @@ function make_base_auth(user, pass) {
 
 NearbyVenuesAssistant.prototype.onGetNearbyVenuesSearch = function(event) {
 	_globals.nearbyVenues=undefined;
+	this.dosearch=true;
 	this.onGetNearbyVenues();
 }
 
@@ -206,13 +175,17 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 		$('message').innerHTML = 'Calculating Location';
 			Mojo.Log.error("actually querying gps..");
 
+		if(!this.dosearch) {
 		//get the location
 		this.controller.serviceRequest('palm://com.palm.location', {
 			method: "getCurrentPosition",
-			parameters: {accuracy: 1, maximumAge:30},
+			parameters: {accuracy: 1, maximumAge:30, responseTime: 1},
 			onSuccess: this.gotLocation.bind(this),
 			onFailure: this.failedLocation.bind(this)
 		});
+		}else{
+			this.gotLocation(_globals.gps);
+		}
 	}else{
 		Mojo.Log.error("using cached venues..");
 		$('getting-gps-alert').hide();
@@ -243,6 +216,7 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 		_globals.hacc=this.hacc;
 		_globals.vacc=this.vacc;
 		_globals.altitude=this.altitude;
+		_globals.gps=event;
 		this.getVenues(event.latitude, event.longitude,event.horizAccuracy,event.vertAccuracy,event.altitude);
 	} else {
 		$('getting-gps-alert').hide();
@@ -355,8 +329,11 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 					var dist=venueList[venueList.length-1].distance;
 					var amile=0.000621371192;
 					dist=roundNumber(dist*amile,1);
-					if(dist==1){dist=dist+" mile";}else{dist=dist+" miles";}
+					var unit="";
+					if(dist==1){unit="mile";}else{unit="miles";}
+					
 					venueList[venueList.length-1].distance=dist;
+					venueList[venueList.length-1].unit=unit;
 					venueList[venueList.length-1].grouping=grouping;
 				}
 			}

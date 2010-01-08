@@ -7,7 +7,6 @@ function MainAssistant(expressLogin,credentials,fp) {
 	   this.expressLogin=expressLogin;
 	   this.credentials=credentials;
 	   this.fromPrefs=fp;
-	   	Mojo.Log.error('############################fp='+fp);
 
 	   if(credentials) {
 		   this.username=this.credentials.username;
@@ -64,6 +63,8 @@ MainAssistant.prototype.login = function(uname, pass){
 	var url = "http://api.foursquare.com/v1/user.json";
 	auth = make_base_auth(uname, pass);
 	
+	$('signupbutton').hide();
+	
 	$('message').innerHTML = '<br/>Logging <b>'+uname+'</b> in to Foursquare...';
 	
 	var request = new Ajax.Request(url, {
@@ -79,10 +80,8 @@ MainAssistant.prototype.login = function(uname, pass){
 var userData;
 
 MainAssistant.prototype.loginRequestSuccess = function(response) {
-Mojo.Log.error("####"+response.responseText);
 	userData = response.responseJSON.user;
 	var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
-	Mojo.Log.error("####got disiplay:"+disp);
 	$('message').innerHTML = '<br/>' + disp;
 	var uid=response.responseJSON.user.id;
 	var savetw=response.responseJSON.user.settings.sendtotwitter;
@@ -96,7 +95,6 @@ Mojo.Log.error("####"+response.responseText);
 	_globals.city=city;
 
 	this.cookieData=new Mojo.Model.Cookie("credentials");
-	Mojo.Log.error('############################created cookie object.');
 	this.cookieData.put({
 		username: this.username,
 		password: this.password,
@@ -107,7 +105,6 @@ Mojo.Log.error("####"+response.responseText);
 		cityid: cityid,
 		city: city
 	});
-	Mojo.Log.error('###########saved cookie?');
 	if(this.fromPrefs){
 		_globals.reloadVenues=true;
 		_globals.reloadFriends=true;
@@ -122,7 +119,6 @@ Mojo.Log.error("####"+response.responseText);
 
 MainAssistant.prototype.loginRequestFailed = function(response) {
 	auth = undefined;
-Mojo.Log.error("####"+response.responseText);
 	$('message').innerHTML = 'Login Failed... Try Again';
 }
 

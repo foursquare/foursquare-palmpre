@@ -11,7 +11,6 @@ function FriendsListAssistant(a, ud, un, pw,i,la,lo,ps,ss) {
 }
 
 FriendsListAssistant.prototype.setup = function() {
-	Mojo.Log.error("#####setting up friends");
 	//Create the attributes for the textfield
 	this.textFieldAtt = {
 			hintText: 'Find some friends!',
@@ -98,7 +97,7 @@ FriendsListAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
            spacerHeight: 0,
-           menuClass: 'blue-view'
+           menuClass: 'blue-view-nope'
         },
         this.menuModel = {
             visible: true,
@@ -116,22 +115,9 @@ FriendsListAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
-           menuClass: 'blue-command'
+           menuClass: 'blue-command-nope'
         },
-       /* this.cmmodel = {
-          visible: true,
-          items: [{
-          	items: [ 
-                 { iconPath: "images/venue_button.png", command: "do-Venues"},
-                 { iconPath: "images/friends_button.png", command: /*"do-Friends"*/ //"do-Nothing"},
-               /*  { iconPath: "images/todo_button.png", command: "do-Tips"},
-                 { iconPath: "images/shout_button.png", command: "do-Shout"},
-                 { iconPath: "images/badges_button.png", command: "do-Badges"},
-                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
-                 ],
-            toggleCmd: "do-Nothing"
-            }]
-    }*/ _globals.cmmodel);
+     _globals.cmmodel);
     
     
         this.controller.setupWidget("drawerId",
@@ -154,7 +140,6 @@ FriendsListAssistant.prototype.setup = function() {
 
 
     
-    Mojo.Log.error("#########setup friends");
     _globals.ammodel.items[0].disabled=false;
 this.controller.modelChanged(_globals.ammodel);
 
@@ -184,7 +169,7 @@ FriendsListAssistant.prototype.getFriends = function() {
 		var request = new Ajax.Request(url, {
 		   method: 'get',
 		   evalJSON: 'force',
-		   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+		   requestHeaders: {Authorization: auth}, 
 		   parameters: {},
 		   onSuccess: this.getFriendsSuccess.bind(this),
 		   onFailure: this.getFriendsFailed.bind(this)
@@ -208,7 +193,6 @@ and the fires off the loop that gets the details of each friend
 FriendsListAssistant.prototype.getFriendsSuccess = function(response) {
 	//var mybutton = $('go_button');
 	//mybutton.mojo.deactivate();
-	Mojo.Log.error("****friends="+response.responseText);
 
 	if (response.responseJSON == undefined) {
 		$('message').innerHTML = 'No Results Found';
@@ -250,6 +234,22 @@ FriendsListAssistant.prototype.getFriendsSuccess = function(response) {
 
 }
 
+FriendsListAssistant.prototype.relativeTime = function(offset){
+	// got this from: http://github.com/trek/thoughtbox/blob/master/js_relative_dates/src/relative_date.js
+    var distanceInMinutes = (offset.abs() / 60000).round();
+    if (distanceInMinutes == 0) { return 'less than a minute'; }
+    else if ($R(0,1).include(distanceInMinutes)) { return 'about a minute'; }
+    else if ($R(2,44).include(distanceInMinutes)) { return distanceInMinutes + ' minutes';}
+    else if ($R(45,89).include(distanceInMinutes)) { return 'about 1 hour';}
+    else if ($R(90,1439).include(distanceInMinutes)) { return 'about ' + (distanceInMinutes / 60).round() + ' hours'; }
+    else if ($R(1440,2879).include(distanceInMinutes)) {return '1 day'; }
+    else if ($R(2880,43199).include(distanceInMinutes)) {return 'about ' + (distanceInMinutes / 1440).round() + ' days'; }
+    else if ($R( 43200,86399).include(distanceInMinutes)) {return 'about a month' }
+    else if ($R(86400,525599).include(distanceInMinutes)) {return 'about ' + (distanceInMinutes / 43200).round() + ' months'; }
+    else if ($R(525600,1051199).include(distanceInMinutes)) {return 'about a year';}
+    else return 'over ' + (distanceInMinutes / 525600).round() + ' years';
+  }
+
 
 FriendsListAssistant.prototype.getFriendsInfo = function() {
 	if(this.onfriend < this.totalfriends){ //array is zero-based, so it'll never equal total number. 
@@ -264,25 +264,35 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 					   requestHeaders: {"user-agent":"Foursquare for webOS/"+Mojo.appInfo.version,Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
 					   parameters: {uid: theuser},
 					   onSuccess: function(uresponse){
-							Mojo.Log.error("***friend["+(this.onfriend)+"] ("+this.friendList[this.onfriend].firstname+") info="+uresponse.responseText);	
 						if(uresponse.responseJSON.user.checkin != undefined) {
-							this.friendList[this.onfriend].checkin=(uresponse.responseJSON.user.checkin.venue != undefined)? "@ "+uresponse.responseJSON.user.checkin.venue.name: "[Off the Grid]";
+							this.friendList[this.onfriend].checkin=(uresponse.responseJSON.user.checkin.venue != undefined)? "@ "+uresponse.responseJSON.user.checkin.venue.name: "";
 							this.friendList[this.onfriend].shout=(uresponse.responseJSON.user.checkin.shout != undefined)? "\n"+uresponse.responseJSON.user.checkin.shout: "";
 							this.friendList[this.onfriend].geolat=(uresponse.responseJSON.user.checkin.venue != undefined)? uresponse.responseJSON.user.checkin.venue.geolat: "0";
 							this.friendList[this.onfriend].geolong=(uresponse.responseJSON.user.checkin.venue != undefined)? uresponse.responseJSON.user.checkin.venue.geolong: "0";
-			   				Mojo.Log.error("***checkin="+this.friendList[this.onfriend].checkin);
+							
+							//handle time
+						   if(uresponse.responseJSON.user.checkin.created != undefined) {
+						    var now = new Date;
+						    var later = new Date(uresponse.responseJSON.user.checkin.created);
+						    var offset = later.getTime() - now.getTime();
+							this.friendList[this.onfriend].when=this.relativeTime(offset) + " ago";
+						   }else{
+						   	this.friendList[this.onfriend].when="";
+						   }
+							
 			   				_globals.friendList=this.friendList;
 							this.resultsModel.items =this.friendList;// $A(venueList);
 							this.controller.modelChanged(this.resultsModel);
 						}
+							//$('whenfield'+uresponse.responseJSON.user.id).each(function(date) { new RelativeDate(date) });
 							this.onfriend++;
-							Mojo.Log.error("#####totalfriends="+this.totalfriends+", onfriend="+this.onfriend);
 							this.getFriendsInfo();
 					   }.bind(this),
 					   onFailure: this.getUserInfoFailed.bind(this)
 					 });
 					 
 	}else{
+	
 		var mybutton = $('go_button');
 		mybutton.mojo.deactivate();
 		$("spinnerId").mojo.stop();
@@ -292,7 +302,6 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 	}
 }
 FriendsListAssistant.prototype.getUserInfoFailed = function(event) {
- Mojo.Log.error("########ERROR GETTING USER INFO!");
 		var mybutton = $('go_button');
 		mybutton.mojo.deactivate();
 		$("spinnerId").mojo.stop();
@@ -301,7 +310,6 @@ FriendsListAssistant.prototype.getUserInfoFailed = function(event) {
 
 }
 FriendsListAssistant.prototype.getFriendsFailed = function(event) {
- Mojo.Log.error("########ERROR GETTING FRIENDS LIST!");
 		var mybutton = $('go_button');
 		mybutton.mojo.deactivate();
 		$("spinnerId").mojo.stop();
@@ -337,7 +345,6 @@ FriendsListAssistant.prototype.onSearchTwitterFriends = function(event) {
 }
 
 FriendsListAssistant.prototype.searchFriends = function(how) {
-Mojo.Log.error("###trying to find freinds by..."+how);
 	var what=(how=="twitter")? {}: {q: this.textModel.value};
 	var url = 'http://api.foursquare.com/v1/findfriends/by'+how+'.json';
 	auth = make_base_auth(this.username, this.password);
@@ -354,7 +361,6 @@ Mojo.Log.error("###trying to find freinds by..."+how);
 }
 
 FriendsListAssistant.prototype.onPendingFriends = function(event) {
-Mojo.Log.error("###pending friends...");
 	if(this.requestList==undefined) {
 	
 	//var what=(how=="twitter")? {}: {q: this.textModel.value};
@@ -384,7 +390,6 @@ Mojo.Log.error("###pending friends...");
 FriendsListAssistant.prototype.searchFriendsSuccess = function(response) {
 	//var mybutton = $('go_button');
 	//mybutton.mojo.deactivate();
-	Mojo.Log.error("****friends="+response.responseText);
 
 	if (response.responseJSON == undefined) {
 		$('message').innerHTML = 'No Results Found';
@@ -422,7 +427,6 @@ FriendsListAssistant.prototype.searchFriendsSuccess = function(response) {
 FriendsListAssistant.prototype.requestFriendsSuccess = function(response) {
 	//var mybutton = $('go_button');
 	//mybutton.mojo.deactivate();
-	Mojo.Log.error("****friends="+response.responseText);
 
 	if (response.responseJSON == undefined) {
 		$('message').innerHTML = 'No Results Found';
@@ -487,7 +491,6 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
                 case "friend-search":
-                	Mojo.Log.error("===========friend search clicked");
 					//get the scroller for your scene
 					var scroller = this.controller.getSceneScroller();
 					//call the widget method for scrolling to the top
@@ -496,7 +499,6 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 					this.controller.modelChanged(this.drawerModel);
                 	break;
 				case "friend-map":
-					Mojo.Log.error("lat="+this.lat+", long="+this.long);
 					this.controller.stageController.swapScene({name: "friends-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this);
 					break;
 				case "friends-list":

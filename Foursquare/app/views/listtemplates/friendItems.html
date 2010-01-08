@@ -1,7 +1,7 @@
-<div class='result row' x-mojo-tap-highlight='momentary' style="padding:0">
-	<img src="#{photo}" width="48" height="48" style="float: left;"/>
-	<div style="float: left;margin-left: 3px;" class="truncating-text capitalize"> #{firstname} #{lastname}
-		<div class='truncating-text palm-info-text capitalize' style='padding:0;padding-left:10px;padding-bottom: 7px; width: 155px;margin-bottom: 1px;'>#{checkin}</div>
-		<div class='truncating-text palm-info-text' style='padding:0;padding-left:10px;padding-bottom: 7px; width: 155px;margin-top:1px;margin-bottom:1px;'>#{shout}</div>
+<div class='result row' x-mojo-tap-highlight='momentary' style="padding:0; padding-bottom: 7px; padding-top: 3px;">
+	<img src="#{photo}" width="48" height="48"  class="friend-avatar" style="float: left; padding-top:0px;"/>
+	<div style="float: left;margin-left: 3px; width: 215px; padding-top: 0px; padding-bottom:0px;"> #{firstname} #{lastname}
+		<div class='friend-shout'>#{shout}</div>
+		<div class='friend-checkin'><span class="timeago" id="whenfield#{id}">#{when}</span> #{checkin}</div>
 	</div><br class="breaker"/>
 </div>

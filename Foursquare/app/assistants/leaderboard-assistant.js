@@ -34,7 +34,7 @@ LeaderboardAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
            spacerHeight: 0,
-           menuClass: 'blue-view'
+           menuClass: 'blue-view-nope'
         },
         this.menuModel = {
             visible: true,

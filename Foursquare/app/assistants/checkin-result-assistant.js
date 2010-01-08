@@ -25,7 +25,6 @@ CheckinResultAssistant.prototype.setup = function() {
 
 CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 
-	Mojo.Log.error("^^^^^^^^^^^^checkin dialog");
 	//set the title message
 	$('checkin-display').innerHTML = checkinJSON.checkin.message;
 	$('scores-box').innerHTML=" ";
@@ -53,7 +52,6 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 	}else{
 		this.noscores=true;
 	}
-		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - scores done");
 
 	
 	//badges? we need stinkin' badges!
@@ -65,7 +63,6 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-badge"><img src="'+badge_icon+'" width="32" height="32" /> <span>'+badge_name+': '+badge_text+'</span></div></div>';
 		}
 	}
-		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - badges done");
 
 	
 	//handle mayorship. the response lets us know whether we're the new mayor, still the mayor, or some other dork still is the mayor.
@@ -91,7 +88,6 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 		this.nomayor=true;
 	}
 	
-		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - mayor done");
 
 
 	//specials!
@@ -110,7 +106,6 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			$('checkin_specials').innerHTML += '<div class="palm-group"><div class="palm-group-title" x-mojo-loc="">'+spt+'</div><div class="palm-list"><div class="listWhiteBox">'+special_msg+'</div></div></div>';
 		}
 	}
-		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - badges done");
 
 	
 	//make sure the next stays in the white box!
@@ -121,7 +116,6 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 }
 
 CheckinResultAssistant.prototype.okTappedCheckin = function() {
-	Mojo.Log.error("##############trying to close");
 	this.controller.stageController.popScene("checkin-result");
 }
 

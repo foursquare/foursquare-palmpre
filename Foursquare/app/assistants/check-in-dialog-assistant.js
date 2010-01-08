@@ -21,7 +21,6 @@ CheckInDialogAssistant.prototype.setup = function(widget) {
 
 CheckInDialogAssistant.prototype.initData = function(checkinJSON) {
 
-	Mojo.Log.error("^^^^^^^^^^^^checkin dialog");
 	//set the title message
 	$('checkin-title').innerHTML = checkinJSON.checkin.message;
 	
@@ -98,6 +97,5 @@ CheckInDialogAssistant.prototype.initData = function(checkinJSON) {
 };
 
 CheckInDialogAssistant.prototype.okTappedCheckin = function() {
-	Mojo.Log.error("##############trying to close");
 	this.widget.mojo.close();
 };

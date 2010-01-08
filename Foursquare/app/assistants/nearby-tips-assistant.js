@@ -157,8 +157,10 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 					var dist=this.tipsList[this.tipsList.length-1].distance;
 					var amile=0.000621371192;
 					dist=roundNumber(dist*amile,1);
-					if(dist==1){dist=dist+" mile";}else{dist=dist+" miles";}
+					var unit="";
+					if(dist==1){unit="mile";}else{unit="miles";}
 					this.tipsList[this.tipsList.length-1].distance=dist;
+					this.tipsList[this.tipsList.length-1].unit=unit;
 					this.tipsList[this.tipsList.length-1].grouping=grouping;
 				}
 			}
