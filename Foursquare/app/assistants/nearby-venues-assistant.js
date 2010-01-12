@@ -555,7 +555,7 @@ Mojo.Log.error("###filter="+filterString+", offset="+offset+", limit="+limit+", 
 		}
 	}
 	widget.mojo.noticeUpdatedItems(offset, matches);
-  	widget.mojo.setLength(matches.length);
+  	widget.mojo.setCount(matches.length);
 	
 }
 
