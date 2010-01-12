@@ -143,7 +143,7 @@ VenuedetailAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
-           menuClass: 'blue-command'
+           menuClass: 'blue-command-nope'
         },
         /*this.cmmodel = {
           visible: true,
@@ -180,7 +180,7 @@ function make_base_auth(user, pass) {
 
 VenuedetailAssistant.prototype.getVenueInfo = function() {
 	var url = 'http://api.foursquare.com/v1/venue.json';
-	auth = make_base_auth(_globals.username, _globals.password);
+	auth = _globals.auth;
 	Mojo.Log.error("un="+this.username);
 	var request = new Ajax.Request(url, {
 	   method: 'get',
@@ -266,7 +266,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			var photo=response.responseJSON.venue.checkins[t].user.photo;
 			var uid=response.responseJSON.venue.checkins[t].user.id;
 
-			users+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink" data="'+uid+'"/> <span class="venueTipUser userLink" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+shout+'</span></div>'+"\n";
+			users+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink" data="'+uid+'"/>&nbsp; <span class="venueTipUser userLink" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+shout+'</span></div>'+"\n";
 		}
 		$("venueUsers").update(users);
 	}else{
@@ -374,13 +374,13 @@ VenuedetailAssistant.prototype.promptCheckin = function(event) {
 
 VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 	Mojo.Log.error("###check in please??");
-	if (auth) {
+	if (_globals.auth) {
 		var url = 'http://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
 			requestHeaders: {
-				Authorization: auth
+				Authorization: _globals.auth
 			},
 			parameters: {
 				vid: id,
@@ -398,13 +398,13 @@ VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 }
 VenuedetailAssistant.prototype.markClosed = function() {
 	Mojo.Log.error("###mark closed");
-	if (auth) {
+	if (_globals.auth) {
 		var url = 'http://api.foursquare.com/v1/venue/flagclosed.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
 			requestHeaders: {
-				Authorization: auth
+				Authorization: _globals.auth
 			},
 			parameters: {
 				vid: this.venue.id,
@@ -574,7 +574,7 @@ VenuedetailAssistant.prototype.markTip = function(tip,how){
 		var request = new Ajax.Request(url, {
 		   method: 'post',
 		   evalJSON: 'force',
-		   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+		   requestHeaders: {Authorization: _globals.auth}, //Not doing a search with auth due to malformed JSON results from it
 		   parameters: {tid: tip},
 		   onSuccess: this.markTipSuccess.bind(this),
 		   onFailure: this.markTipFailed.bind(this)

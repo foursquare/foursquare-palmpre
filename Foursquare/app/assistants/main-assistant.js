@@ -10,7 +10,11 @@ function MainAssistant(expressLogin,credentials,fp) {
 
 	   if(credentials) {
 		   this.username=this.credentials.username;
-		   this.password=this.credentials.password;
+		   this.auth=this.credentials.auth;
+		   if(this.auth==undefined) { //using old plaintext version of the app...
+		   	this.password=this.credentials.password;
+		   	this.auth=make_base_auth(this.username,this.password);
+		   }
 	   }
 	   
 }
@@ -36,7 +40,7 @@ MainAssistant.prototype.setup = function() {
 	
 	/* add event handlers to listen to events from widgets */
 	Mojo.Event.listen(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTapped.bind(this));
-
+    this.controller.document.addEventListener("keyup", this.keyDownHandler.bind(this), true);
 }
 
 MainAssistant.prototype.onLoginTapped = function(event){
@@ -44,6 +48,7 @@ MainAssistant.prototype.onLoginTapped = function(event){
 	
 	this.username=this.usernameModel.value;
 	this.password=this.passwordModel.value;
+	Mojo.Log.error(this.username + ":" + this.password);
 	
 	this.login(this.usernameModel.value, this.passwordModel.value)
 }
@@ -61,7 +66,13 @@ function make_base_auth(user, pass) {
 MainAssistant.prototype.login = function(uname, pass){
  
 	var url = "http://api.foursquare.com/v1/user.json";
-	auth = make_base_auth(uname, pass);
+	
+	Mojo.Log.error("######express? "+this.expressLogin+", auth="+_globals.auth);
+	
+	
+	
+	
+	auth = (this.expressLogin)? _globals.auth: make_base_auth(uname, pass);
 	
 	$('signupbutton').hide();
 	
@@ -97,7 +108,8 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	this.cookieData.put({
 		username: this.username,
-		password: this.password,
+		password: "",
+		auth: auth,
 		uid: uid,
 		savetotwitter: savetw,
 		savetofacebook: savefb,
@@ -119,10 +131,21 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 
 MainAssistant.prototype.loginRequestFailed = function(response) {
 	auth = undefined;
+	$('main').style.background="";
+	Mojo.Log.error(response.responseText);
+	$("loginfields").style.visibility="visible";
 	$('message').innerHTML = 'Login Failed... Try Again';
 }
 
-			
+		
+MainAssistant.prototype.keyDownHandler = function(event) {
+      if(Mojo.Char.isEnterKey(event.keyCode)) {
+         if(event.srcElement.parentElement.id=="password") {
+    		$('username').mojo.blur();
+    		setTimeout(this.onLoginTapped.bind(this), 10);
+         }
+      }
+}	
 
 
 

@@ -16,7 +16,10 @@ body {
 	}
 
 #message {
-	width: 100%;
+	width: 90%;
+	position: absolute;
+	top: 220px;
+	left: 0px;	
 }
 
 #spinnerId {
@@ -59,7 +62,7 @@ body {
 	margin-left: 0;
 }
 #venueMayor {
-	margin-top: 8px;
+	margin-top: 16px;
 }
 
 
@@ -145,7 +148,7 @@ body {
 	color: #fff !important;
 	padding: 2px;
 	text-align: center;
-	text-shadow: 0 1px 1px rgb(173, 41, 159) ;
+	text-shadow: 0 1px 1px #aa57b1 ;
 	font-size: 17px;
 	margin-left: 5px;
 	margin-bottom: 11px;
@@ -157,7 +160,7 @@ body {
 	color: #fff !important;
 	padding: 2px;
 	text-align: center;
-	text-shadow: 0 1px 1px rgb(173, 41, 159) ;
+	text-shadow: 0 1px 1px #aa57b1 ;
 	font-size: 17px;
 	margin-left: 5px;
 	margin-bottom: 11px;
@@ -168,7 +171,7 @@ body {
 	color: #fff !important;
 	padding: 2px;
 	text-align: center;
-	text-shadow: 0 1px 1px rgb(173, 41, 159) ;
+	text-shadow: 0 1px 1px #3d3c3d;
 	font-size: 17px;
 	margin-left: 5px;
 	margin-bottom: 11px;
@@ -407,7 +410,7 @@ a.vtag {
 }
 
 .friend-avatar {
-	-webkit-border-image: url(file:///var/usr/palm/applications/com.foursquare.foursquare/images/list-view-avatar-frame.png) 6 7 8 7 stretch stretch;
+	-webkit-border-image: url(../images/list-view-avatar-frame.png) 6 7 8 7 stretch stretch;
 	border-width: 4px 5px 5px 5px;
 }
 .friend-shout {
@@ -422,4 +425,27 @@ a.vtag {
 }
 .tip-user {
 	font-style: normal !important;
+}
+#venueHeader, #userHeader {
+	background: #828ea8 !important;
+	padding-top: 7px;
+	color: #d7d6d7;
+	text-shadow:  1px 1px 0 #1c1c1c;
+	border-bottom: 1px solid #677085;
+	padding-left: 5px;
+}
+.aTip {
+	padding-left: 5px;
+}
+.aTip img {
+	margin-right: 5px;
+}
+#checkinVenueAddress, #userCity, .med-text {
+	font-size: 16px;
+}
+#checkinVenueName, #userName {
+	font-weight: bold;
+}
+.small-text {
+	font-size: 14px;
 }

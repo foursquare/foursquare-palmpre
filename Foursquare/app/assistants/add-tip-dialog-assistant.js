@@ -41,13 +41,13 @@ AddTipDialogAssistant.prototype.activate = function() {
 
 
 AddTipDialogAssistant.prototype.okTapped = function() {
-	if (this.auth) {
+	if (_globals.auth) {
 		var url = 'http://api.foursquare.com/v1/addtip.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
 			requestHeaders: {
-				Authorization: this.auth
+				Authorization: _globals.auth
 			},
 			parameters: {
 				vid: this.vid,

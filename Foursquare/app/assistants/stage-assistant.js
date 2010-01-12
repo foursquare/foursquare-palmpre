@@ -6,7 +6,10 @@ StageAssistant.prototype.setup = function() {
 	var credentials=this.cookieData.get();
 	if (credentials /*&& 1==2*//*uncomment the comment before this to force the login dialog*/){
 		this.username=credentials.username;
-		this.password=credentials.password;
+		_globals.auth=credentials.auth;
+		this.gpsdata=new Mojo.Model.Cookie("gpsdata");
+		var gps=this.gpsdata.get();
+		_globals.gpsAccuracy=(gps)? gps.gpsAccuracy*-1: 0;
 		this.controller.pushScene('main',true,credentials);
 	}else{
 		this.controller.pushScene('main',false);

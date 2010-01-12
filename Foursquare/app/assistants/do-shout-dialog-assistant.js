@@ -64,7 +64,7 @@ DoShoutDialogAssistant.prototype.okTappedShout = function() {
 			method: 'post',
 			evalJSON: 'true',
 			requestHeaders: {
-				Authorization: this.auth
+				Authorization: _globals.auth
 			},
 			parameters: {
 				shout: this.tipModel.value,

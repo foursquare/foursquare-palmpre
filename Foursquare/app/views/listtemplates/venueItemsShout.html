@@ -1,5 +1,11 @@
-<div class='result row' x-mojo-tap-highlight='momentary' style="padding:0">
-	<div class="truncating-text capitalize">#{venue.name}</div>
-	<div class='truncating-text palm-info-text capitalize' style='padding:0;padding-left:10px;padding-bottom: 7px;margin-bottom:1px;'>#{venue.address}</div>
-	<div class='truncating-text palm-info-text capitalize' style='padding:0;padding-left:10px;padding-bottom: 7px;margin-bottom:1px;'>#{shout}</div>
+<div class='result row' x-mojo-tap-highlight='momentary' style="padding:0; padding-bottom: 7px; padding-top: 3px;">
+	<!--<div class='truncating-text'>#{shout}</div>
+	<div class="truncating-text">#{venue.name}</div>
+	<div class='truncating-text'>#{venue.address}</div>-->
+		<img src="#{icon}" style="float: left;"/>
+		<div style="float: right; width: 230px;">
+			<div class='friend-shout'> #{shout} #{checkin}</div>
+			<div class='friend-checkin'><span class="timeago" id="whenfield#{id}">#{when}</span></div>
+		</div>
+		<br class="breaker"/>
 </div>

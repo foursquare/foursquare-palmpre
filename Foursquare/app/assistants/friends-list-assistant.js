@@ -165,7 +165,7 @@ FriendsListAssistant.prototype.getFriends = function() {
 		_globals.reloadFriends=false;
 		_globals.friendList=undefined;
 		var url = 'http://api.foursquare.com/v1/friends.json';
-		auth = make_base_auth(_globals.username, _globals.password);
+		auth = _globals.auth;
 		var request = new Ajax.Request(url, {
 		   method: 'get',
 		   evalJSON: 'force',
@@ -256,7 +256,7 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 		
 		
 					var url = 'http://api.foursquare.com/v1/user.json';
-					auth = make_base_auth(this.username, this.password);
+					auth = _globals.auth;
 					var theuser=this.friendList[this.onfriend].id;
 					var request = new Ajax.Request(url, {
 					   method: 'get',
@@ -347,7 +347,7 @@ FriendsListAssistant.prototype.onSearchTwitterFriends = function(event) {
 FriendsListAssistant.prototype.searchFriends = function(how) {
 	var what=(how=="twitter")? {}: {q: this.textModel.value};
 	var url = 'http://api.foursquare.com/v1/findfriends/by'+how+'.json';
-	auth = make_base_auth(this.username, this.password);
+	auth = _globals.auth;
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
@@ -365,7 +365,7 @@ FriendsListAssistant.prototype.onPendingFriends = function(event) {
 	
 	//var what=(how=="twitter")? {}: {q: this.textModel.value};
 	var url = 'http://api.foursquare.com/v1/friend/requests.json';
-	auth = make_base_auth(this.username, this.password);
+	auth = _globals.auth;
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',

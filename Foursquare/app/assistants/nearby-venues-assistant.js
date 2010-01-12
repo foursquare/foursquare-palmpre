@@ -201,6 +201,10 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 			Mojo.Log.error("gps error: " + event.errorCode);
 
 	if(event.errorCode == 0) {
+		//check their prefs. if the results are good enough, carry on
+		//otherwise, repoll the gps
+		Mojo.Log.error("setting="+_globals.gpsAccuracy+", actual="+event.horizAccuracy);
+  	  if(_globals.gpsAccuracy==0 || _globals.gpsAccuracy>event.horizAccuracy){
 		$('getting-gps-alert').hide();
 		$('message').innerHTML = 'Found Location...';
 		Mojo.Log.error("got location");
@@ -217,7 +221,18 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 		_globals.vacc=this.vacc;
 		_globals.altitude=this.altitude;
 		_globals.gps=event;
+		//$("debuginfo").innerHTML="hacc: "+this.hacc+"; vacc="+this.vacc;
 		this.getVenues(event.latitude, event.longitude,event.horizAccuracy,event.vertAccuracy,event.altitude);
+	  }else{
+	  	//handle lame results
+		$('gpsmsg').innerHTML = 'Recalculating Location...';
+		this.controller.serviceRequest('palm://com.palm.location', {
+			method: "getCurrentPosition",
+			parameters: {accuracy: 1, maximumAge:30, responseTime: 2},
+			onSuccess: this.gotLocation.bind(this),
+			onFailure: this.failedLocation.bind(this)
+		});
+	  }
 	} else {
 		$('getting-gps-alert').hide();
 		$('message').innerHTML = "gps error: " + event.errorCode;
@@ -240,7 +255,7 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,va
 	//$('message').innerHTML += "("+query+")";
 	//var query='';
 	var url = 'http://api.foursquare.com/v1/venues.json';
-	auth = make_base_auth(_globals.username, _globals.password);
+	auth = _globals.auth;
 	var radius=(query!="")? 1.5: 0.5;
 	var vlimit=(query!="")? 20: 15;
 	var request = new Ajax.Request(url, {
@@ -381,14 +396,14 @@ NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
 
 NearbyVenuesAssistant.prototype.checkIn = function(id, n) {
 	
-	if (auth) {
+	if (_globals.auth) {
 		$('message').innerHTML = 'Checking into ' + n;
 		var url = 'http://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'true',
 			requestHeaders: {
-				Authorization: auth
+				Authorization: _globals.auth
 			},
 			parameters: {
 				vid: id
@@ -530,6 +545,9 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
                 	//_globals.nearbyVenues=$A([]);
                 	_globals.reloadVenues=true;
 					this.onGetNearbyVenues();*/
+					_globals.nearbyVenues=undefined;
+					_globals.reloadVenues=true;
+					
 					this.controller.stageController.swapScene('nearby-venues',auth,userData,_globals.username,_globals.password,_globals.uid)
                 	break;
                 case "do-Nothing":

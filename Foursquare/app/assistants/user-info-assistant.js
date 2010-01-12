@@ -4,7 +4,7 @@ function UserInfoAssistant(a,u,ps) {
 	   to the scene controller (this.controller) has not be established yet, so any initialization
 	   that needs the scene controller should be done in the setup function below. */
 	   
-	   this.auth=a;
+	   this.auth=_globals.auth;
 	   this.uid=u;
 	   this.prevScene=ps;
 }
@@ -31,7 +31,7 @@ UserInfoAssistant.prototype.setup = function() {
     this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
-           menuClass: 'blue-command'
+           menuClass: 'blue-command-nope'
         },
     _globals.cmmodel);
 
@@ -67,7 +67,7 @@ function make_base_auth(user, pass) {
 
 UserInfoAssistant.prototype.getUserInfo = function() {
 	var url = 'http://api.foursquare.com/v1/user.json';
-	auth=make_base_auth(_globals.username,_globals.password);
+	auth=_globals.auth;
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
@@ -77,6 +77,23 @@ UserInfoAssistant.prototype.getUserInfo = function() {
 	   onFailure: this.getUserInfoFailed.bind(this)
 	 });
 }
+
+UserInfoAssistant.prototype.relativeTime = function(offset){
+	// got this from: http://github.com/trek/thoughtbox/blob/master/js_relative_dates/src/relative_date.js
+    var distanceInMinutes = (offset.abs() / 60000).round();
+    if (distanceInMinutes == 0) { return 'less than a minute'; }
+    else if ($R(0,1).include(distanceInMinutes)) { return 'about a minute'; }
+    else if ($R(2,44).include(distanceInMinutes)) { return distanceInMinutes + ' minutes';}
+    else if ($R(45,89).include(distanceInMinutes)) { return 'about 1 hour';}
+    else if ($R(90,1439).include(distanceInMinutes)) { return 'about ' + (distanceInMinutes / 60).round() + ' hours'; }
+    else if ($R(1440,2879).include(distanceInMinutes)) {return '1 day'; }
+    else if ($R(2880,43199).include(distanceInMinutes)) {return 'about ' + (distanceInMinutes / 1440).round() + ' days'; }
+    else if ($R( 43200,86399).include(distanceInMinutes)) {return 'about a month' }
+    else if ($R(86400,525599).include(distanceInMinutes)) {return 'about ' + (distanceInMinutes / 43200).round() + ' months'; }
+    else if ($R(525600,1051199).include(distanceInMinutes)) {return 'about a year';}
+    else return 'over ' + (distanceInMinutes / 525600).round() + ' years';
+  }
+
 
 UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	Mojo.Log.error(response.responseText);
@@ -120,10 +137,16 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	fs='<span id="friend_button">'+fs+'</span>';
 	
 	$("userName").innerHTML=j.user.firstname+" "+lname+"";
-	$("userCity").innerHTML=j.user.city.name+"<br class=\"breaker\"/>";
+	//$("userCity").innerHTML=j.user.city.name+"<br class=\"breaker\"/>";
+	if(j.user.checkin != undefined) {
+		var v=(j.user.checkin.venue != undefined)? " @ "+j.user.checkin.venue.name: "";
+		var s=(j.user.checkin.shout)? j.user.checkin.shout: "";
+		$("userCity").innerHTML = s + v;
+	}
+	
 	$("userInfo").innerHTML+=em+ph+tw+fb+fs;
 	if(j.user.checkin != undefined) {
-		$("userInfo").innerHTML+="<br/>"+j.user.checkin.display;
+		//$("userInfo").innerHTML+="<br/>"+j.user.checkin.display;
 	}
 	Mojo.Log.error("###set user info");
 	//assign events to the new button(s)
@@ -201,7 +224,7 @@ UserInfoAssistant.prototype.approveFriend = function(event) {
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization:this.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization:_globals.auth}, //Not doing a search with auth due to malformed JSON results from it
 	   parameters: {uid:this.uid},
 	   onSuccess: this.approveSuccess.bind(this),
 	   onFailure: this.approveFailed.bind(this)
@@ -224,7 +247,7 @@ UserInfoAssistant.prototype.denyFriend = function(event) {
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization:this.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization:_globals.auth}, //Not doing a search with auth due to malformed JSON results from it
 	   parameters: {uid:this.uid},
 	   onSuccess: this.denySuccess.bind(this),
 	   onFailure: this.denyFailed.bind(this)
@@ -261,7 +284,7 @@ UserInfoAssistant.prototype.addFriend = function(event) {
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization:this.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization:_globals.auth}, //Not doing a search with auth due to malformed JSON results from it
 	   parameters: {uid:this.uid},
 	   onSuccess: this.addSuccess.bind(this),
 	   onFailure: this.addFailed.bind(this)
@@ -286,7 +309,7 @@ UserInfoAssistant.prototype.getHistory = function(event) {
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization:this.auth}, 
+	   requestHeaders: {Authorization:_globals.auth}, 
 	   parameters: {},
 	   onSuccess: this.historySuccess.bind(this),
 	   onFailure: this.historyFailed.bind(this)
@@ -305,7 +328,34 @@ Mojo.Log.error("##history:"+response.responseText);
 			var sh=(j.checkins[c].shout != undefined)? '<br/><span class="palm-info-text">'+j.checkins[c].shout+'</span>': "";
 			$("history-box").innerHTML+='<div class="palm-row single"><div class="checkin-badge truncating-text"><span>'+j.checkins[c].venue.name+'</span>'+sh+'</div></div>';
 		}*/
-		this.historyModel.items=j.checkins;
+		//this.checkinlist=j.checkins;
+		this.checkinlist=[];
+		for(var c=0;c<j.checkins.length;c++){
+			this.checkinlist.push(j.checkins[c]);
+			if(j.checkins[c].venue != undefined) {
+				this.checkinlist[c].checkin="@ " + j.checkins[c].venue.name;
+				this.checkinlist[c].venue=j.checkins[c].venue;
+			}
+			this.checkinlist[c].shout=(j.checkins[c].shout != undefined)? j.checkins[c].shout: "";
+			
+			if(j.checkins[c].venue == undefined && j.checkins[c].shout != undefined && j.checkins[c].shout!="" && j.checkins[c].shout!=null) {
+				this.checkinlist[c].icon="images/shout-icon.png";
+			}else{
+				this.checkinlist[c].icon="images/marker-icon.png";
+			}
+		//	
+			//handle time
+			var now = new Date;
+			var later = new Date(j.checkins[c].created);
+			var offset = later.getTime() - now.getTime();
+			this.checkinlist[c].when=this.relativeTime(offset) + " ago";
+			//Mojo.Log.error("ago="+this.checkinlist[this.checkinlist.length].when);
+		
+		//Mojo.Log.error("###in looop....");
+		}
+		Mojo.Log.error("checkin count="+this.checkinlist.length+", also="+j.checkins.length);
+		
+		this.historyModel.items=this.checkinlist;
 		this.controller.modelChanged(this.historyModel);
 
 	}else{

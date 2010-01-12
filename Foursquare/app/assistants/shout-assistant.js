@@ -91,7 +91,7 @@ ShoutAssistant.prototype.activate = function(event) {
 ShoutAssistant.prototype.okTappedShout = function() {
 
 	Mojo.Log.error("###check in please??");
-	if (this.auth) {
+	if (_globals.auth) {
 		Mojo.Log.error("###trying to shout");
 	
 		var url = 'http://api.foursquare.com/v1/checkin.json';
@@ -99,7 +99,7 @@ ShoutAssistant.prototype.okTappedShout = function() {
 			method: 'post',
 			evalJSON: 'true',
 			requestHeaders: {
-				Authorization: this.auth
+				Authorization: _globals.auth
 			},
 			parameters: {
 				shout: this.tipModel.value,

@@ -73,14 +73,21 @@ FriendsMapAssistant.prototype.setup = function() {
 
 _globals.ammodel.items[0].disabled=true;
 this.controller.modelChanged(_globals.ammodel);
+this.lastScale=0;
+this.inGesture=false;
+this.zoom=15;
+this.origZoom=15;
 
 	/* add event handlers to listen to events from widgets */
 }
 FriendsMapAssistant.prototype.handleGestureStart = function(event) {
+        this.origZoom = this.zoom;
+        this.inGesture = 1;
+		this.cntr=this.map.getCenter();
 
 }
 FriendsMapAssistant.prototype.handleGestureChange = function(event) {
-	Mojo.Log.error("scale:"+(event.scale)+", type="+event.type);
+	/*Mojo.Log.error("scale:"+(event.scale)+", type="+event.type);
 	var cntr=this.map.getCenter();
 	
 	if (event.scale>this.lastScale) { //getting bigger
@@ -91,10 +98,20 @@ FriendsMapAssistant.prototype.handleGestureChange = function(event) {
 		if(this.map.getZoom()!=zlevel) {this.map.setZoom(zlevel);}	
 	}
 	this.map.panTo(cntr);
-	this.lastScale=event.scale;
+	this.lastScale=event.scale;*/
+		    s = event.scale;
+        if (s>2) s=2;
+        if (s<0.5) s=0.5;
+        s2 = 2*Math.log(s)/Math.log(2);
+        this.zoom = this.origZoom + s2;
+	    if (this.zoom > 18) this.zoom = 18;
+        if (this.zoom < 7) this.zoom = 7;
+        this.map.setZoom(Math.round(this.zoom));
+        this.map.panTo(this.cntr);
+
 }
 FriendsMapAssistant.prototype.handleGestureEnd = function(event) {
-	Mojo.Log.error("scale:"+(event.scale)+", type="+event.type);
+/*	Mojo.Log.error("scale:"+(event.scale)+", type="+event.type);
 	var cntr=this.map.getCenter();
 	
 	if (event.scale>this.lastScale) { //getting bigger
@@ -105,7 +122,12 @@ FriendsMapAssistant.prototype.handleGestureEnd = function(event) {
 		if(this.map.getZoom()!=zlevel) {this.map.setZoom(zlevel);}	
 	}
 	this.map.panTo(cntr);
-	this.lastScale=event.scale;
+	this.lastScale=event.scale;*/
+	        this.origZoom = this.zoom;
+        this.inGesture = 0;
+        this.map.setZoom(Math.round(this.zoom));
+        this.map.panTo(this.cntr);
+
 }
 
 
@@ -118,7 +140,20 @@ FriendsMapAssistant.prototype.initMap = function(event) {
         function(clickable) {
             this.controller.stageController.pushScene("StopInfo", clickable.oba_stop);
         }.bind(this));*/
-		this.map.setCenter(new GLatLng(this.lat, this.long), 15);
+        var the_center=new GLatLng(this.lat, this.long);
+		this.map.setCenter(the_center, 15);
+		var yahIcon = new GIcon();
+		yahIcon.image = "http://google-maps-icons.googlecode.com/files/leftthendown.png";
+		yahIcon.shadow = "http://google-maps-icons.googlecode.com/files/shadow.png";
+		yahIcon.iconSize = new GSize(32, 37);
+		yahIcon.shadowSize = new GSize(51, 35);
+		yahIcon.iconAnchor = new GPoint(24, 38);
+		yahIcon.infoWindowAnchor = new GPoint(5, 1);
+
+		markerOptions = { icon:yahIcon };
+
+		var yahmarker=new GMarker(the_center, markerOptions);
+		this.map.addOverlay(yahmarker);
 		
 		
 		//set up venue markers
@@ -150,6 +185,7 @@ FriendsMapAssistant.prototype.initMap = function(event) {
 
 
 		for(var v=0;v<this.friends.length;v++) {
+		  if(this.friends[v].geolat!=0 || this.friends[v].geolat!=undefined) { //don't show friends that haven't done anything
 			friendsfaces[f] = new GIcon();
 			friendsfaces[f].image = this.friends[v].photo;
 			friendsfaces[f].shadow = "images/map-marker-bg.png";
@@ -171,7 +207,7 @@ FriendsMapAssistant.prototype.initMap = function(event) {
 			/*GEvent.addListener(marker, "click",function() {
 				NearbyVenuesMapAssistant.showVenue(NearbyVenuesMapAssistant.vvv);
 			});*/
-			
+		  }
 
 
 		}

@@ -60,11 +60,11 @@ NearbyTipsAssistant.prototype.getTips = function() {
 		_globals.tipsList=undefined;
 	Mojo.Log.error("lat="+_globals.lat+", long="+_globals.long);
 		var url = 'http://api.foursquare.com/v1/tips.json';
-		//Mojo.Log.error("###version: "+Mojo.appInfo.version);
+		Mojo.Log.error("###http://api.foursquare.com/v1/tips.json?geolat="+_globals.lat+"&geolong="+_globals.long);
 		var request = new Ajax.Request(url, {
 		   method: 'get',
 		   evalJSON: 'force',
-		   requestHeaders: {"user-agent":"Foursquare for webOS/"+Mojo.appInfo.version,Authorization: this.auth}, //Not doing a search with auth due to malformed JSON results from it
+		   requestHeaders: {Authorization: _globals.auth}, //Not doing a search with auth due to malformed JSON results from it
 		   parameters: {geolat: _globals.lat,geolong: _globals.long},
 		   onSuccess: this.getTipsSuccess.bind(this),
 		   onFailure: this.getTipsFailed.bind(this)
@@ -105,7 +105,7 @@ NearbyTipsAssistant.prototype.markTip = function(tip,how){
 		var request = new Ajax.Request(url, {
 		   method: 'post',
 		   evalJSON: 'force',
-		   requestHeaders: {Authorization: this.auth}, //Not doing a search with auth due to malformed JSON results from it
+		   requestHeaders: {Authorization: _globals.auth}, //Not doing a search with auth due to malformed JSON results from it
 		   parameters: {tid: tip},
 		   onSuccess: this.markTipSuccess.bind(this),
 		   onFailure: this.markTipFailed.bind(this)
@@ -132,25 +132,46 @@ NearbyTipsAssistant.prototype.getTipsFailed = function(response){
 
 NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 	Mojo.Log.error("****yay tips="+response.responseText);
-
+	
+	/*these results are a little wonky
+	if there are many groups available, the object looks like:
+		{"groups":[{"type":"Nearby"...
+	But if there's only one group, it looks like:
+		{"groups":["group":null,"type":"Nearby",{"type":"Me"...
+	So, if we don't get a JSON object, we can assume we got an effed up object and
+		need to repair it. We'll do this by cutting out the junk JSON text
+		then re-eval'ing the text as a JSON object.
+		eval'ing isn't the most effective, safe way, but it's quick and works
+	The cool thing about this is, if Foursquare fixes this issue in the API later
+		it'll still work and just go to the code that handles proper JSON responses.
+	*/
+	
+	
 	if (response.responseJSON == undefined) {
-				Mojo.Log.error("****no tips");
+		Mojo.Log.error("###tips are effed!");
+		/*		Mojo.Log.error("****no tips");
 		$("spinnerId").mojo.stop();
 		$("spinnerId").hide();
 
 		$('message').innerHTML = 'There was an error parsing the results from Foursquare. Give it another shot later on.';
-		$('message').show();
+		$('message').show();*/
+		var t=response.responseText;
+		t=t.replace('"group":null,"type":"Nearby",',"");
+		var j = eval("(" + t + ")");
+
+	}else{
+		var j=response.responseJSON;
 	}
-	else {
+	
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.tipsList = [];
 					Mojo.Log.error("****handling tips");
 
-		if(response.responseJSON.groups[0] != undefined) { //actually got some tips
+		if(j.groups[0] != undefined) { //actually got some tips
 			Mojo.Log.error("****in tips group loop");
-			for(var g=0;g<response.responseJSON.groups.length;g++) {
-				var tarray=response.responseJSON.groups[g].tips;
-				var grouping=response.responseJSON.groups[g].type;
+			for(var g=0;g<j.groups.length;g++) {
+				var tarray=j.groups[g].tips;
+				var grouping=j.groups[g].type;
 				for(var t=0;t<tarray.length;t++) {
 			Mojo.Log.error("****in tips loop");
 					this.tipsList.push(tarray[t]);
@@ -170,7 +191,7 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 		this.resultsModel.items =this.tipsList; //update list with basic user info
 		this.controller.modelChanged(this.resultsModel);
 		
-	}
+	
 		
 		$("spinnerId").mojo.stop();
 		$("spinnerId").hide();

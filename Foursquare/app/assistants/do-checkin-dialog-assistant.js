@@ -36,9 +36,9 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
       this.sceneAssistant.controller.setupWidget("chkShowFriends",
          this.sfattributes = {
              trueValue: '1',
-             trueLabel: 'On',
+             trueLabel: 'Yes',
              falseValue: '0',
-             falseLabel: 'Off'
+             falseLabel: 'No'
          },
          this.sfmodel = {
              value: pings,

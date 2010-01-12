@@ -50,6 +50,7 @@ Mojo.Log.error("setup textbxes");
     this.controller.setupWidget("venue-state",
         this.stateattributes = {
             choices: [
+                {label: "  ", value: ""},
                 {label: "AL", value: "AL"},
                 {label: "AK", value: "AK"},
                 {label: "AR", value: "AR"},
@@ -104,7 +105,7 @@ Mojo.Log.error("setup textbxes");
                 ]},
 
         this.statemodel = {
-        value: "AL",
+        value: "",
         disabled: false
         }
     );
@@ -236,7 +237,7 @@ Mojo.Log.error("### we got not auth!");
 			method: 'post',
 			evalJSON: 'true',
 			requestHeaders: {
-				Authorization: this.auth
+				Authorization: _globals.auth
 			},
 			parameters: params,
 			onSuccess: this.venueSuccess.bind(this),
@@ -297,7 +298,7 @@ AddVenueAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 			method: 'post',
 			evalJSON: 'true',
 			requestHeaders: {
-				Authorization: this.auth
+				Authorization: _globals.auth
 			},
 			parameters: {
 				vid: id,

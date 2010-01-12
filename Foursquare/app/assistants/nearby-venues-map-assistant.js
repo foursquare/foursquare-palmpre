@@ -72,18 +72,28 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
             Mojo.Event.listen(this.controller.document, 'gesturechange', this.handleGestureChange.bindAsEventListener(this), false);
             Mojo.Event.listen(this.controller.document, 'gestureend', this.handleGestureEnd.bindAsEventListener(this), false);
 	
+    /*    document.addEventListener( "gesturestart", this.handleGestureStart, true );
+        document.addEventListener( "gesturechange", this.handleGestureChange, true );
+        document.addEventListener( "gestureend", this.handleGestureEnd, true );
+*/
 	
 _globals.ammodel.items[0].disabled=true;
 this.controller.modelChanged(_globals.ammodel);
 
 this.lastScale=0;
+this.inGesture=false;
+this.zoom=15;
+this.origZoom=15;
 }
 
 NearbyVenuesMapAssistant.prototype.handleGestureStart = function(event) {
+        this.origZoom = this.zoom;
+        this.inGesture = 1;
+		this.cntr=this.map.getCenter();
 
 }
 NearbyVenuesMapAssistant.prototype.handleGestureChange = function(event) {
-	Mojo.Log.error("scale:"+(event.scale)+", type="+event.type);
+/*	Mojo.Log.error("scale:"+(event.scale)+", type="+event.type);
 	var cntr=this.map.getCenter();
 	
 	if (event.scale>this.lastScale) { //getting bigger
@@ -94,11 +104,34 @@ NearbyVenuesMapAssistant.prototype.handleGestureChange = function(event) {
 		if(this.map.getZoom()!=zlevel) {this.map.setZoom(zlevel);}	
 	}
 	this.map.panTo(cntr);
-	this.lastScale=event.scale;
+	this.lastScale=event.scale;*/
+	    s = event.scale;
+        if (s>2) s=2;
+        if (s<0.5) s=0.5;
+        s2 = 2*Math.log(s)/Math.log(2);
+        this.zoom = this.origZoom + s2;
+	    if (this.zoom > 18) this.zoom = 18;
+        if (this.zoom < 7) this.zoom = 7;
+        this.map.setZoom(Math.round(this.zoom));
+        this.map.panTo(this.cntr);
+       // this.map.setCenter(this.cntr,this.zoom);
+
+        Mojo.Log.error("zoom="+this.zoom);
+
 }
 NearbyVenuesMapAssistant.prototype.handleGestureEnd = function(event) {
 //	var zlevel=15+Math.round(event.scale);
 //	if(this.map.getZoom()!=zlevel) {this.map.setZoom(zlevel);}
+        this.origZoom = this.zoom;
+        this.inGesture = 0;
+        this.map.setZoom(Math.round(this.zoom));
+        this.map.panTo(this.cntr);
+
+//        this.map.setZoom(this.zoom);
+       // this.map.setCenter(this.cntr,this.zoom);
+
+        Mojo.Log.error("zoom="+this.zoom);
+
 }
 
 NearbyVenuesMapAssistant.prototype.initMap = function(event) {
@@ -110,7 +143,24 @@ NearbyVenuesMapAssistant.prototype.initMap = function(event) {
         function(clickable) {
             this.controller.stageController.pushScene("StopInfo", clickable.oba_stop);
         }.bind(this));*/
-		this.map.setCenter(new GLatLng(this.lat, this.long), 15);
+        //set up the center of the map and the You Are Here icon.
+        
+        var the_center=new GLatLng(this.lat, this.long);
+		this.map.setCenter(the_center, 15);
+		var yahIcon = new GIcon();
+		yahIcon.image = "http://google-maps-icons.googlecode.com/files/leftthendown.png";
+		yahIcon.shadow = "http://google-maps-icons.googlecode.com/files/shadow.png";
+		yahIcon.iconSize = new GSize(32, 37);
+		yahIcon.shadowSize = new GSize(51, 35);
+		yahIcon.iconAnchor = new GPoint(24, 38);
+		yahIcon.infoWindowAnchor = new GPoint(5, 1);
+
+		markerOptions = { icon:yahIcon };
+
+		var yahmarker=new GMarker(the_center, markerOptions);
+		this.map.addOverlay(yahmarker);
+
+		
 		
 		
 		//set up venue markers
@@ -120,7 +170,7 @@ NearbyVenuesMapAssistant.prototype.initMap = function(event) {
 		cafeIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
 		cafeIcon.iconSize = new GSize(30, 38);
 		cafeIcon.shadowSize = new GSize(40, 38);
-		cafeIcon.iconAnchor = new GPoint(24, 38);
+		cafeIcon.iconAnchor = new GPoint(30, 38);
 		cafeIcon.infoWindowAnchor = new GPoint(5, 1);
 		/*var cafeIcon = new GIcon();
 		cafeIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_icon&chld=cafe|62195D";
