@@ -14,7 +14,7 @@ AboutAssistant.prototype.setup = function() {
 	/* setup widgets here */
 	
 	/* add event handlers to listen to events from widgets */
-			Mojo.Event.listen($("testbutton"),Mojo.Event.tap,this.getUA.bind(this));
+			//Mojo.Event.listen($("testbutton"),Mojo.Event.tap,this.getUA.bind(this));
 
 }
 AboutAssistant.prototype.getUA = function(event) {

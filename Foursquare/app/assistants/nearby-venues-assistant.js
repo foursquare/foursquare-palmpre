@@ -76,11 +76,11 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	this.controller.setupWidget('add_venue_button',this.avbuttonAtt1,this.avbuttonModel1);
 
 	
-	//Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenuesSearch.bind(this));
-	//Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
-	//Mojo.Event.listen(this.controller.get('add_venue_button'),Mojo.Event.tap, this.addNewVenue.bind(this));
-	//Mojo.Event.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bind(this));
-	//Mojo.Event.listen(this.controller.get('refresh-venues'),Mojo.Event.tap, this.refreshVenues.bind(this));
+	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenuesSearch.bind(this));
+	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+	Mojo.Event.listen(this.controller.get('add_venue_button'),Mojo.Event.tap, this.addNewVenue.bind(this));
+	Mojo.Event.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bind(this));
+	Mojo.Event.listen(this.controller.get('refresh-venues'),Mojo.Event.tap, this.refreshVenues.bind(this));
     this.controller.document.addEventListener("keyup", this.keyDownHandler.bind(this), true);
 
     this.controller.setupWidget(Mojo.Menu.viewMenu,
