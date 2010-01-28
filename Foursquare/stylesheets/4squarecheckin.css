@@ -51,11 +51,12 @@ body {
 #mayorCrown {
 	position: absolute;
 	top: -25px;
-	left: 4px;
+	left: 15px;
 }
 #mayorInfoBlock {
 	float: left;
 	margin-left: 8px;
+	width: 221px;
 	}
 #mayorInfo {
 	padding-left: 0;
@@ -68,6 +69,11 @@ body {
 
 .breaker {
 	clear: both;
+}
+.breaker-small {
+	clear: both;
+	font-size: 1px;
+	height: 1px;
 }
 
 #venueSpinner {
@@ -97,6 +103,19 @@ body {
 	margin-top: 0 !important;
 	margin-bottom: 0 !important;
 	padding: 2px !important;
+}
+.checkin-badge-item {
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+	padding: 2px !important;
+	font-size: 16px;
+}
+.checkin-score-item {
+	/*height: 20px !important;*/
+	margin-top: 0 !important;
+	margin-bottom: -13px !important;
+	font-size: 16px !important;
+	padding-bottom: 3px !important;
 }
 .checkin-score {
 	/*height: 20px !important;*/
@@ -188,9 +207,9 @@ body {
 	background: url(../images/checkin.png) no-repeat left top;
 	text-indent: -9999px;
 	overflow: hidden;
-	width: 100px;
-	height: 35px;
-	margin-top: -5px;
+	width: 108px;
+	height: 42px;
+	margin-top: 0px;
 	margin-bottom: 5px;
 }
 
@@ -362,7 +381,7 @@ tr.header {
 	text-align: center;
 }
 
-a.vtag {
+a.vtag,a.vtip-black {
 	text-decoration: none;
 }
 
@@ -448,4 +467,122 @@ a.vtag {
 }
 .small-text {
 	font-size: 14px;
+}
+
+.sliderClass {
+	width: 80% !important;
+}
+.checkin-venue {
+	font-size: 16px;
+	font-style: italic;
+}
+.special-list {
+	padding: 5px;
+}
+
+#checkin-display {
+	font-style: italic;
+	padding: 7px;
+	font-size: 16px;
+}
+#score-title {
+	font-weight: bold;
+	font-size: 18px;
+}
+#checkin-scores {
+	margin: 7px;
+	padding: 5px;
+}
+.checkin-special {
+	-webkit-border-image: url(../images/specialbg.png) 6 7 8 7 stretch stretch;
+	border-width: 4px 5px 5px 5px;
+	padding-top: 7px;
+	color: #d7d6d7;
+	text-shadow:  1px 1px 0 #1c1c1c;
+	padding-left: 5px;
+	margin: 7px;
+	padding: 5px;
+	font-size: 16px;
+
+}
+.checkin-special-title {
+	color: #002337;
+	font-weight: bold;
+	font-size: 18px;
+	font-style: italic;
+	line-height: 22px;
+}
+#mayor-group {
+	font-size: 16px;
+	margin: 7px;
+	padding: 5px;
+	font-weight: bold;
+}
+#mayor-group .palm-row.single {
+	min-height: 25px !important;
+}
+
+#slidergroup {
+	padding-left: 3px;
+}
+.palm-slider-background{
+	width: 235px !important;
+}
+#sliderGPS {
+	margin-left: -7px !important;
+}
+
+#meta-buttons {
+	padding: 0 7px 0 7px;
+}
+#meta-overlay {
+	-webkit-border-image: url(../images/overlay.png) 17 17 17 17 stretch stretch;
+	border-width: 15px 15px 15px 15px;
+	z-index: 999999;
+	width: 270px;
+	left: 10px;
+	top: 75px;
+	position: absolute;
+	color: #fff;
+}
+.overlay-title {
+	position: relative;
+	top: -9px;
+}
+#overlay-closer {
+	width: 32px;
+	height: 32px;
+	background: url(../images/overlay-close.png) no-repeat left top;
+	position: absolute;
+	right: -36px;
+	top: -5px;
+}
+#overlayScroller {
+   height: 250px;
+   width: 300px;
+   margin-left: auto;
+   margin-right: auto;
+   margin-top: 3px;
+}
+#results-meta-list {
+	width: 257px;
+}
+#results-meta-list .venue-info-wrap {
+	width: 200px;
+}
+#overlay-content {
+	margin-top: 4px;
+}
+#gps_banner, .blue-box {
+	background: #828ea8;
+	color: #d7d6d7;
+	border: 1px solid #677085;
+	font-size: 16px;
+	padding: 4px;
+}
+#smallSpinner {
+	float: left;
+}
+#refresh-venues {
+
 }

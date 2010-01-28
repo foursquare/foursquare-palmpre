@@ -262,8 +262,16 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 					   method: 'get',
 					   evalJSON: 'force',
 					   requestHeaders: {"user-agent":"Foursquare for webOS/"+Mojo.appInfo.version,Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
-					   parameters: {uid: theuser},
+					   parameters: {uid: theuser,badges: '1', mayor: '1'},
 					   onSuccess: function(uresponse){
+					   	//here's an idea -- let's cache user info so it doesn't kill our rate limit
+					   	//gonna store the response object in a global array.
+					   	//all user-related methods will then check the array and only download
+					   	//if necessary. this should have been a multiline comment.
+					   //	_globals.userCache[this.friendList[this.onfriend].id]=uresponse;
+					   
+					   //to be continued...more of a pain in the ass than expected
+					   
 						if(uresponse.responseJSON.user.checkin != undefined) {
 							this.friendList[this.onfriend].checkin=(uresponse.responseJSON.user.checkin.venue != undefined)? "@ "+uresponse.responseJSON.user.checkin.venue.name: "";
 							this.friendList[this.onfriend].shout=(uresponse.responseJSON.user.checkin.shout != undefined)? "\n"+uresponse.responseJSON.user.checkin.shout: "";

@@ -10,13 +10,38 @@
 		<div x-mojo-element="Button" id="goLogin"></div>
 	</div>
 
-	<div class="palm-group">
+	<div class="palm-group" id="slidergroup">
 		<div class="palm-group-title" x-mojo-loc=''>GPS Accuracy</div>
-		<div x-mojo-element="Slider" id="sliderGPS" class="sliderClass" name="sliderName" style="width: 80%;"></div>
+		<div x-mojo-element="Slider" id="sliderGPS" class="sliderClass" name="sliderName"></div>
 		<br/>
 		<div id="gps-description" class="med-text"></div>
 		<div id="gps-longdesc" class="small-text"></div>
 	</div>
 
+	<div class="palm-group">
+		<div class="palm-group-title" x-mojo-loc=''>Units</div>
+		<div class="palm-list">
+	   		<div class="palm-row single">
+				<div class="palm-row-wrapper" x-mojo-focus-highlight="true">
+					<div class="title">
+						<div class="label">Measurement System</div>
+						<div x-mojo-element="ListSelector" id="units" class="listselectorClass" name="listselectorName"></div>
+					</div>
+				</div>
+			</div>
+		</div>		
+	</div>
+
+	<div class="palm-group">
+		<div class="palm-group-title" x-mojo-loc=''>Number of Venues to Show</div>
+		<div x-mojo-element="IntegerPicker" id="numVenuesPicker" class="integerpickerClass" name="integerpickerName"></div>
+	</div>
+
+	<div class="palm-group">
+		<div class="palm-group-title" x-mojo-loc=''>Flickr Account</div>
+		<div x-mojo-element="Button" id="goFlickr"></div>
+		<div id="flickrInfo"></div>
+	</div>
 
 </div>
+

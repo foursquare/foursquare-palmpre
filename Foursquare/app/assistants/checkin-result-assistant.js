@@ -44,11 +44,11 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 				var imgpath = scores[i].icon;
 				totalpoints+=parseInt(scores[i].points);
 				var msg = '+' + scores[i].points + ' ' +scores[i].message;
-				$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-score"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';
+				$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-score-item"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';
 			}
 		}
 		var totalPts = (totalpoints != 1)? totalpoints+' pts': totalpoints+' pt';
-		$('score-title').innerHTML = "Score! That's " + totalPts;
+		$('score-title').innerHTML = "Score! That's " + totalPts+"!";
 	}else{
 		this.noscores=true;
 	}
@@ -60,7 +60,7 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			var badge_name=checkinJSON.checkin.badges[b].name;
 			var badge_icon=checkinJSON.checkin.badges[b].icon;
 			var badge_text=checkinJSON.checkin.badges[b].description;
-			$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-badge"><img src="'+badge_icon+'" width="32" height="32" /> <span>'+badge_name+': '+badge_text+'</span></div></div>';
+			$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-badge-item"><img align="absmiddle" src="'+badge_icon+'" width="32" height="32" /> <span>'+badge_name+': '+badge_text+'</span></div></div>';
 		}
 	}
 
@@ -82,7 +82,7 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			$('checkin-mayorship').innerHTML = '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';	
 		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - new mayor");
 		}*/
-		$('checkin-mayorship').innerHTML = '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';
+		$('checkin-mayorship').innerHTML = '<div class="palm-row single"><span>'+checkinJSON.checkin.mayor.message+'</span></div>';
 
 	}else{
 		this.nomayor=true;
@@ -97,19 +97,28 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			var special_msg=checkinJSON.checkin.specials[b].message;
 			switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
 				case "mayor":
-					var spt="Mayor Special";
+					var spt="<img src=\"images/crown_30x30.png\" width=\"22\" height=\"22\" /> Mayor Special";
 					break;
 				default:
-					var spt="Foursquare Special";
+					var spt="<img src=\"images/starburst.png\" width=\"22\" height=\"22\" /> Foursquare Special";
 					break;
 			}
-			$('checkin_specials').innerHTML += '<div class="palm-group"><div class="palm-group-title" x-mojo-loc="">'+spt+'</div><div class="palm-list"><div class="listWhiteBox">'+special_msg+'</div></div></div>';
+			var special_venue="";
+			
+			if(checkinJSON.checkin.specials[b].venue != undefined) { //not at this venue, but nearby
+				spt=spt+" Nearby";
+				special_venue="@ "+checkinJSON.checkin.specials[b].venue.name;
+			}
+			//spt="Mayor Special";
+			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
+			//special_venue="@ Venue Name (123 Venue St.)";
+			$('checkin_specials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
 		}
 	}
 
 	
 	//make sure the next stays in the white box!
-	$('scores-box').innerHTML+='<br class="breaker"/>';
+	//$('scores-box').innerHTML+='<br class="breaker-small"/>';
 
 	
 

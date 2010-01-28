@@ -41,6 +41,12 @@
 -->
 
 <div id='message' style='padding: 0 20px;'></div>
+<div id="gps_banner">
+	<span id="banner_text"></span>
+	<div x-mojo-element="Spinner" id="smallSpinner" class="spinnerClass" name="spinnerName"></div>
+	<span id="refresh-venues" class="vtip">Refresh</span>
+	<br class="breaker-small"/>
+</div>
 <div x-mojo-element="Spinner" id="spinnerId" class="spinnerClass" name="spinnerName"></div>
 <div id="debuginfo" style="font-size: 14px;"></div>
 <div class="palm-group-nope unlabeled-nope" id='resultListBox' style='display:none;'>
@@ -48,6 +54,9 @@
 	<div id="results-venue-list" x-mojo-element="FilterList" ></div>
 </div>
 <div id="add_venue_button" x-mojo-element="Button"></div>
+<div id="accuracy" class="small-text blue-box"></div>
+<div id="log"></div>
+
 <br/><br/><br/><br/><br/><br/>
 </div>
 

@@ -1,4 +1,4 @@
-function VenuedetailAssistant(venue,u,p,i,fui) {
+function VenuedetailAssistant(venue,u,p,i,fui,ps) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -9,6 +9,9 @@ function VenuedetailAssistant(venue,u,p,i,fui) {
 	   this.password=_globals.password;
 	   this.uid=_globals.uid;
 	   this.fromuserinfo=fui;
+	   this.vgeolat=this.venue.geolat;
+	   this.vgeolong=this.venue.geolong;
+	   this.prevScene=ps;
 }
 
 VenuedetailAssistant.prototype.setup = function() {
@@ -18,7 +21,7 @@ VenuedetailAssistant.prototype.setup = function() {
 	$("checkinVenueName").innerHTML=this.venue.name;
 	$("checkinVenueAddress").innerHTML=this.venue.address;
 	if (this.venue.crossstreet) {
-	 $("checkinVenueAddress").innerHTML += "<br/>(at "+this.venue.crossstreet+")";
+	 $("checkinVenueAddress").innerHTML += "<br/>("+this.venue.crossstreet+")";
 	}
 	var query=encodeURIComponent(this.venue.address+' '+this.venue.city+', '+this.venue.state);
 	$("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x175&sensor=false&markers=color:blue|"+this.venue.geolat+","+this.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA"
@@ -39,6 +42,13 @@ VenuedetailAssistant.prototype.setup = function() {
              mode: 'vertical-snap'
          },
          this.scrollModel = {
+            /* snapElements: {'y': [$("snapMap"),$("snapMayor"),$("snapTips"),$("snapTags"),$("snapInfo")]}*/
+         });
+	    this.controller.setupWidget("overlayScroller",
+         this.scroll2Attributes = {
+             mode: 'vertical-snap'
+         },
+         this.scroll2Model = {
             /* snapElements: {'y': [$("snapMap"),$("snapMayor"),$("snapTips"),$("snapTags"),$("snapInfo")]}*/
          });
 
@@ -123,6 +133,28 @@ VenuedetailAssistant.prototype.setup = function() {
          this.model = {
              open: true
          });
+	this.controller.setupWidget("venueSpecialsContainer",
+         this.attributes = {
+             modelProperty: 'open',
+             unstyled: true
+         },
+         this.model = {
+             open: true
+         });
+    this.controller.setupWidget("overlaySpinner",
+         this.attributes = {
+             spinnerSize: 'large'
+         },
+         this.model = {
+             spinning: true 
+         });
+
+	this.resultsModel = {items: [], listTitle: $L('Results')};
+    
+	// Set up the attributes & model for the List widget:
+	this.controller.setupWidget('results-meta-list', 
+					      {itemTemplate:'listtemplates/venueItems'},
+					      this.resultsModel);
 
 	
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
@@ -162,11 +194,24 @@ VenuedetailAssistant.prototype.setup = function() {
 
 	Mojo.Event.listen($("mayorDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 	Mojo.Event.listen($("tipsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+	Mojo.Event.listen($("specialsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 	Mojo.Event.listen($("tagsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 	Mojo.Event.listen($("infoDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 	Mojo.Event.listen($("mapDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+	Mojo.Event.listen($("flickr-button"),Mojo.Event.tap, this.showFlickr.bind(this));
+	Mojo.Event.listen($("banks-button"),Mojo.Event.tap, this.showBanks.bind(this));
+	Mojo.Event.listen($("parking-button"),Mojo.Event.tap, this.showParking.bind(this));
+ 	Mojo.Event.listen($("venueMap"),Mojo.Event.tap, this.showGoogleMaps.bind(this));
+		Mojo.Event.listen($("overlay-closer"),Mojo.Event.tap, function(){$("meta-overlay").hide();}.bind(this));
+		//Mojo.Event.listen($("venueMap"),Mojo.Event.tap, this.mapClicked.bind(this));
 
 
+	//$("venueMap").setAttribute("data","maploc:("+this.venue.geolat+","+this.venue.geolong+")");
+	$("meta-overlay").hide();
+	$("results-meta-list").hide();
+	
+	
+	this.flickrUpload='<span id="flickrUploader" class="vtip-black" style="white-space:nowrap;">Upload</span>';
 }
 
 var auth;
@@ -176,6 +221,24 @@ function make_base_auth(user, pass) {
   var hash = Base64.encode(tok);
   //$('message').innerHTML += '<br/>'+ hash;
   return "Basic " + hash;
+}
+
+VenuedetailAssistant.prototype.showGoogleMaps = function() {
+/*this.controller.serviceRequest('palm://com.palm.applicationManager', {
+ 	method: 'open',
+ 	parameters: {
+ 	id: 'com.palm.app.maps',
+ 	params: {
+ 		location: {lat: this.venue.geolat, lng: this.venue.geolong, acc: 1},
+ 		daddr: this.vgeolat+","+this.vgeolong
+ 		}
+ 	}
+ });*/ 
+ this.controller.serviceRequest('palm://com.palm.applicationManager', {
+ 	method:'open',
+ 	parameters:{target: "maploc:("+this.vgeolat+","+this.vgeolong+")" }
+     }
+ ); 
 }
 
 VenuedetailAssistant.prototype.getVenueInfo = function() {
@@ -193,12 +256,17 @@ VenuedetailAssistant.prototype.getVenueInfo = function() {
 }
 VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	Mojo.Log.error(response.responseText);
+	var th=this;
+	Mojo.Log.error("this="+th.constructor.name);
 	$("checkinVenueAddress").innerHTML=response.responseJSON.venue.address;
 	if (response.responseJSON.venue.crossstreet) {
-	 $("checkinVenueAddress").innerHTML += "<br/>(at "+response.responseJSON.venue.crossstreet+")";
+	 $("checkinVenueAddress").innerHTML += "<br/>("+response.responseJSON.venue.crossstreet+")";
 	}
 	if($("venueMap").src!="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x175&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA") {
 		$("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x175&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA";
+		//$("venueMap").setAttribute("data","maploc:("+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+")");
+		this.venue.geolat=response.responseJSON.venue.geolat;
+		this.venue.geolong=response.responseJSON.venue.geolong;
 	}
 	
 	//mayorial stuff
@@ -233,6 +301,34 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		
 	}
 	
+		//specials!
+	if(response.responseJSON.venue.specials != undefined) {
+		for(var b = 0; b < response.responseJSON.venue.specials.length;b++) {
+			var special_type=response.responseJSON.venue.specials[b].type;
+			var special_msg=response.responseJSON.venue.specials[b].message;
+			switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
+				case "mayor":
+					var spt="<img src=\"images/smallcrown.png\" width=\"22\" height=\"22\" /> Mayor Special";
+					break;
+				default:
+					var spt="<img src=\"images/starburst.png\" width=\"22\" height=\"22\" /> Foursquare Special";
+					break;
+			}
+			var special_venue="";
+			
+			if(response.responseJSON.venue.specials[b].venue != undefined) { //not at this venue, but nearby
+				spt=spt+" Nearby";
+				special_venue="@ "+response.responseJSON.venue.specials[b].venue.name;
+			}
+			//spt="Mayor Special";
+			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
+			//special_venue="@ Venue Name (123 Venue St.)";
+			$('venueSpecials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
+		}
+	}else{
+		$("snapSpecials").hide();
+	}
+
 	
 	//tips stuff
 	if(response.responseJSON.venue.tips != undefined) {
@@ -280,6 +376,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	var twitter=response.responseJSON.venue.twitter;
 	var phone=response.responseJSON.venue.phone;
 	var tags=response.responseJSON.venue.tags;
+	var venuelinks=response.responseJSON.venue.links;
 		Mojo.Log.error("phone="+phone);
 
 	var vinfo='';
@@ -300,11 +397,29 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	if(tags != undefined) {
 		var vtags='';
 		for(var t=0;t<tags.length;t++) {
-			vtags+='<span class="vtag">'+tags[t]+'</span> ';
+			vtags+='<span class="vtag" id="tag'+t+'">'+tags[t]+'</span> ';
 		}
 		$("venueTags").innerHTML=vtags;
+		for(var t=0;t<tags.length;t++) {
+		 	Mojo.Event.listen($("tag"+t),Mojo.Event.tap, this.tagTapped.bind(th));
+		}
+
 	}else{
 		$("snapTags").hide();
+	}
+	
+
+	
+	
+	//links
+	if(venuelinks != undefined) {
+		var vlinks='';
+		for(var l=0;l<venuelinks.length;l++) {
+			if(venuelinks[l].type=="yelp") { //only handling yelp links
+				vlinks+='<a style="margin-left: 4px;" href="'+venuelinks[l].url+'"><img src="images/yelp.png" width="42" border="0"/></a>';
+			}
+		}
+		$("yelpbutton").innerHTML=vlinks;
 	}
 	
 	
@@ -415,6 +530,304 @@ VenuedetailAssistant.prototype.markClosed = function() {
 	} else {
 		//$('message').innerHTML = 'Not Logged In';
 	}
+}
+
+VenuedetailAssistant.prototype.showBanks = function(event) {
+Mojo.Log.error("##getting banks");
+$("meta-overlay").show();
+$("overlaySpinner").mojo.start();
+$("overlaySpinner").show();
+$("overlay-content").innerHTML="";
+$("overlay-title").innerHTML="Banks & ATMs";
+
+		//var url = 'http://api.flickr.com/services/feeds/photos_public.gne?&tagmode=any&format=json&jsoncallback=?&tags=foursquare:venue='+this.venue.id;
+		var url='http://api.geoapi.com/v1/q?apikey=3KbTrN2r4h&q={%22lat%22:'+this.vgeolat+',%22lon%22:'+this.vgeolong+',%22entity%22:[{%22guid%22:null,%22name%22:null,%22geom%22:null,%22distance-from-origin%22:null,%22type%22:%22business%22,%22view.listing%22:{%22*%22:null,%22verticals%22:%22financial:banks%22}}],%22radius%22:%221km%22,%22limit%22:20}';
+		Mojo.Log.error("url="+url);
+		var request = new Ajax.Request(url, {
+			method: 'get',
+			evalJSON: 'true',
+			onSuccess: this.banksSuccess.bind(this),
+			onFailure: this.banksFailed.bind(this)
+		});
+}
+
+VenuedetailAssistant.prototype.banksSuccess = function(response) {
+	Mojo.Log.error("banks="+response.responseText);
+	$("meta-overlay").show();
+	$("overlaySpinner").mojo.stop();
+	$("overlaySpinner").hide();
+
+	//$("overlay-content").innerHTML='No Flickr images found for this venue.';
+	$("overlay-title").innerHTML="Banks & ATMs";
+
+	//there's a stupid dot in one of the object properties that effs all this up. gotta fix it.
+	var j=eval("("+response.responseText.replace(/view.listing/ig,"viewlisting").replace(/distance-from-origin/ig,"distance")+")");
+	Mojo.Log.error(Object.toJSON(j));
+	var entities=j.entity;
+	if(entities.length>0) {
+		var banks=[];
+		for(var e=0;e<entities.length;e++) {
+			Mojo.Log.error("in loop");
+			var thisbank={};
+			thisbank.address=entities[e].viewlisting.address[0];
+			thisbank.name=entities[e].viewlisting.name;
+			var dist=parseInt(entities[e].distance);
+			Mojo.Log.error("distance="+entities[e].distance);
+			var amile=0.000621371192;
+			dist=roundNumber(dist*amile,1);
+			var unit="";
+			if(dist==1){unit="mile";}else{unit="miles";}
+			thisbank.distance=dist;
+			thisbank.unit=unit;
+			banks.push(thisbank);
+			Mojo.Log.error("##entity: "+thisbank.name);
+		}
+		Mojo.Log.error("banks="+banks.length);
+		this.resultsModel.items=banks;
+		this.controller.modelChanged(this.resultsModel);
+		$("results-meta-list").show();
+	}else{
+		$("results-meta-list").hide();
+		$("overlay-content").innerHTML='There are no nearby banks or ATMs.';
+	}
+	
+}
+VenuedetailAssistant.prototype.banksFailed = function(response) {
+$("meta-overlay").show();
+$("overlaySpinner").mojo.stop();
+$("overlaySpinner").hide();
+$("results-meta-list").hide();
+
+	$("overlay-content").innerHTML='Error loading nearby banks and ATMs.';
+	$("overlay-title").innerHTML="Banks & ATMs";
+
+}
+
+VenuedetailAssistant.prototype.showParking = function(event) {
+Mojo.Log.error("##getting parking");
+$("meta-overlay").show();
+$("overlaySpinner").mojo.start();
+$("overlaySpinner").show();
+$("overlay-content").innerHTML="";
+$("overlay-title").innerHTML="Parking";
+
+		//var url = 'http://api.flickr.com/services/feeds/photos_public.gne?&tagmode=any&format=json&jsoncallback=?&tags=foursquare:venue='+this.venue.id;
+		var url='http://api.geoapi.com/v1/q?apikey=3KbTrN2r4h&pretty=1&q={%22lat%22:'+this.vgeolat+',%22lon%22:'+this.vgeolong+',%22entity%22:[{%22guid%22:null,%22name%22:null,%22geom%22:null,%22distance-from-origin%22:null,%22type%22:%22business%22,%22view.listing%22:{%22*%22:null,%22verticals%22:%22tourist-center:parking%22}}],%22radius%22:%221km%22,%22limit%22:20}';
+		Mojo.Log.error("url="+url);
+		var request = new Ajax.Request(url, {
+			method: 'get',
+			evalJSON: 'true',
+			onSuccess: this.parkingSuccess.bind(this),
+			onFailure: this.parkingFailed.bind(this)
+		});
+}
+
+VenuedetailAssistant.prototype.parkingSuccess = function(response) {
+	Mojo.Log.error("parking="+response.responseText);
+	$("meta-overlay").show();
+	$("overlaySpinner").mojo.stop();
+	$("overlaySpinner").hide();
+
+	//$("overlay-content").innerHTML='No Flickr images found for this venue.';
+	$("overlay-title").innerHTML="Parking";
+
+	//there's a stupid dot in one of the object properties that effs all this up. gotta fix it.
+	var j=eval("("+response.responseText.replace(/view.listing/ig,"viewlisting").replace(/distance-from-origin/ig,"distance")+")");
+	Mojo.Log.error(Object.toJSON(j));
+	var entities=j.entity;
+	if(entities.length>0) {
+		var parking=[];
+		for(var e=0;e<entities.length;e++) {
+			Mojo.Log.error("in loop");
+			var thisparking={};
+			thisparking.address=entities[e].viewlisting.address[0];
+			thisparking.name=entities[e].viewlisting.name;
+			var dist=parseInt(entities[e].distance);
+			Mojo.Log.error("distance="+entities[e].distance);
+			var amile=0.000621371192;
+			dist=roundNumber(dist*amile,1);
+			var unit="";
+			if(dist==1){unit="mile";}else{unit="miles";}
+			thisparking.distance=dist;
+			thisparking.unit=unit;
+			banks.push(thisbank);
+			Mojo.Log.error("##entity: "+thisparking.name);
+		}
+		Mojo.Log.error("parking="+parking.length);
+		this.resultsModel.items=parking;
+		this.controller.modelChanged(this.resultsModel);
+		$("results-meta-list").show();
+	}else{
+		$("results-meta-list").hide();
+		$("overlay-content").innerHTML='There are no nearby <br/>parking lots.';
+	}
+	
+}
+VenuedetailAssistant.prototype.parkingFailed = function(response) {
+$("meta-overlay").show();
+$("overlaySpinner").mojo.stop();
+$("overlaySpinner").hide();
+$("results-meta-list").hide();
+
+	$("overlay-content").innerHTML='Error loading nearby parking.';
+	$("overlay-title").innerHTML="Parking";
+
+}
+
+
+VenuedetailAssistant.prototype.showFlickr = function(event) {
+Mojo.Log.error("##getting flickr");
+$("meta-overlay").show();
+$("overlaySpinner").mojo.start();
+$("overlaySpinner").show();
+$("overlay-content").innerHTML="";
+$("results-meta-list").hide();
+
+		//var url = 'http://api.flickr.com/services/feeds/photos_public.gne?&tagmode=any&format=json&jsoncallback=?&tags=foursquare:venue='+this.venue.id;
+		var url='http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key='+_globals.flickr_key+'&machine_tags=foursquare:venue="'+this.venue.id+'"&nojsoncallback=1&format=json';
+		var request = new Ajax.Request(url, {
+			method: 'get',
+			evalJSON: 'true',
+			/*requestHeaders: {
+				Authorization: _globals.auth
+			},
+			parameters: {
+				vid: this.venue.id,
+			},*/
+			onSuccess: this.flickrSuccess.bind(this),
+			onFailure: this.flickrFailed.bind(this)
+		});
+}
+
+VenuedetailAssistant.prototype.flickrFailed = function(response) {
+Mojo.Log.error("##flickr failed: "+response.responseText);
+$("meta-overlay").show();
+$("overlaySpinner").mojo.stop();
+$("overlaySpinner").hide();
+
+	$("overlay-content").innerHTML='No Flickr images found for this venue.';
+	$("overlay-title").innerHTML="Flickr";
+}
+
+VenuedetailAssistant.prototype.flickrSuccess = function(response) {
+Mojo.Log.error("##flickr succeeded: "+response.responseText);
+	
+		var j=eval("("+response.responseText+")");
+
+	if(j.photos!=undefined && j.photos.photo.length!=0) {
+		$("meta-overlay").show();
+		$("overlay-title").innerHTML='Flickr '+this.flickrUpload;
+
+		var html=$("overlay-content");
+$("overlaySpinner").mojo.stop();
+$("overlaySpinner").hide();
+		html.update("");
+		for(var i=0;i<j.photos.photo.length;i++) {
+			var id=j.photos.photo[i].id;
+			var secret=j.photos.photo[i].secret;
+			var server=j.photos.photo[i].server;
+			var farm=j.photos.photo[i].farm;
+			var userid=j.photos.photo[i].owner;
+			var url='http://farm'+farm+'.static.flickr.com/'+server+'/'+id+'_'+secret+'_t.jpg';
+			var link='http://www.flickr.com/photos/'+userid+'/'+id;
+
+			html.update(html.innerHTML+'<img src="'+url+'" id="flickr'+i+'" class="flickr-pic" width="80" link="'+link+'"/> ');
+		}
+
+		for(var i=0;i<j.photos.photo.length;i++) {
+			Mojo.Event.listen(this.controller.get("flickr"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+		}
+		html.show();
+		Mojo.Event.listen(this.controller.get("flickrUploader"),Mojo.Event.tap, this.tryflickrUpload.bind(this));
+
+
+	}else{
+		this.flickrNearby();
+	}
+
+}
+
+VenuedetailAssistant.prototype.flickrNearby = function() {
+Mojo.Log.error("######getting nearby flickr");
+$("meta-overlay").show();
+$("overlaySpinner").mojo.start();
+$("overlaySpinner").show();
+
+		var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key='+_globals.flickr_key+'&lat='+this.vgeolat+'&lon='+this.vgeolong+'&radius=5&radius_units=km&nojsoncallback=1&format=json';
+		Mojo.Log.error("url="+url);
+		//url="http://zhephree.com/foursquare/index.php";
+		var requester = new Ajax.Request(url, {
+			method: 'get',
+			evalJSON: 'true',
+			onSuccess: this.flickrNearbySuccess.bind(this),
+			onFailure: this.flickrFailed.bind(this)
+		});
+
+}
+
+VenuedetailAssistant.prototype.flickrNearbySuccess = function(response) {
+	Mojo.Log.error(response.responseText);
+	var j=eval("("+response.responseText+")");
+
+	if(j.photos!=undefined && j.photos.photo.length>0) {
+		if(j.photos.total=="0"){this.flickrFailed(response);}
+
+		$("meta-overlay").show();
+		$("overlay-title").innerHTML='Flickr <span class="small-text">(Nearby)</span> '+this.flickrUpload;
+$("overlaySpinner").mojo.stop();
+$("overlaySpinner").hide();
+
+		var html=$("overlay-content");
+		for(var i=0;i<j.photos.photo.length;i++) {
+			var id=j.photos.photo[i].id;
+			var secret=j.photos.photo[i].secret;
+			var server=j.photos.photo[i].server;
+			var farm=j.photos.photo[i].farm;
+			var userid=j.photos.photo[i].owner;
+			var url='http://farm'+farm+'.static.flickr.com/'+server+'/'+id+'_'+secret+'_t.jpg';
+			var link='http://www.flickr.com/photos/'+userid+'/'+id;
+
+			html.update(html.innerHTML+'<img src="'+url+'" id="flickr'+i+'" class="flickr-pic" width="80" link="'+link+'"/> ');
+		}
+
+		for(var i=0;i<j.photos.photo.length;i++) {
+			Mojo.Event.listen(this.controller.get("flickr"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+		}
+		html.show();
+		Mojo.Event.listen(this.controller.get("flickrUploader"),Mojo.Event.tap, this.tryflickrUpload.bind(this));
+
+
+	}else{
+		this.flickrFailed(response);
+	}
+}
+
+VenuedetailAssistant.prototype.tryflickrUpload = function(event) {
+	//gotta get the file:
+	Mojo.Log.error("trying to ask for file...");
+//	Mojo.FilePicker.pickFile({'actionName':'Upload','kinds':['image'],'defaultKind':'image','onSelect':this.doUpload.bind(this)},this.controller.stageController);
+	if(_globals.flickr_token){
+		this.controller.stageController.pushScene({name: "flickr-upload", transition: Mojo.Transition.crossFade},this,this.venue.id);
+	}else{
+		this.controller.stageController.pushScene({name: "flickr-auth", transition: Mojo.Transition.crossFade});
+	}
+}
+
+VenuedetailAssistant.prototype.doUpload = function(event) {
+	var fn=event.fullPath;
+	
+	this.controller.stageController.pushScene({name: "flickr-upload", transition: Mojo.Transition.crossFade},this,fn,this.venue.id);
+}
+
+VenuedetailAssistant.prototype.handleFlickrTap = function(event) {
+	Mojo.Log.error("trying flickr tap");
+	var url=event.target.getAttribute("link");
+	this.controller.serviceRequest('palm://com.palm.applicationManager', {
+	    method: 'open',
+	    parameters: {
+			target: url
+		}
+	});
 }
 
 VenuedetailAssistant.prototype.checkInSuccess = function(response) {
@@ -555,6 +968,12 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
 
 }
 
+VenuedetailAssistant.prototype.tagTapped = function(event) {
+	var q=event.target.innerHTML;
+	this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},_globals.auth,_globals.userData,this.username,this.password,this.uid,true,q);
+	
+}
+
 VenuedetailAssistant.prototype.tipTapped = function(event) {
 	
     switch(event.target.hasClassName("tipsave")) {
@@ -621,6 +1040,19 @@ VenuedetailAssistant.prototype.handleDividerTap = function(event) {
 				$("tipsArrow").removeClassName("palm-arrow-expanded");
 				$("tipsArrow").addClassName("palm-arrow-closed");
 				$("venueTipsContainer").mojo.setOpenState(false);
+			
+			}
+			break;
+		case "specialsArrow":
+		case "specialsLine":
+			if($("specialsArrow").hasClassName("palm-arrow-closed")) {
+				$("specialsArrow").removeClassName("palm-arrow-closed");
+				$("specialsArrow").addClassName("palm-arrow-expanded");
+				$("venueSpecialsContainer").mojo.setOpenState(true);
+			}else{
+				$("specialsArrow").removeClassName("palm-arrow-expanded");
+				$("specialsArrow").addClassName("palm-arrow-closed");
+				$("venueSpecialsContainer").mojo.setOpenState(false);
 			
 			}
 			break;

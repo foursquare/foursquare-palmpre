@@ -175,9 +175,13 @@ AddVenueAssistant.prototype.gotLocation = function(event) {
 	if(addylines.length>1) {
 		var loca=addylines[1].split(", ");
 		var city=trim(loca[0]);
+		var country=trim(addylines[2]);
+		if(country!="USA"){$("venue-state").hide();}
+		
 		var statezip=loca[1].split(" ");
 		var state=trim(statezip[0]);
 		var zip=trim(statezip[1]);
+		if(zip.indexOf("A")){zip=zip.replace("A","");}
 
 		this.cityModel.value=city;
 		this.controller.modelChanged(this.cityModel);

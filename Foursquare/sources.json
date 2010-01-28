@@ -68,5 +68,13 @@
     {
         "scenes": "preferences",
         "source": "app/assistants/preferences-assistant.js"
+    },
+    {
+        "scenes": "flickr-auth",
+        "source": "app/assistants/flickr-auth-assistant.js"
+    },
+    {
+        "scenes": "flickr-upload",
+        "source": "app/assistants/flickr-upload-assistant.js"
     }
 ]

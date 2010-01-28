@@ -47,15 +47,59 @@ LeaderboardAssistant.prototype.setup = function() {
         });
 
 	/* add event handlers to listen to events from widgets */
+	
+			Mojo.Log.error("trying to get addy...lat="+_globals.lat+", long="+_globals.long);
+		//try and get the reverse location...
+			this.controller.serviceRequest('palm://com.palm.location', {
+			method: "getReverseLocation",
+			parameters: {latitude: _globals.lat, longitude:_globals.long},
+			onSuccess: this.gotLocation.bind(this),
+			onFailure: this.failedLocation.bind(this)
+		});
+
 }
 
 LeaderboardAssistant.prototype.activate = function(event) {
+
+
+}
+
+LeaderboardAssistant.prototype.failedLocation = function(event) {
+	this.city="you";
+	this.getLeaderboards();
+}
+
+LeaderboardAssistant.prototype.gotLocation = function(event) {
+	//example response: 123 Abc Street ; Your Town, ST 12345 ; USA 
+	//we're worried about the middle line, so we get to do some fun parsing.
+	//no, seriously, parsing's the most fun part of programming.
+	//i wish this whole app was just parsing text. boresquare, some would call it.
+	Mojo.Log.error("addy="+event.address);
+	var addylines=event.address.split(";");
+	if(addylines.length>1) {
+		var loca=addylines[1].split(", ");
+		var city=trim(loca[0]);
+		var statezip=loca[1].split(" ");
+		var state=trim(statezip[0]);
+		var zip=trim(statezip[1]);
+
+		this.city=city;
+	}
+
+	this.getLeaderboards();
+}
+function trim(stringToTrim) {
+	return stringToTrim.replace(/^\s+|\s+$/g,"");
+}
+
+LeaderboardAssistant.prototype.getLeaderboards = function() {
 	/* OK, we're gonna do a for real leaderboard. I considered a webview, but that'll look assy.
 		So instead, we'll download the HTML of the special URL and the parse the hell out of the response.
 		Mmmmm.... parsing text... */
 	
 	//step one, get the HTML. let's start by displaying the friends leaderboard.
-	var url = 'http://foursquare.com/iphone/me?uid='+_globals.uid+'&view=mini&geolat='+_globals.lat+'geolong='+_globals.long+'&scope=friends';
+	var url = 'http://foursquare.com/iphone/me?uid='+_globals.uid+'&view=all&geolat='+_globals.lat+'geolong='+_globals.long+'&scope=friends';
+	Mojo.Log.error("url="+url);
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
@@ -64,6 +108,7 @@ LeaderboardAssistant.prototype.activate = function(event) {
 	   onSuccess: this.friendboardSuccess.bind(this),
 	   onFailure: this.leaderboardFailed.bind(this)
 	 });
+
 
 }
 
@@ -79,7 +124,7 @@ LeaderboardAssistant.prototype.friendboardSuccess = function(response) {
 	this.friendBoard=this.friendBoard.replace(new RegExp('src="/img/bar_red.gif"',"gi"),'src="images/bar_purple.png"');
 	
 	//make sure we have some things to display. if not, tell the user
-	this.friendBoard=(this.friendBoard.indexOf("<tr>")>-1)? this.friendBoard: "None of your friends have checked-in in "+_globals.city+" yet!";
+	this.friendBoard=(this.friendBoard.indexOf('class="mini"')>-1)? this.friendBoard: "None of your friends have checked-in near "+this.city+" yet!";
 		
 	$("leaderboard").innerHTML=this.friendBoard; 
 	
@@ -115,6 +160,7 @@ LeaderboardAssistant.prototype.cityboardSuccess = function(response) {
 }
 
 LeaderboardAssistant.prototype.leaderboardFailed = function(response) {
+Mojo.Log.error(response.responseText);
 }
 
 LeaderboardAssistant.prototype.handleCommand = function(event) {

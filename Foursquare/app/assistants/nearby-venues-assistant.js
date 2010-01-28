@@ -1,4 +1,4 @@
-function NearbyVenuesAssistant(a, ud, un, pw,i,ss) {
+function NearbyVenuesAssistant(a, ud, un, pw,i,ss,q) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -10,6 +10,9 @@ function NearbyVenuesAssistant(a, ud, un, pw,i,ss) {
 	 this.password=pw;
 	 this.uid=i;
 	 this.showSearch=ss;
+	 this.retryingGPS=false;
+	 this.query=q;
+	 this.dosearch=false;
 	 
 	 _globals.userData=ud;
 	 _globals.username=un;
@@ -77,6 +80,8 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 	Mojo.Event.listen(this.controller.get('add_venue_button'),Mojo.Event.tap, this.addNewVenue.bind(this));
 	Mojo.Event.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bind(this));
+	Mojo.Event.listen(this.controller.get('refresh-venues'),Mojo.Event.tap, this.refreshVenues.bind(this));
+    this.controller.document.addEventListener("keyup", this.keyDownHandler.bind(this), true);
 
     this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
@@ -124,14 +129,32 @@ NearbyVenuesAssistant.prototype.setup = function() {
          this.model = {
              spinning: true 
          });
+    this.controller.setupWidget("smallSpinner",
+         this.attributes = {
+             spinnerSize: 'small'
+         },
+         this.model = {
+             spinning: true 
+         });
 
 
     
     _globals.ammodel.items[0].disabled=false;
 this.controller.modelChanged(_globals.ammodel);
-
+		$("gps_banner").hide();
+		$("smallSpinner").hide();
+		//$("smallSpinner").mojo.stop();
+		$("refresh-venues").hide();
+$("debuginfo").show();
     $("message").hide();
-    	       this.onGetNearbyVenues();
+   	
+   	if(this.query!="" && this.showSearch){
+   		this.textModel.value=this.query;
+   		this.controller.modelChanged(this.textModel);
+   		this.onGetNearbyVenuesSearch();
+   	}else{
+	   	this.onGetNearbyVenues();
+	}
 
 }
 
@@ -144,11 +167,22 @@ function make_base_auth(user, pass) {
   return "Basic " + hash;
 }
 
+NearbyVenuesAssistant.prototype.keyDownHandler = function(event) {
+      if(Mojo.Char.isEnterKey(event.keyCode)) {
+         if(event.srcElement.parentElement.id=="sendField") {
+    		setTimeout(this.onGetNearbyVenuesSearch.bind(this), 10);
+         }
+      }
+}	
 
 
 NearbyVenuesAssistant.prototype.onGetNearbyVenuesSearch = function(event) {
 	_globals.nearbyVenues=undefined;
+	//if(_globals.actualVenues==undefined){_globals.actualVenues=this.resultsModel.items;}
 	this.dosearch=true;
+		//$("spinnerId").mojo.start();
+		$("spinnerId").show();
+
 	this.onGetNearbyVenues();
 }
 
@@ -156,7 +190,7 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenuesSearch = function(event) {
 
 NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 	Mojo.Log.error("trying to get location..");
-	
+	$('getting-gps-alert').hide();
 	if(_globals.nearbyVenues==undefined || _globals.reloadVenues==true) {
 		Mojo.Log.error("using new location..");
 
@@ -176,13 +210,21 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 			Mojo.Log.error("actually querying gps..");
 
 		if(!this.dosearch) {
-		//get the location
-		this.controller.serviceRequest('palm://com.palm.location', {
-			method: "getCurrentPosition",
-			parameters: {accuracy: 1, maximumAge:30, responseTime: 1},
-			onSuccess: this.gotLocation.bind(this),
-			onFailure: this.failedLocation.bind(this)
-		});
+		//get the location. set the maximum age to 0 if we're reloading the list so we dont reuse the coords
+		var ma=(_globals.reloadVenues)? 0: 30;
+		Mojo.Log.error("###ma="+ma);
+		  if(_globals.firstLoad==false){
+			$('getting-gps-alert').show();
+			this.controller.serviceRequest('palm://com.palm.location', {
+				method: "getCurrentPosition",
+				parameters: {accuracy: 1, maximumAge:0, responseTime: 1},
+				onSuccess: this.gotLocation.bind(this),
+				onFailure: this.failedLocation.bind(this)
+			});
+		  }else{
+			  _globals.firstLoad=false;
+			  this.gotLocation(_globals.gps);
+		  }
 		}else{
 			this.gotLocation(_globals.gps);
 		}
@@ -197,6 +239,18 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 
 }
 
+NearbyVenuesAssistant.prototype.refreshVenues = function(event) {
+		$("gps_banner").hide();
+		$("smallSpinner").hide();
+		$("smallSpinner").mojo.stop();
+		$("refresh-venues").hide();
+		$("spinnerId").mojo.start();
+		$("spinnerId").show();
+		$("resultListBox").style.display = 'none';
+
+		this.getVenues(this.lat, this.long,this.hacc,this.vacc,this.altitude);
+}
+
 NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 			Mojo.Log.error("gps error: " + event.errorCode);
 
@@ -204,7 +258,7 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 		//check their prefs. if the results are good enough, carry on
 		//otherwise, repoll the gps
 		Mojo.Log.error("setting="+_globals.gpsAccuracy+", actual="+event.horizAccuracy);
-  	  if(_globals.gpsAccuracy==0 || _globals.gpsAccuracy>event.horizAccuracy){
+  	 // if(_globals.gpsAccuracy==0 || _globals.gpsAccuracy>event.horizAccuracy){
 		$('getting-gps-alert').hide();
 		$('message').innerHTML = 'Found Location...';
 		Mojo.Log.error("got location");
@@ -221,23 +275,80 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 		_globals.vacc=this.vacc;
 		_globals.altitude=this.altitude;
 		_globals.gps=event;
+		
 		//$("debuginfo").innerHTML="hacc: "+this.hacc+"; vacc="+this.vacc;
-		this.getVenues(event.latitude, event.longitude,event.horizAccuracy,event.vertAccuracy,event.altitude);
-	  }else{
-	  	//handle lame results
-		$('gpsmsg').innerHTML = 'Recalculating Location...';
+		Mojo.Log.error("retrying="+this.retryingGPS);
+		$("accuracy").innerHTML="Accuracy: &plusmn;"+this.hacc+"m";
+		
+		if(!this.retryingGPS){
+			this.getVenues(event.latitude, event.longitude,event.horizAccuracy,event.vertAccuracy,event.altitude);
+		}
+	  //}else{
+	  if(_globals.gpsAccuracy!=0 && _globals.gpsAccuracy<event.horizAccuracy && !this.retryingGPS){
+	  	  	//handle lame results
+	  	$('getting-gps-alert').hide();
+//		$('gpsmsg').innerHTML = 'Recalculating Location...';
+		//$("log").innerHTML="setting up widgets";
+
+		$("gps_banner").show();
+		$("banner_text").innerHTML=" Accuracizing venues...";
+		$("smallSpinner").show();
+		//$("smallSpinner").mojo.start();
+		$("refresh-venues").hide();
+		//$("log").innerHTML="setup widgets";
+
+		this.retryingGPS=true;
+		//$("log").innerHTML="getting new accuracy...";
 		this.controller.serviceRequest('palm://com.palm.location', {
 			method: "getCurrentPosition",
-			parameters: {accuracy: 1, maximumAge:30, responseTime: 2},
-			onSuccess: this.gotLocation.bind(this),
+			parameters: {accuracy: 1, maximumAge:0, responseTime: 2},
+			onSuccess: this.gotLocationAgain.bind(this),
 			onFailure: this.failedLocation.bind(this)
 		});
+	  }else{
+	  	$('getting-gps-alert').hide();
+//		$('gpsmsg').innerHTML = 'Recalculating Location...';
+		this.retryingGPS=false;	  
 	  }
 	} else {
 		$('getting-gps-alert').hide();
 		$('message').innerHTML = "gps error: " + event.errorCode;
 		Mojo.Log.error("gps error: " + event.errorCode);
 		Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
+	}
+}
+
+NearbyVenuesAssistant.prototype.gotLocationAgain = function(event) {
+	//only do something if we got a better accuracy
+	//$("log").innerHTML="got new accuracy...";
+
+	if(event.horizAccuracy<this.hacc){
+		this.lat=event.latitude;
+		this.long=event.longitude;
+		this.hacc=event.horizAccuracy;
+		this.vacc=event.vertAccuracy;
+		this.altitude=event.altitude;
+		Mojo.Log.error("hacc="+this.hacc+", vacc="+this.vacc+", alt="+this.altitude);
+		_globals.lat=this.lat;
+		_globals.long=this.long;
+		_globals.hacc=this.hacc;
+		_globals.vacc=this.vacc;
+		_globals.altitude=this.altitude;
+		_globals.gps=event;
+		$("gps_banner").show();
+		//$("smallSpinner").mojo.stop();
+		$("smallSpinner").hide();
+		$("banner_text").innerHTML="Hey! Upped the accuracy! ";
+		$("refresh-venues").show();
+		this.retryingGPS=false;
+	}else{
+		$("gps_banner").hide();
+		$("smallSpinner").mojo.stop();
+		$("smallSpinner").hide();
+		$("refresh-venues").hide();
+			//$("log").innerHTML="gave up on gps";
+		this.retryingGPS=false;
+
 	}
 }
 
@@ -252,12 +363,14 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,va
 	Mojo.Log.error("--------lat="+latitude+", long="+longitude);
 	
 	var query = this.textModel.value;
+	this.query=query;
 	//$('message').innerHTML += "("+query+")";
 	//var query='';
 	var url = 'http://api.foursquare.com/v1/venues.json';
 	auth = _globals.auth;
 	var radius=(query!="")? 1.5: 0.5;
-	var vlimit=(query!="")? 20: 15;
+	//var vlimit=(query!="")? 20: 15;
+	var vlimit=_globals.venueCount;
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
@@ -286,70 +399,37 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		var venueList = [];
 
-		/*if (response.responseJSON.venues.group != undefined) { //If there is only 1 result it falls into this structure
-			$('message').innerHTML = response.responseJSON.venues.group;
-			venueList = [response.responseJSON.venues.group.venue];
-		} else { //Otherwise multiple results are stuffed into an array of arrays, so I go 
-				 //through each array of arrays and just build 1 giant array of results to provide to the list component
-			
-			for(var i = 0; i < response.responseJSON.venues.length; i++) {
-				for(var j = 0; j < response.responseJSON.venues[i].length; j++) {
-						venueList.push(response.responseJSON.venues[i][j]);
-				}
-			}
-				
-		}*/
-		
-		/*if(response.responseJSON.venues[0] != undefined) {
-			$('message').innerHTML='venues[0] is not undefined';
-			if(response.responseJSON.venues[0].length > 0) {
-				for (var i = 0; i < response.responseJSON.venues[0].length; i++) {
-					venueList[i] = response.responseJSON.venues[0][i];
-					venueList[i].grouping = "Nearby Favorites";
-				}
-			}else{
-				venueList[0]=response.responseJSON.venues[0].venue;
-				venueList[0].grouping="Nearby Favorites";
-			}
-		}else if(response.responseJSON.venues.group != undefined){
-			$('message').innerHTML='group is not undefined';
-			Mojo.Log.error(response.responseText);
-			if(response.responseJSON.venues.group.length>1) {
-				for (var i = 0; i < response.responseJSON.venues.group.length; i++) {
-					venueList[i] = response.responseJSON.venues.group[i];
-					venueList[i].grouping = "Nearby";
-				}
-			}else{
-				venueList[0] = response.responseJSON.venues.group.venue;
-				venueList[0].grouping="Nearby";
-			}
-		}
-		
-		if(response.responseJSON.venues.group == undefined) {
-			for (var i = venueList.length; i < response.responseJSON.venues[1].length; i++) {
-				venueList[i] = response.responseJSON.venues[1][i];
-				venueList[i].grouping = "Nearby";
-			}
-		}*/
 		
 		if(response.responseJSON.groups[0] != undefined) { //actually got some venues
+			Mojo.Log.error("groups="+response.responseJSON.groups.length);
+			this.setvenues=true;
 			for(var g=0;g<response.responseJSON.groups.length;g++) {
 				Mojo.Log.error("##########in the loop");
 				var varray=response.responseJSON.groups[g].venues;
-				Mojo.Log.error("#######got venues");
+				Mojo.Log.error("#######got venues="+varray.length);
 				var grouping=response.responseJSON.groups[g].type;
 				Mojo.Log.error("########grouping="+grouping);
 				for(var v=0;v<varray.length;v++) {
 					venueList.push(varray[v]);
 					var dist=venueList[venueList.length-1].distance;
-					var amile=0.000621371192;
-					dist=roundNumber(dist*amile,1);
-					var unit="";
-					if(dist==1){unit="mile";}else{unit="miles";}
+					
+					if(_globals.units=="si") {					
+						var amile=0.000621371192;
+						dist=roundNumber(dist*amile,1);
+						var unit="";
+						if(dist==1){unit="mile";}else{unit="miles";}
+					}else{
+						dist=roundNumber(dist/1000,1);
+						var unit="";
+						if(dist==1){unit="KM";}else{unit="KM";}						
+					}
 					
 					venueList[venueList.length-1].distance=dist;
 					venueList[venueList.length-1].unit=unit;
 					venueList[venueList.length-1].grouping=grouping;
+					if(grouping.indexOf("Matching")>-1) {  //searching
+						this.setvenues=false;
+					}
 				}
 			}
 		}
@@ -359,6 +439,11 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 
 		
 		//now set the result list to the list's model
+		Mojo.Log.error("search="+this.setvenues);
+		if(this.setvenues==true || this.setvenues==undefined){
+			_globals.actualVenues=venueList;
+			this.setvenues=false;
+		}
 		_globals.nearbyVenues=venueList;
 		this.resultsModel.items =venueList;// $A(venueList);
 		this.controller.modelChanged(this.resultsModel);
@@ -375,7 +460,10 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestFailed = function(response) {
 	$('message').innerHTML = 'Failed to get Venues';
 }
 
+NearbyVenuesAssistant.prototype.performSearch = function(query) {
 
+
+}
 NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
 	
 	/*this.controller.showAlertDialog({
@@ -391,7 +479,7 @@ NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
 	});
 	*/
 	
-	this.controller.stageController.swapScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid);
+	this.controller.stageController.swapScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid,false,this);
 }
 
 NearbyVenuesAssistant.prototype.checkIn = function(id, n) {
@@ -500,8 +588,18 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 						$("sendField").mojo.blur();
 					}
                 	break;
+                case "nearby-venues":
+                	Mojo.Log.error("cache len="+_globals.actualVenues.length);
+                	this.resultsModel.items=_globals.actualVenues;
+                	Mojo.Log.error("items len="+this.resultsModel.items.length);
+                	this.controller.modelChanged(this.resultsModel);
+					$("results-venue-list").mojo.noticeUpdatedItems(0, _globals.actualVenues);
+			  		$("results-venue-list").mojo.setCount(_globals.actualVenues.length);
+                	this.dosearch=false;
+	                $("drawerId").mojo.setOpenState(false);
+                	break;
 				case "venue-map":
-					this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this);
+					this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this,this.query);
 					break;
 				case "do-Venues":
                 //	var thisauth=auth;
@@ -564,16 +662,20 @@ Mojo.Log.error("###filter="+filterString+", offset="+offset+", limit="+limit+", 
 	if(filterString=="") {
 		matches=_globals.nearbyVenues;
 	}else{
+	  if(_globals.nearbyVenues!=undefined) {
 		for(var m=0;m<_globals.nearbyVenues.length;m++) {
 			var vname=_globals.nearbyVenues[m].name;
 	  		if(vname.toLowerCase().indexOf(filterString.toLowerCase())>-1) {
-	  			Mojo.Log.error("##This is one:"+_globals.nearbyVenues[m].name);
+	  			//Mojo.Log.error("##This is one:"+_globals.nearbyVenues[m].name);
 	  			matches.push(_globals.nearbyVenues[m]);
 	  		}
 		}
+	  }
 	}
-	widget.mojo.noticeUpdatedItems(offset, matches);
-  	widget.mojo.setLength(matches.length);
+	if(matches!=undefined){
+		widget.mojo.noticeUpdatedItems(offset, matches);
+  		widget.mojo.setCount(matches.length);
+  	}
 	
 }
 

@@ -17,6 +17,10 @@ function MainAssistant(expressLogin,credentials,fp) {
 		   }
 	   }
 	   
+	   this.gotGPS=false;
+	   this.loggedIn=false;
+	   _globals.firstLoad=false;
+	   
 }
 
 MainAssistant.prototype.setup = function() {
@@ -76,7 +80,7 @@ MainAssistant.prototype.login = function(uname, pass){
 	
 	$('signupbutton').hide();
 	
-	$('message').innerHTML = '<br/>Logging <b>'+uname+'</b> in to Foursquare...';
+	$('message').innerHTML = '<br/>Logging <b>'+uname+'</b> in to Foursquare... <div class="small-text">Getting location...</div>';
 	
 	var request = new Ajax.Request(url, {
 	   method: 'get',
@@ -117,6 +121,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 		cityid: cityid,
 		city: city
 	});
+	this.loggedIn=true;
 	if(this.fromPrefs){
 		_globals.reloadVenues=true;
 		_globals.reloadFriends=true;
@@ -125,7 +130,13 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 		this.controller.stageController.popScene('preferences');
 		this.controller.stageController.popScene('main');
 	}else{
-		setTimeout(this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid),3000);
+		if(this.gotGPS){
+			_globals.firstLoad=true;
+			this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
+		}else{
+			$('message').innerHTML+='<div class="small-text">Getting location...</div>';
+		}
+	
 	}
 }
 
@@ -152,6 +163,43 @@ MainAssistant.prototype.keyDownHandler = function(event) {
 MainAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
+//sneakily grab coords in the background...
+   	if(!this.fromPrefs) {
+   		this.controller.serviceRequest('palm://com.palm.location', {
+			method: "getCurrentPosition",
+			parameters: {accuracy: 1, maximumAge:0, responseTime: 1},
+			onSuccess: this.gotLocation.bind(this),
+			onFailure: this.failedLocation.bind(this)
+		});
+	}
+}
+
+MainAssistant.prototype.gotLocation = function(event) {
+		this.lat=event.latitude;
+		this.long=event.longitude;
+		this.hacc=event.horizAccuracy;
+		this.vacc=event.vertAccuracy;
+		this.altitude=event.altitude;
+		Mojo.Log.error("from main: hacc="+this.hacc+", vacc="+this.vacc+", alt="+this.altitude);
+		_globals.lat=this.lat;
+		_globals.long=this.long;
+		_globals.hacc=this.hacc;
+		_globals.vacc=this.vacc;
+		_globals.altitude=this.altitude;
+		_globals.gps=event;
+		this.gotGPS=true;
+		if(this.loggedIn){
+			_globals.firstLoad=true;
+			this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,_globals.uid);
+		}
+
+}
+
+MainAssistant.prototype.failedLocation = function(event) {
+	$('message').innerHTML = 'failed to get location: ' + event.errorCode;
+	Mojo.Log.error('failed to get location: ' + event.errorCode);
+	Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
+
 }
 
 

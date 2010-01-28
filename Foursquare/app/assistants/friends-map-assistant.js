@@ -140,7 +140,7 @@ FriendsMapAssistant.prototype.initMap = function(event) {
         function(clickable) {
             this.controller.stageController.pushScene("StopInfo", clickable.oba_stop);
         }.bind(this));*/
-        var the_center=new GLatLng(this.lat, this.long);
+        var the_center=new GLatLng(_globals.lat, _globals.long);
 		this.map.setCenter(the_center, 15);
 		var yahIcon = new GIcon();
 		yahIcon.image = "http://google-maps-icons.googlecode.com/files/leftthendown.png";
@@ -185,7 +185,7 @@ FriendsMapAssistant.prototype.initMap = function(event) {
 
 
 		for(var v=0;v<this.friends.length;v++) {
-		  if(this.friends[v].geolat!=0 || this.friends[v].geolat!=undefined) { //don't show friends that haven't done anything
+		  if(this.friends[v].geolat!=0 && this.friends[v].geolat!=undefined) { //don't show friends that haven't done anything
 			friendsfaces[f] = new GIcon();
 			friendsfaces[f].image = this.friends[v].photo;
 			friendsfaces[f].shadow = "images/map-marker-bg.png";

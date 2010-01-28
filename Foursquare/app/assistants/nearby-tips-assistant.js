@@ -65,7 +65,7 @@ NearbyTipsAssistant.prototype.getTips = function() {
 		   method: 'get',
 		   evalJSON: 'force',
 		   requestHeaders: {Authorization: _globals.auth}, //Not doing a search with auth due to malformed JSON results from it
-		   parameters: {geolat: _globals.lat,geolong: _globals.long},
+		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
 		   onSuccess: this.getTipsSuccess.bind(this),
 		   onFailure: this.getTipsFailed.bind(this)
 		 });
@@ -176,10 +176,16 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 			Mojo.Log.error("****in tips loop");
 					this.tipsList.push(tarray[t]);
 					var dist=this.tipsList[this.tipsList.length-1].distance;
-					var amile=0.000621371192;
-					dist=roundNumber(dist*amile,1);
-					var unit="";
-					if(dist==1){unit="mile";}else{unit="miles";}
+					if(_globals.units=="si") {					
+						var amile=0.000621371192;
+						dist=roundNumber(dist*amile,1);
+						var unit="";
+						if(dist==1){unit="mile";}else{unit="miles";}
+					}else{
+						dist=roundNumber(dist/1000,1);
+						var unit="";
+						if(dist==1){unit="KM";}else{unit="KM";}						
+					}
 					this.tipsList[this.tipsList.length-1].distance=dist;
 					this.tipsList[this.tipsList.length-1].unit=unit;
 					this.tipsList[this.tipsList.length-1].grouping=grouping;

@@ -24,7 +24,14 @@
 			  </tr>
 			</table>
 			<div id="mapDrawer" x-mojo-element="Drawer">
-				<img id="venueMap" src="" width="320" height="175" />
+				<!--<a href="" id="venuemaplink"><img id="venueMap" src="" border="0" width="320" height="175" /></a>-->
+				<img id="venueMap" src="" border="0" width="320" height="175" />
+			</div>
+			<div id="meta-buttons">
+				<img id="flickr-button" src="images/flickr.png" width="42" border="0"/>
+				<img id="banks-button" src="images/banks.png" width="42" border="0" style="margin-left: 3px;"/>
+				<img id="parking-button" src="images/parking.png" width="42" border="0" style="margin-left: 3px;"/>
+				<span id="yelpbutton"></span>
 			</div>
 		</div>
 		<div id="snapMayor">
@@ -44,13 +51,29 @@
 				<div id="mayorAvatar">
 					<img id="mayorPic" class="friend-avatar" width="75" height="75" data="" alt="Mayor!" src="" />
 					<img id="mayorPicBorder" src="images/roundedCorner.png" class="userLink" data="" alt="" />
-					<img id="mayorCrown" src="images/crown.png" />
+					<img id="mayorCrown" src="images/crown_50x50.png" />
 				</div>
 				<div id="mayorInfoBlock">
 					<div id="mayorName" class="title userLink" alt=""></div>
 					<div id="mayorInfo" class="palm-info-text"></div><br class="breaker"/>
 				</div>
 			</div>
+			</div>
+		</div>
+		<div id="snapSpecials" class="breaker">
+			<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="specialsDivider">
+			  <tr>
+			    <td class="left"></td>
+			    <td class="label">
+			      Specials
+			    </td>
+			    <td class="line" width="100%" id="specialsLine"></td>
+			    <td><div class="palm-arrow-expanded arrow_button" id="specialsArrow"></div></td>
+			    <td class="right"></td>
+			  </tr>
+			</table>
+			<div id="venueSpecialsContainer"  x-mojo-element="Drawer">
+				<div id="venueSpecials"></div>
 			</div>
 		</div>
 		<div id="snapUsers" class="breaker">
@@ -123,7 +146,20 @@
 	
 	
 </div>
-<div class="palm-scrim" id="venueScrim"></div>
-<div x-mojo-element="Spinner" id="venueSpinner" class="spinnerClass" name="spinnerName">
+<div id="meta-overlay">
+	<div class="overlay-title">
+		<div style="float:left;font-weight:bold;width:79%;" id="overlay-title"></div>
+		<div style="float:right;width:20%;" id="overlay-closer"></div>
+		<br class="breaker"/>
+		<div x-mojo-element="Scroller" id="overlayScroller" class="scrollerClass" name="scrollerName">
+			<div>
+				<div x-mojo-element="Spinner" id="overlaySpinner" class="spinnerClass" name="spinnerName"></div>
+				<div id="overlay-content"></div>
+				<div id="results-meta-list" x-mojo-element="List" ></div>
+			</div>
+		</div>
+	</div>
 </div>
+<div class="palm-scrim" id="venueScrim"></div>
+<div x-mojo-element="Spinner" id="venueSpinner" class="spinnerClass" name="spinnerName"></div>
 <div class="fade-bottom"></div>

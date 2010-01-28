@@ -66,16 +66,22 @@ function make_base_auth(user, pass) {
 }
 
 UserInfoAssistant.prototype.getUserInfo = function() {
-	var url = 'http://api.foursquare.com/v1/user.json';
-	auth=_globals.auth;
-	var request = new Ajax.Request(url, {
-	   method: 'get',
-	   evalJSON: 'force',
-	   requestHeaders: {Authorization:auth}, //Not doing a search with auth due to malformed JSON results from it
-	   parameters: {uid:this.uid,badges: '1', mayor: '1'},
-	   onSuccess: this.getUserInfoSuccess.bind(this),
-	   onFailure: this.getUserInfoFailed.bind(this)
-	 });
+	//check if we have chached userinfo first
+	//if(_globals.userCache[this.uid]!=undefined){
+	//	this.getUserInfoSuccess(_globals.userCache[this.uid]);
+	//}else{
+	
+		var url = 'http://api.foursquare.com/v1/user.json';
+		auth=_globals.auth;
+		var request = new Ajax.Request(url, {
+	   		method: 'get',
+	   		evalJSON: 'force',
+	   		requestHeaders: {Authorization:auth}, //Not doing a search with auth due to malformed JSON results from it
+	   		parameters: {uid:this.uid,badges: '1', mayor: '1'},
+	   		onSuccess: this.getUserInfoSuccess.bind(this),
+	   		onFailure: this.getUserInfoFailed.bind(this)
+	 	});
+	 //}
 }
 
 UserInfoAssistant.prototype.relativeTime = function(offset){
@@ -117,17 +123,16 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 
 	switch (friendstatus) {
 		case "friend":
-			var fs='<img src="images/friend.png" width="100" height="35" id="isfriend" alt="Friend" />';
 			var fs="You're friends!"
 			break;
 		case "pendingthem":
-			var fs='<img src="images/pending.png" width="100" height="35" id="pendingfriend" alt="Pending" />';
+			var fs='<img src="images/pending.png" width="108" height="42" id="pendingfriend" alt="Pending" />';
 			break;
 		case "pendingyou":
-			var fs='<img src="images/approve.png" width="100" height="35" id="approvefriend" alt="Approve" /> <img src="images/deny.png" width="100" height="35" id="denyfriend" alt="Deny" />';		
+			var fs='<img src="images/approve.png" width="108" height="42" id="approvefriend" alt="Approve" /> <img src="images/deny.png" width="108" height="42" id="denyfriend" alt="Deny" />';		
 			break;
 		default:
-			var fs='<img src="images/addfriend.png" width="100" height="35" id="addfriend" alt="Add Friend" />';					
+			var fs='<img src="images/addfriend.png" width="108" height="42" id="addfriend" alt="Add Friend" />';					
 			break;
 	}
 	}else{
@@ -167,6 +172,7 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 			$("mayor-box").innerHTML+='<div class="palm-row single"><div class="checkin-score truncating-text"><span>'+j.user.mayor[m].name+'</span></div></div>';
 		}*/
 		Mojo.Log.error("###got mayorships");
+		$("mayor-title").innerHTML=j.user.mayor.length+" Mayorships";
 
 		this.mayorshipModel.items=j.user.mayor;
 		this.controller.modelChanged(this.mayorshipModel);

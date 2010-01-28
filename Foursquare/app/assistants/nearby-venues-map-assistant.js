@@ -1,4 +1,4 @@
-function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps) {
+function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps,q) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -10,6 +10,7 @@ function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps) {
 	   this.password=p;
 	   this.uid=uid;
 	   this.prevScene=ps;
+	   this.query=q;
 }
 
 NearbyVenuesMapAssistant.prototype.setup = function() {
@@ -166,11 +167,11 @@ NearbyVenuesMapAssistant.prototype.initMap = function(event) {
 		//set up venue markers
 		// Create our "cafe" marker icon
 		var cafeIcon = new GIcon();
-		cafeIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=+|62195D";
+		cafeIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=+|56739e";
 		cafeIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
 		cafeIcon.iconSize = new GSize(30, 38);
 		cafeIcon.shadowSize = new GSize(40, 38);
-		cafeIcon.iconAnchor = new GPoint(30, 38);
+		cafeIcon.iconAnchor = new GPoint(40, 42);
 		cafeIcon.infoWindowAnchor = new GPoint(5, 1);
 		/*var cafeIcon = new GIcon();
 		cafeIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_icon&chld=cafe|62195D";
@@ -380,7 +381,8 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
 				case "nearby-venues":
 //					this.controller.stageController.popScene("nearby-venues-map");
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
+                	
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,false,this.query);
 					break;
 				case "venue-map":
 					//this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items);
