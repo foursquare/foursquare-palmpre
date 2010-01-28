@@ -1,6 +1,6 @@
 {
 	"id": "com.foursquare.foursquare",
-	"version": "0.8.5",
+	"version": "0.8.51",
 	"vendor": "foursquare",
 	"type": "web",
 	"main": "index.html",

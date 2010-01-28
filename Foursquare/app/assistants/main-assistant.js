@@ -98,16 +98,17 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 	userData = response.responseJSON.user;
 	var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
 	$('message').innerHTML = '<br/>' + disp;
+	Mojo.Log.error(response.responseText);
 	var uid=response.responseJSON.user.id;
 	var savetw=response.responseJSON.user.settings.sendtotwitter;
 	var savefb=response.responseJSON.user.settings.sendtofacebook;
  	var ping=response.responseJSON.user.settings.pings;
-	var cityid=response.responseJSON.user.city.id;
-	var city=response.responseJSON.user.city.name;
+	//var cityid=response.responseJSON.user.city.id;
+	//var city=response.responseJSON.user.city.name;
 	_globals.uid=uid;
 	_globals.username=this.username;
 	_globals.password=this.password;
-	_globals.city=city;
+	_globals.city="";//city;
 
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	this.cookieData.put({
@@ -118,8 +119,8 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 		savetotwitter: savetw,
 		savetofacebook: savefb,
 		ping: ping,
-		cityid: cityid,
-		city: city
+		cityid: 0,
+		city: ""
 	});
 	this.loggedIn=true;
 	if(this.fromPrefs){
@@ -130,6 +131,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 		this.controller.stageController.popScene('preferences');
 		this.controller.stageController.popScene('main');
 	}else{
+		Mojo.Log.error("##donelogin: gotgps="+this.gotGPS+", loggedin="+this.loggedIn);
 		if(this.gotGPS){
 			_globals.firstLoad=true;
 			this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
@@ -188,6 +190,7 @@ MainAssistant.prototype.gotLocation = function(event) {
 		_globals.altitude=this.altitude;
 		_globals.gps=event;
 		this.gotGPS=true;
+				Mojo.Log.error("##donegps: gotgps="+this.gotGPS+", loggedin="+this.loggedIn);
 		if(this.loggedIn){
 			_globals.firstLoad=true;
 			this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,_globals.uid);
