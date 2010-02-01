@@ -180,8 +180,8 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenuesSearch = function(event) {
 	_globals.nearbyVenues=undefined;
 	//if(_globals.actualVenues==undefined){_globals.actualVenues=this.resultsModel.items;}
 	this.dosearch=true;
-		//$("spinnerId").mojo.start();
 		$("spinnerId").show();
+		$("spinnerId").mojo.start();
 
 	this.onGetNearbyVenues();
 }
@@ -647,6 +647,9 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
 					_globals.reloadVenues=true;
 					
 					this.controller.stageController.swapScene('nearby-venues',auth,userData,_globals.username,_globals.password,_globals.uid)
+                	break;
+                case "do-Update":
+                	_globals.checkUpdate(this);
                 	break;
                 case "do-Nothing":
                 	break;

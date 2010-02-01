@@ -560,6 +560,9 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
                 	_globals.friendList=undefined;
 					this.getFriends();
                 	break;
+                case "do-Update":
+                	_globals.checkUpdate(this);
+                	break;
       			case "do-Nothing":
       				break;
             }

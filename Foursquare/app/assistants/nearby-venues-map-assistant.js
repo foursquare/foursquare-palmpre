@@ -413,6 +413,9 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
                 case "do-Prefs":
 					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
                 	break;
+                case "do-Update":
+                	_globals.checkUpdate(this);
+                	break;
                 case "do-Shout":
                 //	var checkinDialog = this.controller.showDialog({
 				//		template: 'listtemplates/do-shout',

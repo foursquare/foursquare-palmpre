@@ -103,6 +103,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 	var savetw=response.responseJSON.user.settings.sendtotwitter;
 	var savefb=response.responseJSON.user.settings.sendtofacebook;
  	var ping=response.responseJSON.user.settings.pings;
+ 	Mojo.Log.error("ping="+ping);
 	//var cityid=response.responseJSON.user.city.id;
 	//var city=response.responseJSON.user.city.name;
 	_globals.uid=uid;

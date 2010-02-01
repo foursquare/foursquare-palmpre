@@ -251,6 +251,9 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
                 	_globals.tipsList=undefined;
 					this.getTips();
                 	break;
+                case "do-Update":
+                	_globals.checkUpdate(this);
+                	break;
       			case "do-Nothing":
       				break;
 

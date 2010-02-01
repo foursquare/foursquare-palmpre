@@ -434,6 +434,9 @@ UserInfoAssistant.prototype.handleCommand = function(event) {
 					$("userSpinner").show();
 					this.getUserInfo();
                 	break;
+                case "do-Update":
+                	_globals.checkUpdate(this);
+                	break;
       			case "do-Nothing":
       				break;
             }

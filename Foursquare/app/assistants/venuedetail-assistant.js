@@ -490,6 +490,7 @@ VenuedetailAssistant.prototype.promptCheckin = function(event) {
 VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 	Mojo.Log.error("###check in please??");
 	if (_globals.auth) {
+	Mojo.Log.error("ping="+sf);
 		var url = 'http://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
@@ -706,7 +707,7 @@ $("overlaySpinner").mojo.stop();
 $("overlaySpinner").hide();
 
 	$("overlay-content").innerHTML='No Flickr images found for this venue.';
-	$("overlay-title").innerHTML="Flickr";
+	$("overlay-title").innerHTML="Flickr "+this.flickrUpload;
 }
 
 VenuedetailAssistant.prototype.flickrSuccess = function(response) {
@@ -952,6 +953,9 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
 					$("venueSpinner").show();
                 	//_globals.friendList=undefined;
 					this.getVenueInfo();
+                	break;
+                case "do-Update":
+                	_globals.checkUpdate(this);
                 	break;
       			case "do-Nothing":
       				break;

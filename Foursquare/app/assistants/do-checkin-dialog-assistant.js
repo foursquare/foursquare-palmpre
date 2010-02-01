@@ -29,15 +29,16 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
   	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 	var pings=(credentials.ping=="on")? '0': '1';
+	Mojo.Log.error("pings="+pings);
 	var stt=(credentials.savetotwitter==true)? '1': '0';
 	var stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
   
   
       this.sceneAssistant.controller.setupWidget("chkShowFriends",
          this.sfattributes = {
-             trueValue: '1',
+             trueValue: '0',
              trueLabel: 'Yes',
-             falseValue: '0',
+             falseValue: '1',
              falseLabel: 'No'
          },
          this.sfmodel = {

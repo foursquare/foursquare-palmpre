@@ -196,6 +196,9 @@ LeaderboardAssistant.prototype.handleCommand = function(event) {
                 	break;
                 case "do-Nothing":
                 	break;
+                case "do-Update":
+                	_globals.checkUpdate(this);
+                	break;
                 case "lb-all":
                 	$("leaderboard").innerHTML=this.cityBoard;
                 	$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
