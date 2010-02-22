@@ -20,12 +20,12 @@ NearbyTipsAssistant.prototype.setup = function() {
 
 
         
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'no-fade'
         },
-      _globals.cmmodel);
+      _globals.cmmodel);*/
 	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);

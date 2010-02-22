@@ -114,6 +114,8 @@ Mojo.Log.error("setup textbxes");
 
 Mojo.Log.error("setuplist");
 //	this.init();
+
+zBar.hideToolbar();
 }
 
 AddVenueAssistant.prototype.activate = function() {
@@ -348,4 +350,8 @@ AddVenueAssistant.prototype.venueFailed = function(response) {
 }
 AddVenueAssistant.prototype.cancelTapped = function() {
 	this.controller.stageController.popScene("add-venue");
+}
+
+AddVenueAssistant.prototype.cleanup = function(event) {
+	zBar.showToolbar();
 }

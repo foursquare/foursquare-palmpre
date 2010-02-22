@@ -28,12 +28,12 @@ UserInfoAssistant.prototype.setup = function() {
        _globals.amattributes,
        _globals.ammodel);
          
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+   /* this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'blue-command-nope'
         },
-    _globals.cmmodel);
+    _globals.cmmodel);*/
 
 		this.mayorshipModel = {items: [], listTitle: $L('Results')};
 	   
@@ -221,6 +221,7 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 }
 
 UserInfoAssistant.prototype.getUserInfoFailed = function(response) {
+	Mojo.Log.error(response.responseText);
 	Mojo.Controller.getAppController().showBanner("Error getting the user's info.", {source: 'notification'});
 
 }

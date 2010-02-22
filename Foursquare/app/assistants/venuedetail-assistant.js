@@ -28,7 +28,7 @@ VenuedetailAssistant.prototype.setup = function() {
 	
 	
 	
-	
+	zBar.render("venue","");
 	
 	
 	
@@ -172,11 +172,11 @@ VenuedetailAssistant.prototype.setup = function() {
 	Mojo.Event.listen($("buttonAddTodo"),Mojo.Event.tap, this.handleAddTodo.bind(this));
 	Mojo.Event.listen($("buttonMarkClosed"),Mojo.Event.tap, this.handleMarkClosed.bind(this));
 	Mojo.Event.listen($("buttonProposeEdit"),Mojo.Event.tap, this.handleProposeEdit.bind(this));
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'blue-command-nope'
-        },
+        },*/
         /*this.cmmodel = {
           visible: true,
           items: [{
@@ -190,7 +190,7 @@ VenuedetailAssistant.prototype.setup = function() {
                  ],
             toggleCmd: "do-Nothing"
             }]
-    }*/_globals.cmmodel);
+    }*//*_globals.cmmodel);*/
 
 	Mojo.Event.listen($("mayorDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 	Mojo.Event.listen($("tipsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
@@ -272,13 +272,17 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	//mayorial stuff
 	if(response.responseJSON.venue.stats.mayor != undefined) { //venue has a mayor
 		$("snapMayor").show();
+		var lname=(response.responseJSON.venue.stats.mayor.user.lastname != undefined)? response.responseJSON.venue.stats.mayor.user.lastname: '';
+
 		$("mayorPic").src=response.responseJSON.venue.stats.mayor.user.photo;
 		$("mayorPic").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
+		$("mayorPic").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
 		$("mayorPicBorder").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
+		$("mayorPicBorder").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
 		
-		var lname=(response.responseJSON.venue.stats.mayor.user.lastname != undefined)? response.responseJSON.venue.stats.mayor.user.lastname: '';
 		$("mayorName").innerHTML=response.responseJSON.venue.stats.mayor.user.firstname+" "+lname;
 		$("mayorName").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
+		$("mayorName").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
 		var mInfo;
 		switch(response.responseJSON.venue.stats.mayor.user.gender) {
 			case "male":
@@ -344,7 +348,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			var photo=response.responseJSON.venue.tips[t].user.photo;
 			var uid=response.responseJSON.venue.tips[t].user.id;
 
-			tips+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink" data="'+uid+'"/> <span class="venueTipUser userLink" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+tip+'</span><br class="breaker"/><div class="tip-buttons"><span class="vtip tipsave" id="tip-save-'+t+'" data="'+tipid+'">Save Tip</span> <span class="vtip-black tipdone" id="tip-done-'+t+'" data="'+tipid+'">I\'ve Done This</span></div></div>'+"\n";
+			tips+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink" user="'+username+'" data="'+uid+'"/> <span class="venueTipUser userLink" user="'+username+'" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+tip+'</span><br class="breaker"/><div class="tip-buttons"><span class="vtip tipsave" id="tip-save-'+t+'" data="'+tipid+'">Save Tip</span> <span class="vtip-black tipdone" id="tip-done-'+t+'" data="'+tipid+'">I\'ve Done This</span></div></div>'+"\n";
 		}
 		$("venueTips").update(tips);
 	}
@@ -362,7 +366,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			var photo=response.responseJSON.venue.checkins[t].user.photo;
 			var uid=response.responseJSON.venue.checkins[t].user.id;
 
-			users+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink" data="'+uid+'"/>&nbsp; <span class="venueTipUser userLink" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+shout+'</span></div>'+"\n";
+			users+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink"  user="'+username+'" data="'+uid+'"/>&nbsp; <span class="venueTipUser userLink" data="'+uid+'" user="'+username+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+shout+'</span></div>'+"\n";
 		}
 		$("venueUsers").update(users);
 	}else{
@@ -708,6 +712,7 @@ $("overlaySpinner").hide();
 
 	$("overlay-content").innerHTML='No Flickr images found for this venue.';
 	$("overlay-title").innerHTML="Flickr "+this.flickrUpload;
+	Mojo.Event.listen(this.controller.get("flickrUploader"),Mojo.Event.tap, this.tryflickrUpload.bind(this));
 }
 
 VenuedetailAssistant.prototype.flickrSuccess = function(response) {
@@ -895,16 +900,230 @@ VenuedetailAssistant.prototype.handleProposeEdit=function(event) {
 VenuedetailAssistant.prototype.showUserInfo = function(event) {
 	Mojo.Log.error("############user info! the uid="+event.target.readAttribute("data")+",target="+event.target.id);
 	var thisauth=auth;
-	this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,event.target.readAttribute("data"));
+	//this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,event.target.readAttribute("data"));
+	var uid=event.target.readAttribute("data");
+	var uname=event.target.readAttribute("user");
+	
+
+	Mojo.Log.error("##getting userinfo");
+	$("meta-overlay").show();
+	$("overlaySpinner").mojo.start();
+	$("overlaySpinner").show();
+	$("overlay-content").innerHTML="";
+	$("overlay-title").innerHTML=uname;
+
+		//var url = 'http://api.flickr.com/services/feeds/photos_public.gne?&tagmode=any&format=json&jsoncallback=?&tags=foursquare:venue='+this.venue.id;
+		var url='http://api.foursquare.com/v1/user.json';
+		Mojo.Log.error("url="+url);
+		var request = new Ajax.Request(url, {
+			method: 'get',
+			evalJSON: 'true',
+	   		requestHeaders: {Authorization:_globals.auth}, 
+	   		parameters: {uid: uid,badges: '1', mayor: '1'},
+			onSuccess: this.userSuccess.bind(this),
+			onFailure: this.userFailed.bind(this)
+		});
 
 }
+VenuedetailAssistant.prototype.userSuccess = function(response) {
+	Mojo.Log.error("userinfo="+response.responseText);
+	$("meta-overlay").show();
+	$("overlaySpinner").mojo.stop();
+	$("overlaySpinner").hide();
 
+	var j=response.responseJSON;
+	//user info
+	var pic='<img src="'+j.user.photo+'" width="75" height="75" class="friend-avatar blocky" />';
+	var lname=(j.user.lastname != undefined)? j.user.lastname: "";
+	var tw=(j.user.twitter != undefined)? '<span class="linefix"><img src="images/bird-light.png" width="16" height="16" /> <a class="vtag" href="http://twitter.com/'+j.user.twitter+'">'+j.user.twitter+'</a></span><br/>': "";
+	var fb=(j.user.facebook != undefined)? '<span class="linefix"><img src="images/facebook.png" width="16" height="16" /> <a class="vtag" href="http://facebook.com/profile.php?id='+j.user.facebook+'">Facebook Profile</a></span><br/>': "";
+	var ph=(j.user.phone != undefined)? '<span class="linefix"><img src="images/phone-light.png" width="16" height="16" /> <a class="vtag" href="tel://'+j.user.phone+'">'+j.user.phone+'</a></span><br/>': "";
+	var em=(j.user.email != undefined)? '<span class="linefix"><img src="images/mail-light.png" width="16" height="16" /> <a class="vtag" href="mailto:'+j.user.email+'">Send E-mail</a></span><br/>': "";
+	$("overlay-content").innerHTML='';
+	if(j.user.checkin != undefined) {
+		var v=(j.user.checkin.venue != undefined)? " @ "+j.user.checkin.venue.name: "";
+		var s=(j.user.checkin.shout)? j.user.checkin.shout: "";
+		$("overlay-content").innerHTML +='<div class="small-text italic">'+ s + v + '</div>';
+	}
+
+	
+	
+	this.cookieData=new Mojo.Model.Cookie("credentials");
+	var credentials=this.cookieData.get();
+	if(this.uid != j.user.id) { //only show friending options if it's not yourself
+	var friendstatus=(j.user.friendstatus != undefined)? j.user.friendstatus: "";
+
+	switch (friendstatus) {
+		case "friend":
+			var fs="You're friends!"
+			break;
+		case "pendingthem":
+			var fs='<img src="images/pending.png" width="108" height="42" data="'+j.user.id+'" id="pendingfriend" alt="Pending" />';
+			break;
+		case "pendingyou":
+			var fs='<img src="images/approve.png" width="108" height="42" data="'+j.user.id+'" id="approvefriend" alt="Approve" /> <img src="images/deny.png" width="108" height="42" id="denyfriend" data="'+j.user.id+'" alt="Deny" />';		
+			break;
+		default:
+			var fs='<img src="images/addfriend.png" width="108" height="42" data="'+j.user.id+'" id="addfriend" alt="Add Friend" />';					
+			break;
+	}
+	}else{
+		var fs="";
+	}	
+	
+	fs='<span id="friend_button">'+fs+'</span>';
+	
+	//var uname=j.user.firstname+" "+lname+"";
+	//$("userCity").innerHTML=j.user.city.name+"<br class=\"breaker\"/>";
+	if(j.user.checkin != undefined) {
+		var v=(j.user.checkin.venue != undefined)? " @ "+j.user.checkin.venue.name: "";
+		var s=(j.user.checkin.shout)? j.user.checkin.shout: "";
+		var checkin = s + v;
+	}
+	var html=pic+'<div class="uinfo">'+em+ph+tw+fb+'</div>';
+	html+='<div class="breaker">'+fs+'</div>';
+	$("overlay-content").innerHTML+=html;
+
+
+	//handling loading mayorship and badge info
+	if(j.user.badges != null) {
+		var o='';
+		o += '<table border=0 cellspacing=0 cellpadding=2 width="95%">';
+		o += '<tr><td></td><td></td><td></td></tr>';
+		var id=0
+		for(var m=0;m<j.user.badges.length;m++) {
+//			$("badges-box").innerHTML+='<div class="palm-row single"><div class="checkin-badge"><img src="'+j.user.badges[m].icon+'" width="48" height="48" style="float:left" /> <span>'+j.user.badges[m].name+'</span><br/><span class="palm-info-text" style="margin-left:0;padding-left:0">'+j.user.badges[m].description+'</span></div></div>';
+			id++;
+			
+			if(id==1) {
+				o += '<tr>';
+			}
+			o += '<td align="center" width="33%" class="medium-text"><img src="'+j.user.badges[m].icon+'" width="48" height="48"/><br/>'+j.user.badges[m].name+'</td>';
+			if(id==3) {
+				o += '</tr>';
+				id=0;
+			}
+		}
+		html=o+"</table>";
+	}else{
+		html='<div class="small-text">'+j.user.firstname+' doesn\'t have any badges yet.</div>';
+	}
+			Mojo.Log.error("got badges stuff");
+
+	$("overlay-content").innerHTML+='<br/><b>Badges</b><br/>'+html;
+
+
+
+
+
+	if(j.user.mayor != null && j.user.mayor != undefined) {
+		Mojo.Log.error("###got mayorships");
+		var s=(j.user.mayor.length==1)? "":"s";
+		var mayor_title=j.user.mayor.length+" Mayorship"+s;
+
+		var mayorships="";
+		for (var m=0;m<j.user.mayor.length;m++) {
+			mayorships+=j.user.mayor[m].name+'<br/>';
+		}
+		html='<b>'+mayor_title+'</b><br/><div class="small-text">'+mayorships+'</div>';
+	}else{
+		Mojo.Log.error("###no mayorships");
+		html='<b>'+mayor_title+'</b><br/><div class="small-text">'+j.user.firstname+' isn\'t the mayor of anything yet.</div>';
+	}
+
+	$("overlay-content").innerHTML+="<br/>"+html;
+	if(friendstatus=="pendingyou") {
+		Mojo.Event.listen($("approvefriend"),Mojo.Event.tap,this.approveFriend.bind(this));
+		Mojo.Event.listen($("denyfriend"),Mojo.Event.tap,this.denyFriend.bind(this));
+	}
+	if(friendstatus=="") {
+		Mojo.Log.error("added event to add friend "+$("addfriend").readAttribute("data"));
+		Mojo.Event.listen($("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
+	}
+	
+}
+VenuedetailAssistant.prototype.userFailed = function(event) {
+}
 VenuedetailAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
 	   
 	
 }
+
+VenuedetailAssistant.prototype.approveFriend = function(event) {
+
+	var url = 'http://api.foursquare.com/v1/friend/approve.json';
+	var request = new Ajax.Request(url, {
+	   method: 'post',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization:_globals.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   parameters: {uid:event.target.getAttribute("data")},
+	   onSuccess: this.approveSuccess.bind(this),
+	   onFailure: this.approveFailed.bind(this)
+	 });
+}
+VenuedetailAssistant.prototype.approveSuccess = function(response) {
+	if(response.responseJSON.user != undefined) {
+		Mojo.Controller.getAppController().showBanner("Friend request approved!", {source: 'notification'});
+		$("friend_button").innerHTML='You\'re Friends!';
+	}else{
+		Mojo.Controller.getAppController().showBanner("Error approving friend request", {source: 'notification'});
+	}
+}
+VenuedetailAssistant.prototype.approveFailed = function(response) {
+	Mojo.Controller.getAppController().showBanner("Error approving friend request", {source: 'notification'});
+}
+
+VenuedetailAssistant.prototype.denyFriend = function(event) {
+	var url = 'http://api.foursquare.com/v1/friend/deny.json';
+	var request = new Ajax.Request(url, {
+	   method: 'post',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization:_globals.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   parameters: {uid:event.target.getAttribute("data")},
+	   onSuccess: this.denySuccess.bind(this),
+	   onFailure: this.denyFailed.bind(this)
+	 });
+}
+VenuedetailAssistant.prototype.denySuccess = function(response) {
+	if(response.responseJSON.user != undefined) {
+		Mojo.Controller.getAppController().showBanner("Friend request denied!", {source: 'notification'});
+		$("friend_button").innerHTML='<img src="images/addfriend.png" width="100" height="35" id="addfriend" data="'+event.target.getAttribute("data")+'" alt="Add Friend" />';
+		Mojo.Event.listen($("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
+	}else{
+		Mojo.Controller.getAppController().showBanner("Error denying friend request", {source: 'notification'});
+	}
+}
+VenuedetailAssistant.prototype.denyFailed = function(response) {
+	Mojo.Controller.getAppController().showBanner("Error denying friend request", {source: 'notification'});
+}
+
+VenuedetailAssistant.prototype.addFriend = function(event) {
+Mojo.Log.error("##trying to add friend");
+	var url = 'http://api.foursquare.com/v1/friend/sendrequest.json';
+	var request = new Ajax.Request(url, {
+	   method: 'post',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization:_globals.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   parameters: {uid:event.target.getAttribute("data")},
+	   onSuccess: this.addSuccess.bind(this),
+	   onFailure: this.addFailed.bind(this)
+	 });
+}
+VenuedetailAssistant.prototype.addSuccess = function(response) {
+	if(response.responseJSON.user != undefined) {
+		Mojo.Controller.getAppController().showBanner("Friend request sent!", {source: 'notification'});
+		$("friend_button").innerHTML='<img src="images/pending.png" width="100" height="35" id="pendingfriend" alt="Pending" />';
+	}else{
+		Mojo.Controller.getAppController().showBanner("Error sending friend request", {source: 'notification'});
+	}
+}
+VenuedetailAssistant.prototype.addFailed = function(response) {
+	Mojo.Controller.getAppController().showBanner("Error sending friend request", {source: 'notification'});
+}
+
+
 VenuedetailAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
@@ -1111,4 +1330,5 @@ VenuedetailAssistant.prototype.deactivate = function(event) {
 VenuedetailAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
+	   zBar.render(zBar.oldBar,"venues");
 }

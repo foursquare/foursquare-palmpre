@@ -1,4 +1,4 @@
-function NearbyVenuesAssistant(a, ud, un, pw,i,ss,q) {
+function NearbyVenuesAssistant(a, ud, un, pw,i,ss,q,what) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -13,11 +13,23 @@ function NearbyVenuesAssistant(a, ud, un, pw,i,ss,q) {
 	 this.retryingGPS=false;
 	 this.query=q;
 	 this.dosearch=false;
+	 this.oldCaption="Nearby";
 	 
 	 _globals.userData=ud;
 	 _globals.username=un;
 	 _globals.password=pw;
 	 _globals.uid=i;
+	 
+	 
+	 switch(what) {
+	 	case "list":
+	 		this.showList=true;
+	 		break;
+	 	default:
+	 		this.showList=true;
+	 		break;
+	 }
+
 }
 
 NearbyVenuesAssistant.prototype.setup = function() {
@@ -49,7 +61,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
     
 	// Set up the attributes & model for the List widget:
 	this.controller.setupWidget('results-venue-list', 
-					      {itemTemplate:'listtemplates/venueItems',dividerFunction: this.groupVenues,dividerTemplate: 'listtemplates/dividertemplate',filterFunction: this.filterFunction.bind(this)},
+					      {itemTemplate:'listtemplates/venueItems',dividerFunction: this.groupVenues,dividerTemplate: 'listtemplates/dividertemplate',filterFunction: this.filterFunction.bind(this),swipeToDelete: true},
 					      this.resultsModel);
 
 	//Set up button handlers
@@ -73,17 +85,19 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	this.avbuttonAtt1 = {
 	}
 	
-	this.controller.setupWidget('add_venue_button',this.avbuttonAtt1,this.avbuttonModel1);
+	//this.controller.setupWidget('add_venue_button',this.avbuttonAtt1,this.avbuttonModel1);
 
 	
 	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenuesSearch.bind(this));
 	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
-	Mojo.Event.listen(this.controller.get('add_venue_button'),Mojo.Event.tap, this.addNewVenue.bind(this));
+	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listDelete, this.listHideItem.bind(this));
+	//Mojo.Event.listen(this.controller.get('add_venue_button'),Mojo.Event.tap, this.addNewVenue.bind(this));
 	Mojo.Event.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bind(this));
 	Mojo.Event.listen(this.controller.get('refresh-venues'),Mojo.Event.tap, this.refreshVenues.bind(this));
     this.controller.document.addEventListener("keyup", this.keyDownHandler.bind(this), true);
+	Mojo.Event.listen(this.controller.get('vmenu'),Mojo.Event.tap, this.showMenu.bind(this));
 
-    this.controller.setupWidget(Mojo.Menu.viewMenu,
+   /* this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
            spacerHeight: 0,
            menuClass: 'blue-view-not'
@@ -96,19 +110,20 @@ NearbyVenuesAssistant.prototype.setup = function() {
                 { label: "Venues", width: 200 ,command: 'nearby-venues'},
                 { iconPath: 'search.png', command: 'venue-search', label: "  "}]
             }]
-        });
+        });*/
 	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
 
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+  /*  this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'blue-command-not'
         },
     _globals.cmmodel
-);
+		);*/
     
+    zBar.render("main","venues");
     
     
     
@@ -426,7 +441,13 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 					
 					venueList[venueList.length-1].distance=dist;
 					venueList[venueList.length-1].unit=unit;
-					venueList[venueList.length-1].grouping=grouping;
+					if(_globals.hiddenVenues.inArray(varray[v].id)){
+				  		//hide it!
+				  		venueList[venueList.length-1].grouping="Hidden";
+					}else{
+						venueList[venueList.length-1].grouping=grouping;
+					}
+					
 					if(grouping.indexOf("Matching")>-1) {  //searching
 						this.setvenues=false;
 					}
@@ -480,6 +501,18 @@ NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
 	*/
 	
 	this.controller.stageController.swapScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid,false,this);
+}
+
+NearbyVenuesAssistant.prototype.listHideItem = function(event) {
+	var venue=event.item;
+	Mojo.Log.error("##hide venue: %s", venue.name);
+	_globals.hiddenVenues.push(venue.id);
+	this.resultsModel.items[event.index].grouping="Hidden";
+	this.controller.modelChanged(this.resultsModel);
+	
+	$("results-venue-list").mojo.noticeUpdatedItems(0, this.resultsModel.items);
+	$("results-venue-list").mojo.setCount(this.resultsModel.items.length);
+
 }
 
 NearbyVenuesAssistant.prototype.checkIn = function(id, n) {
@@ -680,6 +713,69 @@ Mojo.Log.error("###filter="+filterString+", offset="+offset+", limit="+limit+", 
   		widget.mojo.setCount(matches.length);
   	}	
 }
+
+NearbyVenuesAssistant.prototype.popupChoose = function(event) {
+	switch(event){
+	            case "venue-search":
+                	Mojo.Log.error("===========venue search clicked");
+					//get the scroller for your scene
+					var scroller = this.controller.getSceneScroller();
+					//call the widget method for scrolling to the top
+					scroller.mojo.revealTop(0);
+					$("drawerId").mojo.toggleState();
+					this.controller.modelChanged(this.drawerModel);
+					var os=$("drawerId").mojo.getOpenState();
+					if(!os) {
+		            	$("vmenu-caption").update(this.oldCaption);
+						$("sendField").mojo.blur();
+					}else{
+	            		$("vmenu-caption").update("Search");
+						$("sendField").mojo.focus();
+					}
+                	break;
+				case "venue-map":
+					this.oldCaption="Map";
+					var what=$("vmenu-caption").innerHTML;
+	            	$("vmenu-caption").update("Map");
+					this.controller.stageController.pushScene({name: "nearby-venues-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this,this.query,what);
+					break;
+                case "nearby-venues":
+					this.oldCaption="Nearby";
+					this.setBools("list");
+	            	$("vmenu-caption").update("Nearby");
+                	Mojo.Log.error("cache len="+_globals.actualVenues.length);
+                	this.resultsModel.items=_globals.actualVenues;
+                	Mojo.Log.error("items len="+this.resultsModel.items.length);
+                	this.controller.modelChanged(this.resultsModel);
+					$("results-venue-list").mojo.noticeUpdatedItems(0, _globals.actualVenues);
+			  		$("results-venue-list").mojo.setCount(_globals.actualVenues.length);
+                	this.dosearch=false;
+	                $("drawerId").mojo.setOpenState(false);
+	                break;
+				case "venue-add":
+					this.addNewVenue();
+					break;
+	}
+}
+
+NearbyVenuesAssistant.prototype.setBools = function(what) {
+	this.showList=(what=="list")? true: false;
+	this.showSearch=(what=="search")? true: false;
+}
+
+NearbyVenuesAssistant.prototype.showMenu = function(event){
+					this.controller.popupSubmenu({
+			             onChoose:this.popupChoose,
+            			 placeNear:this.controller.get('menuhere'),
+			             items: [{secondaryIconPath: 'images/radar-dark.png',label: 'Nearby', command: 'nearby-venues'},
+				           {secondaryIconPath: 'images/marker-icon.png',label: 'Map', command: 'venue-map'},
+            	           {secondaryIconPath: 'images/search-black.png',label: 'Search', command: 'venue-search'},
+                	       {secondaryIconPath: 'images/plus.png',label: 'Add Venue', command: 'venue-add'}]
+		             });
+}
+
+
+
 
 NearbyVenuesAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For

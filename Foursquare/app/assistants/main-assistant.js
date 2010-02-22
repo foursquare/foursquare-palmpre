@@ -148,7 +148,13 @@ MainAssistant.prototype.loginRequestFailed = function(response) {
 	$('main').style.background="";
 	Mojo.Log.error(response.responseText);
 	$("loginfields").style.visibility="visible";
-	$('message').innerHTML = 'Login Failed... Try Again';
+	var msg="";
+	if(response.responseJSON.ratelimited != undefined) {
+		msg="Rate-limited. Try again later.";
+	}else{
+		msg='Login Failed... Try Again';
+	}
+	$('message').innerHTML = msg;
 }
 
 		
@@ -216,3 +222,6 @@ MainAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
 }
+
+
+

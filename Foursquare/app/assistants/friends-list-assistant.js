@@ -1,4 +1,4 @@
-function FriendsListAssistant(a, ud, un, pw,i,la,lo,ps,ss) {
+function FriendsListAssistant(a, ud, un, pw,i,la,lo,ps,ss,what) {
 	 this.auth = _globals.auth;
 	 this.userData = ud;
 	 this.username=un;
@@ -7,11 +7,26 @@ function FriendsListAssistant(a, ud, un, pw,i,la,lo,ps,ss) {
 	 this.lat=la;
 	 this.long=lo;
 	 this.prevScene=ps;
+	 
+	 switch(what) {
+	 	case "feed":
+	 		this.showFeed=true;
+	 		break;
+	 	case "list":
+	 		this.showList=true;
+	 		break;
+	 	case "pending":
+	 		this.showPending=true;
+	 		break;
+	 	default:
+	 		this.showFeed=true;
+	 		break;
+	 }
 	 this.showSearch=ss;
 }
 
 FriendsListAssistant.prototype.setup = function() {
-	//Create the attributes for the textfield
+	//Create the attributes for the textfield //{popupClass: "palm-device-menu"}
 	this.textFieldAtt = {
 			hintText: 'Find some friends!',
 			textFieldName:	'name', 
@@ -75,7 +90,7 @@ FriendsListAssistant.prototype.setup = function() {
 		type : Mojo.Widget.activityButton
 	}
 	
-	this.controller.setupWidget('go_pending_button',this.buttonAttP,this.buttonModelP);
+	//this.controller.setupWidget('go_pending_button',this.buttonAttP,this.buttonModelP);
 
 
 	this.avbuttonModel1 = {
@@ -90,11 +105,12 @@ FriendsListAssistant.prototype.setup = function() {
 	
 	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onSearchFriends.bind(this));
 	Mojo.Event.listen(this.controller.get('go_twitter_button'),Mojo.Event.tap, this.onSearchTwitterFriends.bind(this));
-	Mojo.Event.listen(this.controller.get('go_pending_button'),Mojo.Event.tap, this.onPendingFriends.bind(this));
+	//Mojo.Event.listen(this.controller.get('go_pending_button'),Mojo.Event.tap, this.onPendingFriends.bind(this));
+	Mojo.Event.listen(this.controller.get('fmenu'),Mojo.Event.tap, this.showMenu.bind(this));
 	Mojo.Event.listen(this.controller.get('results-friends-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 
 
-    this.controller.setupWidget(Mojo.Menu.viewMenu,
+   /* this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
            spacerHeight: 0,
            menuClass: 'blue-view-nope'
@@ -105,19 +121,19 @@ FriendsListAssistant.prototype.setup = function() {
                 items: [
                 { iconPath: 'map.png', command: 'friend-map', label: "  "},
                 { label: "Friends", width: 200 ,command: 'friends-list'},
-                { iconPath: 'search.png', command: 'friend-search', label: "  "}]
+                { iconPath: 'palm-popup-fade-arrow-down-dark.png', command: 'friend-menu', label: "  "}]
             }]
-        });
+        });*/
 	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
         
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'blue-command-nope'
         },
-     _globals.cmmodel);
+     _globals.cmmodel);*/
     
     
         this.controller.setupWidget("drawerId",
@@ -145,7 +161,7 @@ this.controller.modelChanged(_globals.ammodel);
 
     $("message").hide();
    // this.requestList=[];
-    	       this.getFriends();
+    	       this.getFeed();
 
 }
 
@@ -176,7 +192,21 @@ FriendsListAssistant.prototype.getFriends = function() {
 		 });
 	}else{
 		Mojo.Log.error("friends exist!");
-		this.resultsModel.items=_globals.friendList;
+		if(this.showList){
+			var l=_globals.friendList;
+			$("fmenu-caption").update("List");
+		}
+		if(this.showPending){
+			var l=_globals.requestList;
+			$("fmenu-caption").update("Pending");
+			if(l==undefined){this.onPendingFriends();}
+		}
+		if(this.showFeed){
+			var l=_globals.feedList;
+			$("fmenu-caption").update("Feed");
+			if(l==undefined){this.getFeed();}
+		}
+		this.resultsModel.items=l;
 		this.controller.modelChanged(this.resultsModel);
 		this.lat=_globals.lat;
 		this.long=_globals.long;
@@ -435,7 +465,7 @@ FriendsListAssistant.prototype.searchFriendsSuccess = function(response) {
 FriendsListAssistant.prototype.requestFriendsSuccess = function(response) {
 	//var mybutton = $('go_button');
 	//mybutton.mojo.deactivate();
-
+Mojo.Log.error(response.responseText);
 	if (response.responseJSON == undefined) {
 		$('message').innerHTML = 'No Results Found';
 	}
@@ -447,14 +477,17 @@ FriendsListAssistant.prototype.requestFriendsSuccess = function(response) {
 		this.requestList = [];
 		this.looping=false;
 		
-		if(response.responseJSON.requests != undefined && response.responseJSON.requests != null) {
+		if(response.responseJSON.requests != undefined && response.responseJSON.requests != null && response.responseJSON.requests.length>0) {
 			for(var f=0;f<response.responseJSON.requests.length;f++) {
 				this.requestList.push(response.responseJSON.requests[f]);
 			}
+			_globals.requestList=this.requestList;
 			this.resultsModel.items =this.requestList; //update list with basic user info
 			this.controller.modelChanged(this.resultsModel);
+			$('resultListBox').style.display = 'block';
 		}else{
-			$("results-friends-list").innerHTML="No pending friend requests.";
+			$("search-msg").innerHTML="No pending friend requests.";
+			$('resultListBox').style.display = 'none';
 		}
 		
 		
@@ -466,7 +499,6 @@ FriendsListAssistant.prototype.requestFriendsSuccess = function(response) {
 		mybutton.mojo.deactivate();
 		$("spinnerId").mojo.stop();
 		$("spinnerId").hide();
-		$('resultListBox').style.display = 'block';
 
 	}
 		
@@ -492,7 +524,199 @@ FriendsListAssistant.prototype.listWasTapped = function(event) {
 	this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade, disableSceneScroller: false},this.auth,event.item.id);
 }
 
+FriendsListAssistant.prototype.popupChoose = function(event) {
+		var scroller = this.controller.getSceneScroller();
+					//call the widget method for scrolling to the top
+					scroller.mojo.revealTop(0);
+	switch(event){
+	            case "friend-search":
+	            	var os=$("drawerId").mojo.getOpenState();
+	            	if(os){
+		            	$("fmenu-caption").update(this.oldCaption);
+	            	}else{
+	            		$("fmenu-caption").update("Search");
+	            	}
+	            	//$("fmenu-caption").innerHTML=($("drawerId").mojo.getOpenState())? "Friends":"Search";
+					//get the scroller for your scene
+					var scroller = this.controller.getSceneScroller();
+					//call the widget method for scrolling to the top
+					scroller.mojo.revealTop(0);
+					$("drawerId").mojo.toggleState();
+					this.controller.modelChanged(this.drawerModel);
+                	break;
+				case "friend-map":
+					this.oldCaption="Map";
+					var what=$("fmenu-caption").innerHTML;
+	            	$("fmenu-caption").update("Map");
+					this.controller.stageController.swapScene({name: "friends-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this,what);
+					break;
+				case "friends-list":
+					this.oldCaption="List";
+					this.setBools("list");
+	            	$("fmenu-caption").update("List");
+					$("drawerId").mojo.setOpenState(false);
+					if(_globals.friendList==undefined) {
+						this.getFriends();
+					}else{
+					
+						this.resultsModel.items =_globals.friendList;
+						this.controller.modelChanged(this.resultsModel);
+						$('resultListBox').style.display = 'block';
+					}
+					$("search-msg").innerHTML="";
+					break;
+				case "friends-pending":
+					this.oldCaption="Pending";
+					this.setBools("pending");
+	            	$("fmenu-caption").update("Pending");
+	            	$("search-msg").innerHTML="";
+	            	this.onPendingFriends();
+					break;
+				case "friends-feed":
+					this.oldCaption="Feed";
+					this.setBools("feed");
+	            	$("fmenu-caption").update("Feed");
+					$('resultListBox').style.display = 'block';
+					$("search-msg").innerHTML="";
+					this.getFeed();
+					break;
+	}
+}
 
+FriendsListAssistant.prototype.setBools = function(what) {
+	this.showFeed=(what=="feed")? true: false;
+	this.showList=(what=="list")? true: false;
+	this.showPending=(what=="pending")? true: false;
+	this.showSearch=(what=="search")? true: false;
+}
+
+FriendsListAssistant.prototype.getFeed = function(event) {
+	if(this.feedList==undefined) {
+		_globals.reloadFriends=false;
+		_globals.friendList=undefined;
+	Mojo.Log.error("getting feed");
+	//var what=(how=="twitter")? {}: {q: this.textModel.value};
+	var url = 'http://api.foursquare.com/v1/checkins.json';
+	auth = _globals.auth;
+	var request = new Ajax.Request(url, {
+	   method: 'get',
+	   evalJSON: 'force',
+	   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+	   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
+	   onSuccess: this.feedSuccess.bind(this),
+	   onFailure: this.getFriendsFailed.bind(this)
+	 });
+	}else{
+		Mojo.Log.error("friends exist!");
+		if(this.showList){
+			var l=_globals.friendList;
+			$("fmenu-caption").update("List");
+			if(l==undefined){this.getFriends();}
+		}
+		if(this.showPending){
+			var l=_globals.requestList;
+			$("fmenu-caption").update("Pending");
+			if(l==undefined){this.onPendingFriends();}
+		}
+		if(this.showFeed){
+			var l=_globals.feedList;
+			$("fmenu-caption").update("Feed");
+		}
+		this.resultsModel.items=l;
+		this.controller.modelChanged(this.resultsModel);
+		this.lat=_globals.lat;
+		this.long=_globals.long;
+
+		$("spinnerId").mojo.stop();
+		$("spinnerId").hide();
+		$('resultListBox').style.display = 'block';
+		//Mojo.Controller.getAppController().showBanner("No pending requests", {source: 'notification'});
+	}
+	
+}
+
+FriendsListAssistant.prototype.feedSuccess = function(response) {
+	//var mybutton = $('go_button');
+	//mybutton.mojo.deactivate();
+Mojo.Log.error(response.responseText);
+	if (response.responseJSON == undefined) {
+		$('message').innerHTML = 'No Results Found';
+		Mojo.Log.error("undefined feed stuffs");
+	}
+	else {
+		Mojo.Log.error("trying the feed...");
+		//$("spinnerId").mojo.stop();
+		//$("spinnerId").hide();
+		//$('resultListBox').style.display = 'block';
+		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
+		this.feedList = [];
+		this.looping=false;
+		if(response.responseJSON.checkins != undefined && response.responseJSON.checkins != null && response.responseJSON.checkins.length>0) {
+			Mojo.Log.error("about to go to loop: total="+response.responseJSON.checkins.length);
+			for(var f=0;f<response.responseJSON.checkins.length;f++) {
+				Mojo.Log.error("in loop on #"+f);
+				this.feedList.push(response.responseJSON.checkins[f]);
+				this.feedList[f].id=response.responseJSON.checkins[f].user.id;
+				this.feedList[f].firstname=response.responseJSON.checkins[f].user.firstname;
+				this.feedList[f].lastname=response.responseJSON.checkins[f].user.lastname;
+				this.feedList[f].photo=response.responseJSON.checkins[f].user.photo;
+				this.feedList[f].checkin=(response.responseJSON.checkins[f].venue != undefined)? "@ "+response.responseJSON.checkins[f].venue.name: "";
+				this.feedList[f].shout=(response.responseJSON.checkins[f].shout != undefined)? "\n"+response.responseJSON.checkins[f].shout: "";
+				
+				//handle time
+				if(response.responseJSON.checkins[f].created != undefined) {
+					var now = new Date;
+					var later = new Date(response.responseJSON.checkins[f].created);
+					var offset = later.getTime() - now.getTime();
+					this.feedList[f].when=this.relativeTime(offset) + " ago";
+				}else{
+					this.feedList[f].when="";
+				}
+				
+				
+			}
+			Mojo.Log.error("finished loop");
+			_globals.feedList=this.feedList;
+			Mojo.Log.error("set global");
+			this.resultsModel.items =this.feedList; //update list with basic user info
+			Mojo.Log.error("set resultsmodel");
+			this.controller.modelChanged(this.resultsModel);
+			Mojo.Log.error("modelchanged");
+			$('resultListBox').style.display = 'block';
+		}else{
+			$("search-msg").innerHTML="No recent check-ins";
+			$('resultListBox').style.display = 'none';
+		}
+		
+		
+		var mybutton = $('go_button');
+		mybutton.mojo.deactivate();
+		mybutton = $('go_twitter_button');
+		mybutton.mojo.deactivate();
+		//mybutton = $('go_pending_button');
+		//mybutton.mojo.deactivate();
+		$("spinnerId").mojo.stop();
+		$("spinnerId").hide();
+		$('resultListBox').style.display = 'block';
+
+	}
+		
+
+}
+
+
+
+FriendsListAssistant.prototype.showMenu = function(event){
+					this.controller.popupSubmenu({
+			             onChoose:this.popupChoose,
+            			 placeNear:this.controller.get('menuhere'),
+			             items: [{secondaryIconPath: 'images/feed.png',label: 'Feed', command: 'friends-feed'},
+				           {secondaryIconPath: 'images/marker-icon.png',label: 'Map', command: 'friend-map'},
+            	           {secondaryIconPath: 'images/search-black.png',label: 'Search', command: 'friend-search'},
+                	       {secondaryIconPath: 'images/friends-black.png',label: 'Friends List', command: 'friends-list'},
+                    	   {secondaryIconPath: 'images/clock.png',label: 'Pending Requests', command: 'friends-pending'}]
+		             });
+}
 
 
 FriendsListAssistant.prototype.handleCommand = function(event) {
@@ -586,6 +810,7 @@ FriendsListAssistant.prototype.activate = function(event) {
 		this.controller.get("drawerId").mojo.setOpenState(true);
 		this.controller.modelChanged(this.drawerModel);
 	}
+	//if(this.show)
 	
 	if(_globals.reloadFriends) {
                 	$("spinnerId").mojo.start();

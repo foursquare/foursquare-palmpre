@@ -1,4 +1,4 @@
-function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps,q) {
+function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps,q,what) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -11,6 +11,7 @@ function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps,q) {
 	   this.uid=uid;
 	   this.prevScene=ps;
 	   this.query=q;
+	   this.what=what;
 }
 
 NearbyVenuesMapAssistant.prototype.setup = function() {
@@ -27,7 +28,7 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
              spinning: true 
          });
    
-    this.controller.setupWidget(Mojo.Menu.viewMenu,
+   /* this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
            spacerHeight: 0,
            menuClass: 'no-fade'
@@ -40,16 +41,16 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
                 { label: "Venues", width: 200,command: 'nearby-venues' },
                 { iconPath: 'search.png', command: 'venue-search', label: "  "}]
             }]
-        });
+        });*/
 	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
 
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+   /* this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'no-fade'
-        },
+        },*/
         /*this.cmmodel = {
           visible: true,
           items: [{
@@ -64,14 +65,15 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
             toggleCmd: "do-Nothing",
             checkEnabled: true
             }]
-    }*/_globals.cmmodel
-);
+    }*//*_globals.cmmodel
+);*/
 
 	/* add event handlers to listen to events from widgets */
 	
 	            Mojo.Event.listen(this.controller.document, 'gesturestart', this.handleGestureStart.bindAsEventListener(this), false);
             Mojo.Event.listen(this.controller.document, 'gesturechange', this.handleGestureChange.bindAsEventListener(this), false);
             Mojo.Event.listen(this.controller.document, 'gestureend', this.handleGestureEnd.bindAsEventListener(this), false);
+	Mojo.Event.listen(this.controller.get('vmenu'),Mojo.Event.tap, this.showMenu.bind(this));
 	
     /*    document.addEventListener( "gesturestart", this.handleGestureStart, true );
         document.addEventListener( "gesturechange", this.handleGestureChange, true );
@@ -362,6 +364,43 @@ Mojo.Log.error("protocol="+window.location.protocol);
 					}
                 }
 }
+
+
+NearbyVenuesMapAssistant.prototype.popupChoose = function(event) {
+	switch(event){
+	            case "venue-search":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,true,"",this.what);
+                	break;
+				case "friend-map":
+					this.oldCaption="Map";
+					break;
+				case "nearby-venues":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,false,this.query,"", this.what);
+					break;
+				case "venue-add":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.pushScene({name: "add-venue", transition: Mojo.Transition.crossFade},thisauth);
+					break;
+				case "friends-feed":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this,false,"feed");
+					break;
+	}
+}
+NearbyVenuesMapAssistant.prototype.showMenu = function(event){
+					this.controller.popupSubmenu({
+			             onChoose:this.popupChoose,
+            			 placeNear:this.controller.get('menuhere'),
+			             items: [{secondaryIconPath: 'images/radar-dark.png',label: 'Nearby', command: 'nearby-venues'},
+				           {secondaryIconPath: 'images/marker-icon.png',label: 'Map', command: 'venue-map'},
+            	           {secondaryIconPath: 'images/search-black.png',label: 'Search', command: 'venue-search'},
+                	       {secondaryIconPath: 'images/plus.png',label: 'Add Venue', command: 'venue-add'}]
+		             });
+}
+
+
 
 NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {

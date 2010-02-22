@@ -23,15 +23,16 @@ LeaderboardAssistant.prototype.setup = function() {
        _globals.amattributes,
        _globals.ammodel);
 
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+   /* this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'no-fade'
         },
-      _globals.cmmodel);
+      _globals.cmmodel);*/
 
+	Mojo.Event.listen(this.controller.get('fmenu'),Mojo.Event.tap, this.showMenu.bind(this));
 
-    this.controller.setupWidget(Mojo.Menu.viewMenu,
+   /* this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
            spacerHeight: 0,
            menuClass: 'blue-view-nope'
@@ -44,7 +45,7 @@ LeaderboardAssistant.prototype.setup = function() {
                 { label: "Leaderboard", width: 200},
                 { iconPath: 'images/venue_button_single.png', command: 'lb-all', label: "  "}]
             }]
-        });
+        });*/
 
 	/* add event handlers to listen to events from widgets */
 	
@@ -200,16 +201,59 @@ LeaderboardAssistant.prototype.handleCommand = function(event) {
                 	_globals.checkUpdate(this);
                 	break;
                 case "lb-all":
+               		$("fmenu-caption").update("City");
                 	$("leaderboard").innerHTML=this.cityBoard;
+                	var scroller = this.controller.getSceneScroller();
+					//call the widget method for scrolling to the top
+					scroller.mojo.revealTop(0);
                 	$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
                 	break;
                 case "lb-friends":
+                	$("fmenu-caption").update("Friends");
                 	$("leaderboard").innerHTML=this.friendBoard;
+                	var scroller = this.controller.getSceneScroller();
+					//call the widget method for scrolling to the top
+					scroller.mojo.revealTop(0);
                 	$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
                 	break;
             }
         }
     }
+
+LeaderboardAssistant.prototype.popUpChoose = function(event){
+	switch(event) {
+                case "lb-all":
+               		$("fmenu-caption").update("City");
+                	$("leaderboard").innerHTML=this.cityBoard;
+                	var scroller = this.controller.getSceneScroller();
+					//call the widget method for scrolling to the top
+					scroller.mojo.revealTop(0);
+                	//$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
+                	break;
+                case "lb-friends":
+                	$("fmenu-caption").update("Friends");
+                	$("leaderboard").innerHTML=this.friendBoard;
+                	var scroller = this.controller.getSceneScroller();
+					//call the widget method for scrolling to the top
+					scroller.mojo.revealTop(0);
+                	//$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
+                	break;
+	
+	}
+}
+
+LeaderboardAssistant.prototype.showMenu = function(event){
+					this.controller.popupSubmenu({
+			             onChoose:this.popUpChoose,
+            			 placeNear:this.controller.get('menuhere'),
+			             items: [
+                	       {secondaryIconPath: 'images/friends-black.png',label: 'Friends', command: 'lb-friends'},
+                    	   {secondaryIconPath: 'images/map.png',label: 'City', command: 'lb-all'}]
+		             });
+}
+
+
+
 
 LeaderboardAssistant.prototype.deactivate = function(event) {
 	/* remove any event handlers you added in activate and do any other cleanup that should happen before

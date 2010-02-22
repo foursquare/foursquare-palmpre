@@ -57,12 +57,12 @@ ShoutAssistant.prototype.setup = function() {
   
 	this.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
 
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'no-fade'
         },
-        /*this.cmmodel = {
+        this.cmmodel = {
           visible: true,
           items: [{
           	items: [ 
@@ -75,7 +75,7 @@ ShoutAssistant.prototype.setup = function() {
                  ],
             toggleCmd: "do-Nothing"
             }]
-    }*/_globals.cmmodel);
+    }_globals.cmmodel);*/
 _globals.ammodel.items[0].disabled=true;
 this.controller.modelChanged(_globals.ammodel);
 

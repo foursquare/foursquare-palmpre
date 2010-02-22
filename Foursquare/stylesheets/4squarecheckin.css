@@ -195,6 +195,20 @@ body {
 	margin-left: 5px;
 	margin-bottom: 11px;
 }
+.header-button {
+	border-width: 8px;
+	-webkit-border-image: url(../images/tag.png) 0 18 0 18;
+	color: #fff !important;
+	padding: 2px;
+	text-align: center;
+	text-shadow: 0 1px 1px #aa57b1 ;
+	font-size: 18px;
+	margin-left: 5px;
+	margin-bottom: 11px;
+	white-space: nowrap;
+	line-height: 15px;
+}
+
 
 .chkLabel {
 	margin-top: 10px;
@@ -468,6 +482,9 @@ a.vtag,a.vtip-black {
 .small-text {
 	font-size: 14px;
 }
+.italic {
+	font-style: italic;
+}
 
 .sliderClass {
 	width: 80% !important;
@@ -558,7 +575,7 @@ a.vtag,a.vtip-black {
 	top: -5px;
 }
 #overlayScroller {
-   height: 250px;
+   height: 260px;
    width: 300px;
    margin-left: auto;
    margin-right: auto;
@@ -585,4 +602,46 @@ a.vtag,a.vtip-black {
 }
 #refresh-venues {
 
+}
+
+.blocky {
+	display: block;
+	float: left;
+}
+.uinfo {
+	float: right;
+	width: 190px;
+}
+.lefter {float:left;}
+.righter{float:right;}
+
+.thin-header {
+	background: #828ea8 !important;
+	padding-top: 7px;
+	color: #d7d6d7;
+	text-shadow:  1px 1px 0 #1c1c1c;
+	border-bottom: 1px solid #677085;
+	padding-left: 5px;
+}
+
+
+.navFooter {
+	height: 47px;
+	width: 100%;
+	background: url(../images/footer.png) no-repeat left top;
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+	z-index: 999;
+	padding-top: 7px;
+}
+.zButton.active, .zButton.big.active {
+	background-color: #b06fb6;
+}
+.zButton.highlight {
+	background-color: #87558c;
+}
+
+.zButton.wide {
+	border: 1px solid #697388;
 }

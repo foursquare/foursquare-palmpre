@@ -1,4 +1,4 @@
-function FriendsMapAssistant(lat,long,f,u,p,uid,ps) {
+function FriendsMapAssistant(lat,long,f,u,p,uid,ps,what) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -10,6 +10,7 @@ function FriendsMapAssistant(lat,long,f,u,p,uid,ps) {
 	   this.password=p;
 	   this.uid=uid;
 	   this.prevScene=ps;
+	   this.what=what;
 }
 
 FriendsMapAssistant.prototype.setup = function() {
@@ -29,7 +30,7 @@ FriendsMapAssistant.prototype.setup = function() {
        _globals.amattributes,
        _globals.ammodel);
    
-    this.controller.setupWidget(Mojo.Menu.viewMenu,
+   /* this.controller.setupWidget(Mojo.Menu.viewMenu,
         this.menuAttributes = {
            spacerHeight: 0,
            menuClass: 'no-fade'
@@ -42,13 +43,13 @@ FriendsMapAssistant.prototype.setup = function() {
                 { label: "Friends", width: 200,command: 'friends-list' },
                 { iconPath: 'search.png', command: 'friends-search', label: "  "}]
             }]
-        });
+        });*/
 
-	    this.controller.setupWidget(Mojo.Menu.commandMenu,
+	   /* this.controller.setupWidget(Mojo.Menu.commandMenu,
         this.cmattributes = {
            spacerHeight: 0,
            menuClass: 'no-fade'
-        },
+        },*/
         /*this.cmmodel = {
           visible: true,
           items: [{
@@ -63,12 +64,13 @@ FriendsMapAssistant.prototype.setup = function() {
             toggleCmd: "do-Nothing",
             checkEnabled: true
             }]
-    }*/_globals.cmmodel
-);
+    }*//*_globals.cmmodel
+);*/
 
             Mojo.Event.listen(this.controller.document, 'gesturestart', this.handleGestureStart.bindAsEventListener(this), false);
             Mojo.Event.listen(this.controller.document, 'gesturechange', this.handleGestureChange.bindAsEventListener(this), false);
             Mojo.Event.listen(this.controller.document, 'gestureend', this.handleGestureEnd.bindAsEventListener(this), false);
+	Mojo.Event.listen(this.controller.get('fmenu'),Mojo.Event.tap, this.showMenu.bind(this));
 
 
 _globals.ammodel.items[0].disabled=true;
@@ -370,6 +372,43 @@ Mojo.Log.error("protocol="+window.location.protocol);
 					}
                 }
 }
+
+FriendsMapAssistant.prototype.popupChoose = function(event) {
+	switch(event){
+	            case "friend-search":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this,true,this.what);
+                	break;
+				case "friend-map":
+					this.oldCaption="Map";
+					break;
+				case "friends-list":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this,false,"list");
+					break;
+				case "friends-pending":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this,false,"pending");
+					break;
+				case "friends-feed":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this,false,"feed");
+					break;
+	}
+}
+FriendsMapAssistant.prototype.showMenu = function(event){
+					this.controller.popupSubmenu({
+			             onChoose:this.popupChoose,
+            			 placeNear:this.controller.get('menuhere'),
+			             items: [{secondaryIconPath: 'images/feed.png',label: 'Feed', command: 'friends-feed'},
+				           {secondaryIconPath: 'images/marker-icon.png',label: 'Map', command: 'friend-map'},
+            	           {secondaryIconPath: 'images/search-black.png',label: 'Search', command: 'friend-search'},
+                	       {secondaryIconPath: 'images/friends-black.png',label: 'Friends List', command: 'friends-list'},
+                    	   {secondaryIconPath: 'images/clock.png',label: 'Pending Requests', command: 'friends-pending'}]
+		             });
+}
+
+
 
 FriendsMapAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
