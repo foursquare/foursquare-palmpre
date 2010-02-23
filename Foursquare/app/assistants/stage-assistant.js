@@ -4,7 +4,9 @@ function StageAssistant() {
 StageAssistant.prototype.setup = function() {
 	zBar.activeScene=this.controller.activeScene();
 	zBar.stageController=this.controller;
-
+	//this.controller.listen(document, 'shakestart', this.handleShakeStart.bindAsEventListener(this));
+	//this.controller.listen(document, 'shakeend', this.handleShakeEnd.bindAsEventListener(this));
+	//Mojo.Event.listen(document, 'shaking', this.handleShaking.bindAsEventListener(this));
 	//this.getUA();
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
@@ -45,6 +47,24 @@ StageAssistant.prototype.setup = function() {
 	
 }
 
+StageAssistant.prototype.handleShaking = function(event) {
+	if(event.magnitude>2){
+		switch(Mojo.Controller.stageController.getWindowOrientation()) {
+			case "up":
+				Mojo.Controller.stageController.setWindowOrientation("left");
+				break;	
+			case "left":
+				Mojo.Controller.stageController.setWindowOrientation("down");
+				break;	
+			case "down":
+				Mojo.Controller.stageController.setWindowOrientation("right");
+				break;	
+			case "right":
+				Mojo.Controller.stageController.setWindowOrientation("up");
+				break;	
+		}
+	}
+}
 
 function _globals() {
 }
@@ -108,12 +128,10 @@ zBar.toolbars=[
 	{
 		name: "user",
 		buttons:[
-			{name:"venues",caption:"Venues",kind:"button",icon:"images/venue_button.png",command:"do-Venues"},
-			{name:"friends",caption:"Friends",kind:"button",icon:"images/friends_button.png",command:"do-Friends"},
-			{name:"tips",caption:"Tips",kind:"button",icon:"images/todo_button.png",command:"do-Tips"},
-			{name:"shout",caption:"Shout",kind:"button",icon:"images/shout_button.png",command:"do-Shout"},
-			{name:"profile",caption:"Profile",kind:"button",icon:"images/badges_button.png",command:"do-Badges"},
-			{name:"leaderboard",caption:"Board",kind:"button",icon:"images/leader_button.png",command:"do-Leaderboard"}
+			{name:"email",caption:"E-mail",kind:"button",icon:"images/email_button.png",command:"do-Email",noActive:true},
+			{name:"phone",caption:"Call",kind:"button",icon:"images/phone_button.png",command:"do-Phone",noActive:true},
+			{name:"twitter",caption:"Tweet",kind:"button",icon:"images/twitter_button.png",command:"do-Twitter",noActive:true},
+			{name:"facebook",caption:"FBook",kind:"button",icon:"images/facebook_button.png",command:"do-Facebook",noActive:true}
 		]
 	},
 	{
@@ -164,17 +182,55 @@ zBar.getButton = function(toolbarName, buttonName) {
 	return theButton;
 };
 
+//hides button on the currentBar
+zBar.hideButton = function(button) {
+	var btn=zBar.getButton(zBar.currentBar,button);
+	var theToolbar=zBar.getToolbar(zBar.currentBar);
+	
+	$("zButton-"+btn.index).hide();
+	var usedSpace=0;
+	for(var b=0;b<theToolbar.buttons.length;b++) {
+		if(b != btn.index){
+			var w=(theToolbar.buttons[b].width==undefined)? zBar.options.buttonWidth: theToolbar.buttons[b].width;
+			usedSpace=usedSpace+parseInt(w);
+		}
+	}
+	//var usedSpace=theToolbar.buttons.length*parseInt(zBar.options.buttonWidth);
+	var pad=Math.floor((parseInt(zBar.options.barWidth)-usedSpace)/2);
+	
+	$("zBar").style.padding=zBar.options.barPadding+" 0 0 "+pad+"px";
+};
+
+//unhides a button on the currentBar
+zBar.showButton = function(button) {
+	var btn=zBar.getButton(zBar.currentBar,button);
+	var theToolbar=zBar.getToolbar(zBar.currentBar);
+	
+	$("zButton-"+btn.index).show();
+	var usedSpace=0;
+	for(var b=0;b<theToolbar.buttons.length;b++) {
+		if(b != btn.index){
+			var w=(theToolbar.buttons[b].width==undefined)? zBar.options.buttonWidth: theToolbar.buttons[b].width;
+			usedSpace=usedSpace+parseInt(w);
+		}
+	}
+	//var usedSpace=theToolbar.buttons.length*parseInt(zBar.options.buttonWidth);
+	var pad=Math.floor((parseInt(zBar.options.barWidth)-usedSpace)/2);
+	
+	$("zBar").style.padding=zBar.options.barPadding+" 0 0 "+pad+"px";
+};
+
 zBar.render = function(toolbar,active) {
 	if(toolbar!=zBar.currentBar) { //only render the bar if we haven't already
 		zBar.activeButton=active;
 		zBar.oldBar=zBar.currentBar;
-		var gnav=$("globalNav");
+		var gnav=$("zBar");
 		if(gnav){Element.remove(gnav);}
 
 		var theToolbar=zBar.getToolbar(toolbar);
 
 		var nav=document.createElement("div");
-		nav.id="globalNav";
+		nav.id="zBar";
 		nav.HEY="from Zhephree :)";
 		nav.style.color=zBar.options.textColor;
 		nav.style.height=zBar.options.barHeight;
@@ -194,7 +250,7 @@ zBar.render = function(toolbar,active) {
 		nav.style.padding=zBar.options.barPadding+" 0 0 "+pad+"px";
 
 
-		nav.addClassName("navFooter");	
+		nav.addClassName(toolbar);	
 		document.body.appendChild(nav);
 		zBar.currentBar=toolbar;
 	
@@ -389,12 +445,12 @@ zBar.setActive = function(buttonIndex) {
 };
 
 zBar.hideToolbar = function() {
-	Mojo.Animation.animateStyle($("globalNav"),'opacity','bezier',{from:100,
+	Mojo.Animation.animateStyle($("zBar"),'opacity','bezier',{from:100,
 																	to:0,
 																	duration:0.5,
 																	curve:'over-easy',
 																	styleSetter:function(value){
-																		$('globalNav').style.opacity=value/100;
+																		$('zBar').style.opacity=value/100;
 																	
 																	},
 																	onComplete:function(el){
@@ -405,13 +461,13 @@ zBar.hideToolbar = function() {
 };
 
 zBar.showToolbar = function() {
-	$("globalNav").show();
-	Mojo.Animation.animateStyle($("globalNav"),'opacity','bezier',{from:0,
+	$("zBar").show();
+	Mojo.Animation.animateStyle($("zBar"),'opacity','bezier',{from:0,
 																	to:100,
 																	duration:0.5,
 																	curve:'over-easy',
 																	styleSetter:function(value){
-																		$('globalNav').style.opacity=value/100;
+																		$('zBar').style.opacity=value/100;
 																	
 																	}
 																	
@@ -422,7 +478,7 @@ zBar.doCommand = function(event) {
 	var str=event.target.id.split("-");
 	var id=str[1];
 	var tb=zBar.getToolbar(zBar.currentBar);
-	if(tb.buttons[id].kind!="big-button"){
+	if(tb.buttons[id].kind!="big-button" && !tb.buttons[id].noActive){
 		zBar.setActive(id);
 	}
 	
@@ -461,6 +517,18 @@ zBar.doCommand = function(event) {
 			break;
 		case "do-Checkin":
 			Mojo.Event.send($("docheckin"),Mojo.Event.tap);
+			break;
+		case "do-Email":
+			Mojo.Event.send($("email_button"),"click");
+			break;
+		case "do-Phone":
+			Mojo.Event.send($("phone_button"),"click");
+			break;
+		case "do-Twitter":
+			Mojo.Event.send($("twitter_button"),"click");
+			break;
+		case "do-Facebook":
+			Mojo.Event.send($("facebook_button"),"click");
 			break;
 	}		
 };

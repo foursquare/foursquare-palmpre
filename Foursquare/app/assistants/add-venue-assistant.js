@@ -152,7 +152,7 @@ AddVenueAssistant.prototype.activate = function() {
 	}else{
 		Mojo.Log.error("trying to get addy...lat="+_globals.lat+", long="+_globals.long);
 		//try and get the reverse location...
-			this.controller.serviceRequest('palm://com.palm.location', {
+		this.controller.serviceRequest('palm://com.palm.location', {
 			method: "getReverseLocation",
 			parameters: {latitude: _globals.lat, longitude:_globals.long},
 			onSuccess: this.gotLocation.bind(this),

@@ -5,7 +5,7 @@ function CheckinResultAssistant( checkinJSON,i) {
 
 CheckinResultAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
-
+	zBar.hideToolbar();
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
 	
 	/* setup widgets here */
@@ -20,7 +20,7 @@ CheckinResultAssistant.prototype.setup = function() {
 	
 	/* add event handlers to listen to events from widgets */
 	this.initData(this.json);
-
+	
 }
 
 CheckinResultAssistant.prototype.initData = function(checkinJSON) {
@@ -146,4 +146,5 @@ CheckinResultAssistant.prototype.deactivate = function(event) {
 CheckinResultAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
+	   zBar.showToolbar();
 }

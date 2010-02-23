@@ -254,11 +254,18 @@ VenuedetailAssistant.prototype.getVenueInfo = function() {
 	   onFailure: this.getVenueInfoFailed.bind(this)
 	 });
 }
+function trim(stringToTrim) {
+	return stringToTrim.replace(/^\s+|\s+$/g,"");
+}
+
 VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	Mojo.Log.error(response.responseText);
 	var th=this;
 	Mojo.Log.error("this="+th.constructor.name);
+	
 	$("checkinVenueAddress").innerHTML=response.responseJSON.venue.address;
+	
+	
 	if (response.responseJSON.venue.crossstreet) {
 	 $("checkinVenueAddress").innerHTML += "<br/>("+response.responseJSON.venue.crossstreet+")";
 	}

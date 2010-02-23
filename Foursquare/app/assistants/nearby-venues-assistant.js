@@ -412,7 +412,7 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 		$("spinnerId").hide();
 		$(resultListBox).style.display = 'block';
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
-		var venueList = [];
+		this.venueList = [];
 
 		
 		if(response.responseJSON.groups[0] != undefined) { //actually got some venues
@@ -425,8 +425,8 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 				var grouping=response.responseJSON.groups[g].type;
 				Mojo.Log.error("########grouping="+grouping);
 				for(var v=0;v<varray.length;v++) {
-					venueList.push(varray[v]);
-					var dist=venueList[venueList.length-1].distance;
+					this.venueList.push(varray[v]);
+					var dist=this.venueList[this.venueList.length-1].distance;
 					
 					if(_globals.units=="si") {					
 						var amile=0.000621371192;
@@ -439,18 +439,39 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 						if(dist==1){unit="KM";}else{unit="KM";}						
 					}
 					
-					venueList[venueList.length-1].distance=dist;
-					venueList[venueList.length-1].unit=unit;
+					this.venueList[this.venueList.length-1].distance=dist;
+					this.venueList[this.venueList.length-1].unit=unit;
 					if(_globals.hiddenVenues.inArray(varray[v].id)){
 				  		//hide it!
-				  		venueList[venueList.length-1].grouping="Hidden";
+				  		this.venueList[this.venueList.length-1].grouping="Hidden";
 					}else{
-						venueList[venueList.length-1].grouping=grouping;
+						this.venueList[this.venueList.length-1].grouping=grouping;
 					}
 					
 					if(grouping.indexOf("Matching")>-1) {  //searching
 						this.setvenues=false;
 					}
+					Mojo.Log.error("address="+this.venueList[this.venueList.length-1].address);
+					//fix empty addresses...
+					if(this.venueList[this.venueList.length-1].address!=undefined && this.venueList[this.venueList.length-1].address != "" && this.venueList[this.venueList.length-1].address!=null) {
+						Mojo.Log.error("has address");
+					}else{
+						this.idx=this.venueList.length-1;
+						Mojo.Log.error("no address");
+						this.controller.serviceRequest('palm://com.palm.location', {
+							method: "getReverseLocation",
+							parameters: {latitude: this.venueList[this.venueList.length-1].geolat, longitude:this.venueList[this.venueList.length-1].geolong},
+							onSuccess: function(address){
+									this.venueList[this.idx].address="Near "+address.substreet+" "+address.street;
+									this.resultsModel.items =this.resultsModel.items;
+									this.controller.modelChanged(this.resultsModel);
+									$("results-venue-list").mojo.noticeUpdatedItems(0, this.resultsModel.items);
+									$("results-venue-list").mojo.setCount(this.venueList.resultsModel.items.length);
+								}.bind(this),
+							onFailure: function(){}.bind(this)
+						});
+					}
+					Mojo.Log.error("done reversegeo:" + this.venueList[this.venueList.length-1].address);
 				}
 			}
 		}
@@ -462,11 +483,11 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 		//now set the result list to the list's model
 		Mojo.Log.error("search="+this.setvenues);
 		if(this.setvenues==true || this.setvenues==undefined){
-			_globals.actualVenues=venueList;
+			_globals.actualVenues=this.venueList;
 			this.setvenues=false;
 		}
-		_globals.nearbyVenues=venueList;
-		this.resultsModel.items =venueList;// $A(venueList);
+		_globals.nearbyVenues=this.venueList;
+		this.resultsModel.items =this.venueList;// $A(venueList);
 		this.controller.modelChanged(this.resultsModel);
 
 	}

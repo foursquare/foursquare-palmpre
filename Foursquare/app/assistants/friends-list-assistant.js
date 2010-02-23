@@ -508,20 +508,38 @@ Mojo.Log.error(response.responseText);
 
 FriendsListAssistant.prototype.listWasTapped = function(event) {
 	
-	/*this.controller.showAlertDialog({
-		onChoose: function(value) {
-			if (value) {
-				this.checkIn(event.item.id, event.item.name);
-			}
-		},
-		title:"Foursquare Check In",
-		message:"Do you want to check in here?",
-		cancelable:true,
-		choices:[ {label:'Yes', value:true, type:'affirmative'}, {label:'No', value:false, type:'negative'} ]
-	});
-	*/
+	//see if there's a link in the shout
+	var shout=event.item.shout;
+	var urlmatch=/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+
 	
-	this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade, disableSceneScroller: false},this.auth,event.item.id);
+	
+	if(shout.match(urlmatch)) {
+		var url=RegExp['$&'];
+					this.controller.popupSubmenu({
+			             onChoose:function(choice){
+			             	switch(choice){
+			             		case "url":
+			             			this.controller.serviceRequest('palm://com.palm.applicationManager', {
+										 method: 'open',
+										 parameters: {
+											 target: url
+										 }
+									 });
+			             			break;
+			             		case "profile":
+			             			this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade, disableSceneScroller: false},this.auth,event.item.id,null,true);
+			             			break;
+			             	}
+			             }.bind(this),
+            			 placeNear:this.controller.get(event.target),
+			             items: [{label: event.item.firstname+"'s Profile", command: 'profile'},
+				           {label: url.substr(0,20)+"...", command: 'url'}]
+		             });
+			
+	}else{
+		this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade, disableSceneScroller: false},this.auth,event.item.id,null,true);
+	}
 }
 
 FriendsListAssistant.prototype.popupChoose = function(event) {
@@ -661,6 +679,8 @@ Mojo.Log.error(response.responseText);
 				this.feedList[f].lastname=response.responseJSON.checkins[f].user.lastname;
 				this.feedList[f].photo=response.responseJSON.checkins[f].user.photo;
 				this.feedList[f].checkin=(response.responseJSON.checkins[f].venue != undefined)? "@ "+response.responseJSON.checkins[f].venue.name: "";
+				this.feedList[f].geolat=(response.responseJSON.checkins[f].venue != undefined)? response.responseJSON.checkins[f].venue.geolat: "";
+				this.feedList[f].geolong=(response.responseJSON.checkins[f].venue != undefined)? response.responseJSON.checkins[f].venue.geolong: "";
 				this.feedList[f].shout=(response.responseJSON.checkins[f].shout != undefined)? "\n"+response.responseJSON.checkins[f].shout: "";
 				
 				//handle time

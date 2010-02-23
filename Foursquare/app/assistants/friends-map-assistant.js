@@ -196,6 +196,8 @@ FriendsMapAssistant.prototype.initMap = function(event) {
 			friendsfaces[f].iconAnchor = new GPoint(22, 45);
 			friendsfaces[f].infoWindowAnchor = new GPoint(5, 1);
 
+			
+			
 			var point = new GLatLng(this.friends[v].geolat,this.friends[v].geolong);
 			
 			

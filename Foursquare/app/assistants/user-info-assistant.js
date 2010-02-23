@@ -1,4 +1,4 @@
-function UserInfoAssistant(a,u,ps) {
+function UserInfoAssistant(a,u,ps,ff) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -7,10 +7,16 @@ function UserInfoAssistant(a,u,ps) {
 	   this.auth=_globals.auth;
 	   this.uid=u;
 	   this.prevScene=ps;
+	   this.fromFriends=ff;
 }
 
 UserInfoAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
+	if(this.fromFriends){
+		zBar.render("user","");
+	}
+	
+	
 			this.getUserInfo();
 
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
@@ -111,10 +117,19 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	//user info
 	$("userPic").src=j.user.photo;
 	var lname=(j.user.lastname != undefined)? j.user.lastname: "";
-	var tw=(j.user.twitter != undefined)? '<span class="linefix"><img src="images/bird.png" width="16" height="16" /> <a class="vtag" href="http://twitter.com/'+j.user.twitter+'">'+j.user.twitter+'</a></span><br/>': "";
-	var fb=(j.user.facebook != undefined)? '<span class="linefix"><img src="images/facebook.png" width="16" height="16" /> <a class="vtag" href="http://facebook.com/profile.php?id='+j.user.facebook+'">Facebook Profile</a></span><br/>': "";
-	var ph=(j.user.phone != undefined)? '<span class="linefix"><img src="images/phone.png" width="16" height="16" /> <a class="vtag" href="tel://'+j.user.phone+'">'+j.user.phone+'</a></span><br/>': "";
-	var em=(j.user.email != undefined)? '<span class="linefix"><img src="images/mail.png" width="16" height="16" /> <a class="vtag" href="mailto:'+j.user.email+'">Send E-mail</a></span><br/>': "";
+	var tw=(j.user.twitter != undefined)? '<span class="linefix"><img src="images/bird.png" width="16" height="16" /> <a id="twitter_button" class="vtag" href="http://twitter.com/'+j.user.twitter+'">'+j.user.twitter+'</a></span><br/>': "";
+	if(j.user.twitter == undefined){zBar.hideButton("twitter");}
+	
+	var fb=(j.user.facebook != undefined)? '<span class="linefix"><img src="images/facebook.png" width="16" height="16" /> <a id="facebook_button" class="vtag" href="http://facebook.com/profile.php?id='+j.user.facebook+'">Facebook Profile</a></span><br/>': "";
+	if(j.user.facebook == undefined){zBar.hideButton("facebook");}
+
+
+	var ph=(j.user.phone != undefined)? '<span class="linefix"><img src="images/phone.png" width="16" height="16" /> <a id="phone_button" class="vtag" href="tel://'+j.user.phone+'">'+j.user.phone+'</a></span><br/>': "";
+	if(j.user.phone == undefined){zBar.hideButton("phone");}
+
+	var em=(j.user.email != undefined)? '<span class="linefix"><img src="images/mail.png" width="16" height="16" /> <a id="email_button" class="vtag" href="mailto:'+j.user.email+'">Send E-mail</a></span><br/>': "";
+	if(j.user.email == undefined){zBar.hideButton("email");}
+
 	
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
@@ -464,4 +479,7 @@ UserInfoAssistant.prototype.deactivate = function(event) {
 UserInfoAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
+	 if(this.fromFriends){
+	 	zBar.render("main","friends");
+	 }
 }

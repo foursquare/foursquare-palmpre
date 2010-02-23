@@ -7,7 +7,7 @@ function PreferencesAssistant() {
 
 PreferencesAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
-		
+	zBar.hideToolbar();		
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
 	
 	/* setup widgets here */
@@ -164,4 +164,5 @@ PreferencesAssistant.prototype.deactivate = function(event) {
 PreferencesAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
+	   zBar.showToolbar();
 }

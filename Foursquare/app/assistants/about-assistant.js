@@ -15,6 +15,7 @@ AboutAssistant.prototype.setup = function() {
 	
 	/* add event handlers to listen to events from widgets */
 			//Mojo.Event.listen($("testbutton"),Mojo.Event.tap,this.getUA.bind(this));
+			zBar.hideToolbar();
 
 }
 AboutAssistant.prototype.getUA = function(event) {
@@ -44,4 +45,5 @@ AboutAssistant.prototype.deactivate = function(event) {
 AboutAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
+	   zBar.showToolbar();
 }

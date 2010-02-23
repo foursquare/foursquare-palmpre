@@ -19,6 +19,7 @@ ShoutAssistant.prototype.setup = function() {
     }
   );
   Mojo.Event.listen(this.controller.get('okButtonShout'), Mojo.Event.tap, this.okTappedShout.bindAsEventListener(this));
+  Mojo.Event.listen(this.controller.get('attach_image'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
 
   
   	this.cookieData=new Mojo.Model.Cookie("credentials");
@@ -94,6 +95,13 @@ ShoutAssistant.prototype.okTappedShout = function() {
 	if (_globals.auth) {
 		Mojo.Log.error("###trying to shout");
 	
+		//before doing the actual shout, see if we have a photo. if so, handle that
+		if(this.hasPhoto){
+			//do nothing yet...
+		}
+	
+	
+	
 		var url = 'http://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
@@ -117,7 +125,8 @@ ShoutAssistant.prototype.okTappedShout = function() {
 ShoutAssistant.prototype.checkInSuccess = function(response) {
 	Mojo.Log.error(response.responseText);
 		$("okButtonShout").mojo.deactivate();
-
+	this.tipModel.value="";
+	this.controller.modelChanged(this.tipModel);
 	Mojo.Controller.getAppController().showBanner("Sent your shout to your friends!", {source: 'notification'});
 }
 
@@ -187,6 +196,14 @@ ShoutAssistant.prototype.handleCommand = function(event) {
             }
         }
     }
+
+ShoutAssistant.prototype.attachImage = function(event) {
+	Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image'],'defaultKind':'image','onSelect':function(fn){
+	this.fileName=fn.fullPath;
+	this.hasPhoto=true;
+	$("img_preview").innerHTML='<img src="'+this.fileName+'" width="100"/>';
+	}.bind(this)},this.controller.stageController);
+}
 
 ShoutAssistant.prototype.deactivate = function(event) {
 	/* remove any event handlers you added in activate and do any other cleanup that should happen before

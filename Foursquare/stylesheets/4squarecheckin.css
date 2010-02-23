@@ -625,7 +625,7 @@ a.vtag,a.vtip-black {
 }
 
 
-.navFooter {
+#zBar {
 	height: 47px;
 	width: 100%;
 	background: url(../images/footer.png) no-repeat left top;
@@ -644,4 +644,8 @@ a.vtag,a.vtip-black {
 
 .zButton.wide {
 	border: 1px solid #697388;
+}
+
+#shout-main #photo-controls {
+	display: none; /*hidden until we actually implement this*/
 }
