@@ -15,6 +15,7 @@ function MainAssistant(expressLogin,credentials,fp) {
 		   	this.password=this.credentials.password;
 		   	this.auth=make_base_auth(this.username,this.password);
 		   }
+		   Mojo.Log.error("auth="+this.auth);
 	   }
 	   
 	   this.gotGPS=false;
@@ -26,11 +27,13 @@ function MainAssistant(expressLogin,credentials,fp) {
 MainAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
 	if (this.expressLogin) {
-		$("loginfields").style.visibility="hidden";
-		$("main").removeClassName("palm-hasheader");
-		$("message").style.marginTop="70px";
-		$("main").style.background="url(SPLASH_boy_transparent.png) no-repeat left top";
-	
+		Mojo.Log.error("expresslogin");
+		this.controller.get("loginfields").style.visibility="hidden";
+		this.controller.get("main").removeClassName("palm-hasheader");
+		this.controller.get("message").style.marginTop="70px";
+		this.controller.get("main").style.background="url(SPLASH_boy_transparent.png) no-repeat left top";
+			Mojo.Log.error("going to login");
+
 		this.login(this.username,this.password);
 	}
 	
@@ -48,7 +51,7 @@ MainAssistant.prototype.setup = function() {
 }
 
 MainAssistant.prototype.onLoginTapped = function(event){
-	$('message').innerHTML = 'logging in';
+	this.controller.get('message').innerHTML = 'logging in';
 	
 	this.username=this.usernameModel.value;
 	this.password=this.passwordModel.value;
@@ -62,7 +65,7 @@ var auth;
 function make_base_auth(user, pass) {
   var tok = user + ':' + pass;
   var hash = Base64.encode(tok);
-  //$('message').innerHTML += '<br/>'+ hash;
+  //this.controller.get('message').innerHTML += '<br/>'+ hash;
   _globals.auth="Basic " + hash;
   return "Basic " + hash;
 }
@@ -78,9 +81,9 @@ MainAssistant.prototype.login = function(uname, pass){
 	
 	auth = (this.expressLogin)? _globals.auth: make_base_auth(uname, pass);
 	
-	$('signupbutton').hide();
+	this.controller.get('signupbutton').hide();
 	
-	$('message').innerHTML = '<br/>Logging <b>'+uname+'</b> in to Foursquare... <div class="small-text">Getting location...</div>';
+	this.controller.get('message').innerHTML = '<br/>Logging <b>'+uname+'</b> in to Foursquare... <div class="small-text">Getting location...</div>';
 	
 	var request = new Ajax.Request(url, {
 	   method: 'get',
@@ -97,7 +100,7 @@ var userData;
 MainAssistant.prototype.loginRequestSuccess = function(response) {
 	userData = response.responseJSON.user;
 	var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
-	$('message').innerHTML = '<br/>' + disp;
+	this.controller.get('message').innerHTML = '<br/>' + disp;
 	Mojo.Log.error(response.responseText);
 	var uid=response.responseJSON.user.id;
 	var savetw=response.responseJSON.user.settings.sendtotwitter;
@@ -137,7 +140,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 			_globals.firstLoad=true;
 			this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
 		}else{
-			$('message').innerHTML+='<div class="small-text">Getting location...</div>';
+			this.controller.get('message').innerHTML+='<div class="small-text">Getting location...</div>';
 		}
 	
 	}
@@ -145,23 +148,23 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 
 MainAssistant.prototype.loginRequestFailed = function(response) {
 	auth = undefined;
-	$('main').style.background="";
+	this.controller.get('main').style.background="";
 	Mojo.Log.error(response.responseText);
-	$("loginfields").style.visibility="visible";
+	this.controller.get("loginfields").style.visibility="visible";
 	var msg="";
 	if(response.responseJSON.ratelimited != undefined) {
 		msg="Rate-limited. Try again later.";
 	}else{
 		msg='Login Failed... Try Again';
 	}
-	$('message').innerHTML = msg;
+	this.controller.get('message').innerHTML = msg;
 }
 
 		
 MainAssistant.prototype.keyDownHandler = function(event) {
       if(Mojo.Char.isEnterKey(event.keyCode)) {
          if(event.srcElement.parentElement.id=="password") {
-    		$('username').mojo.blur();
+    		this.controller.get('username').mojo.blur();
     		setTimeout(this.onLoginTapped.bind(this), 10);
          }
       }
@@ -206,7 +209,7 @@ MainAssistant.prototype.gotLocation = function(event) {
 }
 
 MainAssistant.prototype.failedLocation = function(event) {
-	$('message').innerHTML = 'failed to get location: ' + event.errorCode;
+	this.controller.get('message').innerHTML = 'failed to get location: ' + event.errorCode;
 	Mojo.Log.error('failed to get location: ' + event.errorCode);
 	Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
 

@@ -1,4 +1,4 @@
-function FlickrUploadAssistant(ps,vid) {
+function FlickrUploadAssistant(ps,vid,vn) {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
 	   to the scene controller (this.controller) has not be established yet, so any initialization
@@ -6,6 +6,7 @@ function FlickrUploadAssistant(ps,vid) {
 	   this.prevScene=ps;
 	   this.fileName="";
 	   this.vid=vid;
+	   this.venueName=vn;
 }
 
 FlickrUploadAssistant.prototype.setup = function() {
@@ -28,19 +29,192 @@ FlickrUploadAssistant.prototype.setup = function() {
          });
 	/* add event handlers to listen to events from widgets */
 		Mojo.Event.listen(this.controller.get("uploadButton"),Mojo.Event.tap, this.doUpload.bind(this));
+      this.controller.setupWidget("photohostList",
+        this.phAttributes = {
+            choices: [
+                {label: "Flickr", value: "flickr"},
+               /* {label: "TweetPhoto", value: "tweetphoto"},*/ //tweetphoto forces a checkin on upload... not good
+                {label: "Pikchur", value: "pikchur"},
+                {label: "FSPic", value: "fspic"}
 
-	 $("uploadProgress").hide();
-Mojo.FilePicker.pickFile({'actionName':'Upload','kinds':['image'],'defaultKind':'image','onSelect':function(fn){this.fileName=fn.fullPath;}.bind(this)},this.controller.stageController);
+            ]},
+        this.phModel = {
+            value: "flickr",
+            disabled: false
+        }
+    ); 
+
+	 this.controller.get("uploadProgress").hide();
+Mojo.FilePicker.pickFile({'actionName':'Upload','kinds':['image'],'defaultKind':'image','onSelect':function(fn){this.controller.get("img_preview").update('<img src="'+fn.fullPath+'" width="100"/>');this.fileName=fn.fullPath;}.bind(this)},this.controller.stageController);
 
 }
 
 FlickrUploadAssistant.prototype.doUpload = function(event) {
-	$("uploadButton").mojo.activate();
+	this.controller.get("uploadButton").mojo.activate();
 	//this.progattributes.title="Uploading...";
 
 	//params we need:
 	//title,description,tags,format,nojsoncallback,api_key,auth_token,api_sig,photo
 	
+	
+	
+	switch(this.phModel.value){
+		case "flickr":
+			this.flickrUpload();
+			break;
+		case "tweetphoto":
+			this.tweetphotoUpload();
+			break;
+		case "pikchur":
+			this.pikchurUpload();	
+			break;
+		case "fspic":
+			this.fspicUpload();		
+			break;
+	}
+	
+	
+	
+	 
+}
+
+FlickrUploadAssistant.prototype.fspicUpload = function() {
+					var eauth=_globals.auth.replace("Basic ","");
+					var plaintext=Base64.decode(eauth);
+					var creds=plaintext.split(":");
+					var un=creds[0];
+					var pw=creds[1];
+
+					var params=[];
+					params.push({"key":"api_key","data":"q9hpcah58aaqtd7pp40orr21rga1wi","contentType":"text/plain"});
+					params.push({"key":"vid","data":this.vid,"contentType":"text/plain"});
+					params.push({"key":"phone_or_email","data":un,"contentType":"text/plain"});
+					params.push({"key":"password","data":pw,"contentType":"text/plain"});
+
+					var controller = Mojo.Controller.stageController.activeScene();
+			        // Queue the upload request with the download manager service.
+			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+            			method: 'upload',
+			            parameters: {
+            			    'url': "http://fspic.com/api/uploadPhoto",
+			                'fileLabel': 'photo',
+            			    'fileName': this.fileName,
+			                'postParameters': params,
+            			    'subscribe': true
+			            },
+            			onSuccess: function (resp,j){
+						 	if(resp.responseString){
+							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
+							 	this.controller.get("uploadButton").mojo.deactivate();
+							 	this.controller.stageController.popScene("flickr-upload");
+							}
+					  	}.bind(this),
+			            onFailure: function (resp){
+						 	Mojo.Log.error('Fail : ' + Object.toJSON(resp));
+						 	this.controller.get("uploadButton").mojo.deactivate();
+						 	this.controller.stageController.popScene("flickr-upload");
+					 	}.bind(this)
+			        });
+
+
+}
+
+
+FlickrUploadAssistant.prototype.pikchurUpload = function() {
+					var eauth=_globals.auth.replace("Basic ","");
+					var plaintext=Base64.decode(eauth);//Njk1
+					var creds=plaintext.split(":");
+					var un=creds[0];
+					var pw=creds[1];
+					var params=[];
+					params.push({"key":"api_key","data":"QTG1n51CVNEJNDkkiMQIXQ","contentType":"text/plain"});
+					params.push({"key":"encodedAuth","data":eauth,"contentType":"text/plain"});
+					params.push({"key":"message","data":this.descriptionModel.value,"contentType":"text/plain"});
+					params.push({"key":"geolat","data":_globals.lat,"contentType":"text/plain"});
+					params.push({"key":"geolon","data":_globals.long,"contentType":"text/plain"});
+					params.push({"key":"service","data":"foursquare","contentType":"text/plain"});
+					params.push({"key":"source","data":"Njk1","contentType":"text/plain"});
+					params.push({"key":"venue_id","data":this.vid,"contentType":"text/plain"});
+					Mojo.Log.error("params="+Object.toJSON(params));
+				
+					var controller = Mojo.Controller.stageController.activeScene();
+			        // Queue the upload request with the download manager service.
+			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+            			method: 'upload',
+			            parameters: {
+            			    'url': "http://api.pikchur.com/geosocial/upload/json",
+			                'fileLabel': 'media',
+            			    'fileName': this.fileName,
+			                'postParameters': params,
+            			    'subscribe': true
+			            },
+            			onSuccess: function (resp,j){
+						 	if(resp.responseString){
+							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
+							 	this.controller.get("uploadButton").mojo.deactivate();
+							 	this.controller.stageController.popScene("flickr-upload");
+							}
+					  	}.bind(this),
+			            onFailure: function (resp){
+						 	Mojo.Log.error('Fail : ' + Object.toJSON(resp));
+						 	this.controller.get("uploadButton").mojo.deactivate();
+						 	this.controller.stageController.popScene("flickr-upload");
+					 	}.bind(this)
+			        });
+
+
+}
+
+
+FlickrUploadAssistant.prototype.tweetphotoUpload = function() {
+					var eauth=_globals.auth.replace("Basic ","");
+					var plaintext=Base64.decode(eauth);
+					var creds=plaintext.split(":");
+					var un=creds[0];
+					var pw=creds[1];
+
+					var params=[];
+					params.push({"key":"api_key","data":"78c45db0-e4eb-467c-9215-695072bcf85a","contentType":"text/plain"});
+					params.push({"key":"tpservice","data":"Foursquare","contentType":"text/plain"});
+					params.push({"key":"message","data":this.descriptionModel.value,"contentType":"text/plain"});
+					params.push({"key":"tags","data":this.tagsModel.value,"contentType":"text/plain"});
+					params.push({"key":"latitude","data":_globals.lat,"contentType":"text/plain"});
+					params.push({"key":"longitude","data":_globals.long,"contentType":"text/plain"});
+					params.push({"key":"response_format","data":"JSON","contentType":"text/plain"});
+					params.push({"key":"username","data":un,"contentType":"text/plain"});
+					params.push({"key":"password","data":pw,"contentType":"text/plain"});
+					params.push({"key":"vid","data":this.vid,"contentType":"text/plain"});
+
+					var controller = Mojo.Controller.stageController.activeScene();
+			        // Queue the upload request with the download manager service.
+			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+            			method: 'upload',
+			            parameters: {
+            			    'url': "http://tweetphotoapi.com/api/upload.aspx",
+			                'fileLabel': 'media',
+            			    'fileName': this.fileName,
+			                'postParameters': params,
+            			    'subscribe': true
+			            },
+            			onSuccess: function (resp,j){
+						 	if(resp.responseString){
+							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
+							 	this.controller.get("uploadButton").mojo.deactivate();
+							 	this.controller.stageController.popScene("flickr-upload");
+							}
+					  	}.bind(this),
+			            onFailure: function (resp){
+						 	Mojo.Log.error('Fail : ' + Object.toJSON(resp));
+						 	this.controller.get("uploadButton").mojo.deactivate();
+						 	this.controller.stageController.popScene("flickr-upload");
+					 	}.bind(this)
+			        });
+
+
+}
+
+
+FlickrUploadAssistant.prototype.flickrUpload = function() {
 	var ptitle=this.titleModel.value;
 	var pdesc=this.descriptionModel.value;
 	var ptags=this.tagsModel.value + " foursquare:venue="+this.vid;
@@ -54,8 +228,12 @@ FlickrUploadAssistant.prototype.doUpload = function(event) {
 	var params={
 		"title":ptitle,
 		"description":pdesc,
-		"tags":ptags
+		"tags":this.venueName+","+ptags
 	};
+	//added the venue's name as a tag to fix a bug with flickr where
+	//machine tags won't work unless at least 1 normal tag is added also
+	
+	
 	Mojo.Log.error("##set up params");
 	
 	var params=[];
@@ -80,12 +258,14 @@ FlickrUploadAssistant.prototype.doUpload = function(event) {
                 'fileLabel': 'photo',
                 'fileName': this.fileName,
                 'postParameters': params,
-                'subscribe': false
+                'subscribe': true
             },
             onSuccess: function (resp){
-			 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
-			 	$("uploadButton").mojo.deactivate();
-			 	this.controller.stageController.popScene("flickr-upload");
+						 	if(resp.responseString){
+							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
+							 	this.controller.get("uploadButton").mojo.deactivate();
+							 	this.controller.stageController.popScene("flickr-upload");
+							}
 	  	}.bind(this),
             onFailure: function (e){
 	  				Mojo.Log.error('Failure : ' + Object.toJSON(resp));
@@ -93,7 +273,7 @@ FlickrUploadAssistant.prototype.doUpload = function(event) {
 	  				
 	 	}.bind(this)
         });
-	 
+
 }
 
 FlickrUploadAssistant.prototype.escape_and_sign= function(params, post) {

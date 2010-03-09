@@ -7,7 +7,7 @@ function AboutAssistant() {
 
 AboutAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
-			   $("about-header").innerHTML="About Foursquare v"+Mojo.appInfo.version;
+			   this.controller.get("about-header").innerHTML="About Foursquare v"+Mojo.appInfo.version;
 
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
 	

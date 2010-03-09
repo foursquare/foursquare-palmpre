@@ -56,7 +56,7 @@ UserInfoAssistant.prototype.setup = function() {
 		Mojo.Event.listen(this.controller.get('mayorshipList'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 	Mojo.Event.listen(this.controller.get('checkinHistory'),Mojo.Event.listTap, this.historyListWasTapped.bind(this));
 
-	$("uhistory").hide();
+	this.controller.get("uhistory").hide();
 
 _globals.ammodel.items[0].disabled=true;
 this.controller.modelChanged(_globals.ammodel);
@@ -67,7 +67,7 @@ var auth;
 function make_base_auth(user, pass) {
   var tok = user + ':' + pass;
   var hash = Base64.encode(tok);
-  //$('message').innerHTML += '<br/>'+ hash;
+  //this.controller.get('message').innerHTML += '<br/>'+ hash;
   return "Basic " + hash;
 }
 
@@ -115,26 +115,38 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 
 	
 	//user info
-	$("userPic").src=j.user.photo;
+	this.controller.get("userPic").src=j.user.photo;
 	var lname=(j.user.lastname != undefined)? j.user.lastname: "";
 	var tw=(j.user.twitter != undefined)? '<span class="linefix"><img src="images/bird.png" width="16" height="16" /> <a id="twitter_button" class="vtag" href="http://twitter.com/'+j.user.twitter+'">'+j.user.twitter+'</a></span><br/>': "";
-	if(j.user.twitter == undefined){zBar.hideButton("twitter");}
+	if(j.user.twitter == undefined && this.fromFriends){zBar.hideButton("twitter");}
+	
+	Mojo.Log.error("set pic and twitter");
 	
 	var fb=(j.user.facebook != undefined)? '<span class="linefix"><img src="images/facebook.png" width="16" height="16" /> <a id="facebook_button" class="vtag" href="http://facebook.com/profile.php?id='+j.user.facebook+'">Facebook Profile</a></span><br/>': "";
-	if(j.user.facebook == undefined){zBar.hideButton("facebook");}
+		Mojo.Log.error("facebook html stuff done");
+	if(j.user.facebook == undefined && this.fromFriends){zBar.hideButton("facebook");}
 
+
+	Mojo.Log.error("set facebook");
 
 	var ph=(j.user.phone != undefined)? '<span class="linefix"><img src="images/phone.png" width="16" height="16" /> <a id="phone_button" class="vtag" href="tel://'+j.user.phone+'">'+j.user.phone+'</a></span><br/>': "";
-	if(j.user.phone == undefined){zBar.hideButton("phone");}
+	if(j.user.phone == undefined && this.fromFriends){zBar.hideButton("phone");}
 
+
+	Mojo.Log.error("set phone");
+	
 	var em=(j.user.email != undefined)? '<span class="linefix"><img src="images/mail.png" width="16" height="16" /> <a id="email_button" class="vtag" href="mailto:'+j.user.email+'">Send E-mail</a></span><br/>': "";
 	if(j.user.email == undefined){zBar.hideButton("email");}
+
+	Mojo.Log.error("set email");
 
 	
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 	if(this.uid != "") { //only show friending options if it's not yourself
 	var friendstatus=(j.user.friendstatus != undefined)? j.user.friendstatus: "";
+
+	Mojo.Log.error("handled uid and cookie stuff");
 
 	switch (friendstatus) {
 		case "friend":
@@ -156,26 +168,34 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	
 	fs='<span id="friend_button">'+fs+'</span>';
 	
-	$("userName").innerHTML=j.user.firstname+" "+lname+"";
-	//$("userCity").innerHTML=j.user.city.name+"<br class=\"breaker\"/>";
+		Mojo.Log.error("friend status done");
+		
+	this.controller.get("userName").innerHTML=j.user.firstname+" "+lname+"";
+	//this.controller.get("userCity").innerHTML=j.user.city.name+"<br class=\"breaker\"/>";
 	if(j.user.checkin != undefined) {
 		var v=(j.user.checkin.venue != undefined)? " @ "+j.user.checkin.venue.name: "";
 		var s=(j.user.checkin.shout)? j.user.checkin.shout: "";
-		$("userCity").innerHTML = s + v;
+		var urlmatch=/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+		s.match(urlmatch);
+		var url=RegExp['$&'];
+		s=s.replace(url,'<a href="'+url+'" class="headlink">'+url+'</a>');
+		this.controller.get("userCity").innerHTML = s + v;
 	}
 	
-	$("userInfo").innerHTML+=em+ph+tw+fb+fs;
+		Mojo.Log.error("checkin info set");
+		
+	this.controller.get("userInfo").innerHTML+=em+ph+tw+fb+fs;
 	if(j.user.checkin != undefined) {
-		//$("userInfo").innerHTML+="<br/>"+j.user.checkin.display;
+		//this.controller.get("userInfo").innerHTML+="<br/>"+j.user.checkin.display;
 	}
 	Mojo.Log.error("###set user info");
 	//assign events to the new button(s)
 	if(friendstatus=="pendingyou") {
-		Mojo.Event.listen($("approvefriend"),Mojo.Event.tap,this.approveFriend.bind(this));
-		Mojo.Event.listen($("denyfriend"),Mojo.Event.tap,this.denyFriend.bind(this));
+		Mojo.Event.listen(this.controller.get("approvefriend"),Mojo.Event.tap,this.approveFriend.bind(this));
+		Mojo.Event.listen(this.controller.get("denyfriend"),Mojo.Event.tap,this.denyFriend.bind(this));
 	}
 	if(friendstatus=="") {
-		Mojo.Event.listen($("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
+		Mojo.Event.listen(this.controller.get("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
 	}
 
 
@@ -184,17 +204,17 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	//user's mayorships
 	if(j.user.mayor != null && j.user.mayor != undefined) {
 		/*for(var m=0;m<j.user.mayor.length;m++) {
-			$("mayor-box").innerHTML+='<div class="palm-row single"><div class="checkin-score truncating-text"><span>'+j.user.mayor[m].name+'</span></div></div>';
+			this.controller.get("mayor-box").innerHTML+='<div class="palm-row single"><div class="checkin-score truncating-text"><span>'+j.user.mayor[m].name+'</span></div></div>';
 		}*/
 		Mojo.Log.error("###got mayorships");
-		$("mayor-title").innerHTML=j.user.mayor.length+" Mayorships";
+		this.controller.get("mayor-title").innerHTML=j.user.mayor.length+" Mayorships";
 
 		this.mayorshipModel.items=j.user.mayor;
 		this.controller.modelChanged(this.mayorshipModel);
 	}else{
 		Mojo.Log.error("###no mayorships");
 
-		$("mayorshipList").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' isn\'t the mayor of anything yet.</span></div></div>';
+		this.controller.get("mayorshipList").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' isn\'t the mayor of anything yet.</span></div></div>';
 	}
 
 	Mojo.Log.error("###finished mayorships");
@@ -206,7 +226,7 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 		o += '<tr><td></td><td></td><td></td><td></td></tr>';
 		var id=0
 		for(var m=0;m<j.user.badges.length;m++) {
-//			$("badges-box").innerHTML+='<div class="palm-row single"><div class="checkin-badge"><img src="'+j.user.badges[m].icon+'" width="48" height="48" style="float:left" /> <span>'+j.user.badges[m].name+'</span><br/><span class="palm-info-text" style="margin-left:0;padding-left:0">'+j.user.badges[m].description+'</span></div></div>';
+//			this.controller.get("badges-box").innerHTML+='<div class="palm-row single"><div class="checkin-badge"><img src="'+j.user.badges[m].icon+'" width="48" height="48" style="float:left" /> <span>'+j.user.badges[m].name+'</span><br/><span class="palm-info-text" style="margin-left:0;padding-left:0">'+j.user.badges[m].description+'</span></div></div>';
 			id++;
 			
 			if(id==1) {
@@ -218,9 +238,9 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 				id=0;
 			}
 		}
-		$("badges-box").innerHTML=o+"</table>";
+		this.controller.get("badges-box").innerHTML=o+"</table>";
 	}else{
-		$("badges-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' doesn\'t have any badges in '+credentials.city+' yet.</span></div></div>';
+		this.controller.get("badges-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' doesn\'t have any badges in '+credentials.city+' yet.</span></div></div>';
 	}
 
 
@@ -228,9 +248,9 @@ UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	if(this.uid == "") {
 		this.getHistory();
 	}else{
-		$("userScrim").hide();
-		$("userSpinner").mojo.stop();
-		$("userSpinner").hide();
+		this.controller.get("userScrim").hide();
+		this.controller.get("userSpinner").mojo.stop();
+		this.controller.get("userSpinner").hide();
 	}
 
 }
@@ -255,7 +275,7 @@ UserInfoAssistant.prototype.approveFriend = function(event) {
 UserInfoAssistant.prototype.approveSuccess = function(response) {
 	if(response.responseJSON.user != undefined) {
 		Mojo.Controller.getAppController().showBanner("Friend request approved!", {source: 'notification'});
-		$("friend_button").innerHTML='You\'re Friends!';
+		this.controller.get("friend_button").innerHTML='You\'re Friends!';
 	}else{
 		Mojo.Controller.getAppController().showBanner("Error approving friend request", {source: 'notification'});
 	}
@@ -278,8 +298,8 @@ UserInfoAssistant.prototype.denyFriend = function(event) {
 UserInfoAssistant.prototype.denySuccess = function(response) {
 	if(response.responseJSON.user != undefined) {
 		Mojo.Controller.getAppController().showBanner("Friend request denied!", {source: 'notification'});
-		$("friend_button").innerHTML='<img src="images/addfriend.png" width="100" height="35" id="addfriend" alt="Add Friend" />';
-		Mojo.Event.listen($("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
+		this.controller.get("friend_button").innerHTML='<img src="images/addfriend.png" width="100" height="35" id="addfriend" alt="Add Friend" />';
+		Mojo.Event.listen(this.controller.get("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
 	}else{
 		Mojo.Controller.getAppController().showBanner("Error denying friend request", {source: 'notification'});
 	}
@@ -315,7 +335,7 @@ UserInfoAssistant.prototype.addFriend = function(event) {
 UserInfoAssistant.prototype.addSuccess = function(response) {
 	if(response.responseJSON.user != undefined) {
 		Mojo.Controller.getAppController().showBanner("Friend request sent!", {source: 'notification'});
-		$("friend_button").innerHTML='<img src="images/pending.png" width="100" height="35" id="pendingfriend" alt="Pending" />';
+		this.controller.get("friend_button").innerHTML='<img src="images/pending.png" width="100" height="35" id="pendingfriend" alt="Pending" />';
 	}else{
 		Mojo.Controller.getAppController().showBanner("Error sending friend request", {source: 'notification'});
 	}
@@ -344,11 +364,11 @@ Mojo.Log.error("##history:"+response.responseText);
 	var j=response.responseJSON;
 	
 	if(j.checkins != null) {
-	$("uhistory").show();
+	this.controller.get("uhistory").show();
 	Mojo.Log.error("##got history...");
 		/*for(var c=0;c<j.checkins.length;c++) {
 			var sh=(j.checkins[c].shout != undefined)? '<br/><span class="palm-info-text">'+j.checkins[c].shout+'</span>': "";
-			$("history-box").innerHTML+='<div class="palm-row single"><div class="checkin-badge truncating-text"><span>'+j.checkins[c].venue.name+'</span>'+sh+'</div></div>';
+			this.controller.get("history-box").innerHTML+='<div class="palm-row single"><div class="checkin-badge truncating-text"><span>'+j.checkins[c].venue.name+'</span>'+sh+'</div></div>';
 		}*/
 		//this.checkinlist=j.checkins;
 		this.checkinlist=[];
@@ -381,20 +401,20 @@ Mojo.Log.error("##history:"+response.responseText);
 		this.controller.modelChanged(this.historyModel);
 
 	}else{
-		$("history-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>No recent check-ins yet.</span></div></div>';
+		this.controller.get("history-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>No recent check-ins yet.</span></div></div>';
 	}
 
-		$("userScrim").hide();
-		$("userSpinner").mojo.stop();
-		$("userSpinner").hide();
+		this.controller.get("userScrim").hide();
+		this.controller.get("userSpinner").mojo.stop();
+		this.controller.get("userSpinner").hide();
 
 }
 
 UserInfoAssistant.prototype.historyFailed = function(response) {
 	Mojo.Log.error("error getting history");
-		$("userScrim").hide();
-		$("userSpinner").mojo.stop();
-		$("userSpinner").hide();
+		this.controller.get("userScrim").hide();
+		this.controller.get("userSpinner").mojo.stop();
+		this.controller.get("userSpinner").hide();
 
 }
 
@@ -441,13 +461,13 @@ UserInfoAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Refresh":
-					$("userInfo").innerHTML="";
-					$("history-box").innerHTML="";
-					$("badges-box").innerHTML="";
-					$("mayor-box").innerHTML="";
-					$("userScrim").show();
-					$("userSpinner").mojo.start();
-					$("userSpinner").show();
+					this.controller.get("userInfo").innerHTML="";
+					this.controller.get("history-box").innerHTML="";
+					this.controller.get("badges-box").innerHTML="";
+					this.controller.get("mayor-box").innerHTML="";
+					this.controller.get("userScrim").show();
+					this.controller.get("userSpinner").mojo.start();
+					this.controller.get("userSpinner").show();
 					this.getUserInfo();
                 	break;
                 case "do-Update":

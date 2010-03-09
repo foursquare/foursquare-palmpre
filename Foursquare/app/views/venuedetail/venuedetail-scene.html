@@ -2,10 +2,11 @@
 	<div class="palm-page-header-nope multi-line" id="venueHeader">
 		<div class="palm-page-header-wrapper-nope">
 		    <div id="checkinVenueName" class="title left" ></div>                         
-			<div style="width: 65%; float: left;">
+			<div style="width: 80%; float: left;">
 				<div id="checkinVenueAddress" class=""></div>
 			</div>
 			<div id="docheckin" style="width: 34%;float:left;display:none;">checkin</div>
+			<div id="vcategory" style="width: 20%;float:left;font-size:12px;"></div>
 			<div style="clear:both;height: 2px;">&nbsp;</div>
 		  	<div id="dropshadow">&nbsp;</div>
 		</div>
@@ -28,7 +29,7 @@
 				<img id="venueMap" src="" border="0" width="320" height="175" />
 			</div>
 			<div id="meta-buttons">
-				<img id="flickr-button" src="images/flickr.png" width="42" border="0"/>
+				<img id="flickr-button" src="images/camera.png" width="42" border="0"/>
 				<img id="banks-button" src="images/banks.png" width="42" border="0" style="margin-left: 3px;"/>
 				<img id="parking-button" src="images/parking.png" width="42" border="0" style="margin-left: 3px;"/>
 				<span id="yelpbutton"></span>
@@ -138,15 +139,16 @@
 				<div x-mojo-element="Button" id="buttonMarkClosed" class="buttonClass addtipok" name="buttonName"></div>
 				<div x-mojo-element="Button" id="buttonProposeEdit" class="buttonClass addtipcancel" name="buttonName"></div>
 			</div>
-			<br/><br/>			<br/><br/>			<br/><br/>
+			<div class="palm-header-spacer"></div>
 		</div>
     </div> 
 </div>
-	
+				<div class="palm-header-spacer"></div>
+
 	
 	
 </div>
-<div id="meta-overlay">
+<div id="meta-overlay" style="display: none;">
 	<div class="overlay-title">
 		<div style="float:left;font-weight:bold;width:79%;" id="overlay-title"></div>
 		<div style="float:right;width:20%;" id="overlay-closer"></div>
@@ -155,6 +157,63 @@
 			<div>
 				<div x-mojo-element="Spinner" id="overlaySpinner" class="spinnerClass" name="spinnerName"></div>
 				<div id="overlay-content"></div>
+<div class="black-text-not" id="docheckin-fields" style="display:none;width:260px;">
+	<div class="not-palm-group" id='docheckingroup'>
+<!--	<div class="palm-group-title" x-mojo-loc=''>Go ahead and check-in here?</div>-->
+		<div class="palm-list">
+	   		<div class="palm-row single">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+	      				<div x-mojo-element="TextField" id="shout" style="width:83%;"></div>
+		      			<span class="clear-button label" id="attach" style="position: absolute; right: 44px; top: 2px;"><div class="attach-button" id="attachicon"></div></span>
+						<div id="img-preview" style="display: none;padding:0;margin:0;">
+							<img src="" width="100" id="img">
+							<div id="remove-button"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="palm-dark">
+				<div class="palm-group unlabeled" id="listborder" style="display:none;">
+					<div class="palm-list">
+						<div class="palm-row-single" x-mojo-tap-highlight="momentary">
+							<div class="palm-row-wrapper">
+								<div x-mojo-element="ListSelector" id="photohostList" class="listselectorClass"  name="listselectorName"></div>				
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+	<div class="palm-row single small-bot-margin">
+		<div class="palm-row-wrapper">
+			<div class="title">
+				<div x-mojo-element="CheckBox" id="chkShowFriends" class="checkboxClass left" name="checkboxName"></div> <div class="left chkLabel">Show Your Friends</div>
+			</div>
+		</div>
+	</div>
+	<div class="palm-row single small-bot-margin">
+		<div class="palm-row-wrapper">
+			<div class="title">
+				<div x-mojo-element="CheckBox" id="chkTwitter" class="checkboxClass left" name="checkboxName"></div> <div class="left chkLabel">Ping Twitter</div>
+			</div>
+		</div>
+	</div>
+	<div class="palm-row single">
+		<div class="palm-row-wrapper">
+			<div class="title">
+				<div x-mojo-element="CheckBox" id="chkFacebook" class="checkboxClass left" name="checkboxName"></div> <div class="left chkLabel">Ping Facebook</div>
+			</div>
+		</div>
+	</div>
+		</div>
+
+	</div>
+	
+	
+	<div x-mojo-element="Button" class="palmbutton primary" id="okButton"></div>
+<!--	<div x-mojo-element="Button" class="palmbutton negative addtipcancel" id="cancelButton"></div>-->
+</div>
 				<div id="results-meta-list" x-mojo-element="List" ></div>
 			</div>
 		</div>
@@ -162,4 +221,9 @@
 </div>
 <div class="palm-scrim" id="venueScrim"></div>
 <div x-mojo-element="Spinner" id="venueSpinner" class="spinnerClass" name="spinnerName"></div>
+
+
+<div id="checkin-holder">
+
+</div>
 <!--<div class="fade-bottom"></div>-->

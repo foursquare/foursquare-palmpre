@@ -48,7 +48,7 @@ NearbyTipsAssistant.prototype.setup = function() {
     _globals.ammodel.items[0].disabled=false;
 this.controller.modelChanged(_globals.ammodel);
 
-    $("message").hide();
+    this.controller.get("message").hide();
    // this.requestList=[];
     	       this.getTips();
 
@@ -150,11 +150,11 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 	if (response.responseJSON == undefined) {
 		Mojo.Log.error("###tips are effed!");
 		/*		Mojo.Log.error("****no tips");
-		$("spinnerId").mojo.stop();
-		$("spinnerId").hide();
+		this.controller.get("spinnerId").mojo.stop();
+		this.controller.get("spinnerId").hide();
 
-		$('message').innerHTML = 'There was an error parsing the results from Foursquare. Give it another shot later on.';
-		$('message').show();*/
+		this.controller.get('message').innerHTML = 'There was an error parsing the results from Foursquare. Give it another shot later on.';
+		this.controller.get('message').show();*/
 		var t=response.responseText;
 		t=t.replace('"group":null,"type":"Nearby",',"");
 		var j = eval("(" + t + ")");
@@ -199,9 +199,9 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 		
 	
 		
-		$("spinnerId").mojo.stop();
-		$("spinnerId").hide();
-		$("resultListBox").style.display = 'block';
+		this.controller.get("spinnerId").mojo.stop();
+		this.controller.get("spinnerId").hide();
+		this.controller.get("resultListBox").style.display = 'block';
 
 }
 
@@ -245,9 +245,9 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Refresh":
-                	$("spinnerId").mojo.start();
-					$("spinnerId").show();
-					$("resultListBox").style.display = 'none';
+                	this.controller.get("spinnerId").mojo.start();
+					this.controller.get("spinnerId").show();
+					this.controller.get("resultListBox").style.display = 'none';
                 	_globals.tipsList=undefined;
 					this.getTips();
                 	break;
@@ -263,15 +263,15 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
 
 NearbyTipsAssistant.prototype.activate = function(event) {
 	   if(_globals.tipsList!=undefined){
-			$("resultListBox").style.display = 'block';
-	   		$("spinnerId").mojo.stop();
-			$("spinnerId").hide();
+			this.controller.get("resultListBox").style.display = 'block';
+	   		this.controller.get("spinnerId").mojo.stop();
+			this.controller.get("spinnerId").hide();
 	   }
 	   
 	   if(_globals.reloadTips) {
-                	$("spinnerId").mojo.start();
-					$("spinnerId").show();
-					$("resultListBox").style.display = 'none';
+                	this.controller.get("spinnerId").mojo.start();
+					this.controller.get("spinnerId").show();
+					this.controller.get("resultListBox").style.display = 'none';
                 	_globals.tipsList=undefined;
 					this.getTips();
 	   }

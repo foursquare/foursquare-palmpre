@@ -37,6 +37,28 @@ PreferencesAssistant.prototype.setup = function() {
           this.nummodel = {
               value: 15
           });
+          
+          
+    this.cookieData=new Mojo.Model.Cookie("notifications");
+	var credentials=this.cookieData.get();
+	var notifs=(credentials.notifs=="1")? '1': '0';
+
+          
+    this.controller.setupWidget("chkNotifications",
+         this.notifsAttributes = {
+             trueValue: '1',
+             trueLabel: 'Yes',
+             falseValue: '0',
+             falseLabel: 'No'
+         },
+         this.notifsModel = {
+             value: notifs,
+             disabled: false
+         });
+
+          
+          
+          
     this.controller.setupWidget("units",
         this.unitsattributes = {
             choices: [
@@ -56,6 +78,7 @@ PreferencesAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSlider.bind(this));
 	Mojo.Event.listen(this.controller.get("numVenuesPicker"), Mojo.Event.propertyChange, this.handleNumPicker.bind(this));
 	Mojo.Event.listen(this.controller.get("units"), Mojo.Event.propertyChange, this.handleUnits.bind(this));
+	Mojo.Event.listen(this.controller.get("chkNotifications"), Mojo.Event.propertyChange, this.handleNotifs.bind(this));
 
 	var slideval=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy)*-1: 0;
 	this.slidemodel.value=slideval;
@@ -73,7 +96,7 @@ PreferencesAssistant.prototype.setup = function() {
 	this.handleUnits("setup-routine");
 
 	if(_globals.flickr_username != undefined){
-		$("flickrInfo").innerHTML="Account: <b>"+_globals.flickr_username+"</b>";
+		this.controller.get("flickrInfo").innerHTML="Account: <b>"+_globals.flickr_username+"</b>";
 	}
 }
 
@@ -86,23 +109,23 @@ PreferencesAssistant.prototype.handleSlider = function(event) {
 	if(event.type===Mojo.Event.propertyChange || event=="setup-routine") {
 		var v=this.slidemodel.value*-1; //make it positive
 		if(v==0) {
-			$("gps-description").innerHTML="Don't Care";
-			$("gps-longdesc").innerHTML="Accept the first GPS result regardless of how accurate it is.";
+			this.controller.get("gps-description").innerHTML="Don't Care";
+			this.controller.get("gps-longdesc").innerHTML="Accept the first GPS result regardless of how accurate it is.";
 		}else if(v>0 && v<150) {
-			$("gps-description").innerHTML="Super Accurate (up to 150m)";
-			$("gps-longdesc").innerHTML="Only accept results that are accurate up to 150 meters. Will probably be slow indoors.";
+			this.controller.get("gps-description").innerHTML="Super Accurate (up to 150m)";
+			this.controller.get("gps-longdesc").innerHTML="Only accept results that are accurate up to 150 meters. Will probably be slow indoors.";
 			v=150;
 		}else if(v>150 && v<500) {
-			$("gps-description").innerHTML="Accurate (up to 500m)";
-			$("gps-longdesc").innerHTML="Only accept results that are accurate up to 500 meters. May be slow indoors.";
+			this.controller.get("gps-description").innerHTML="Accurate (up to 500m)";
+			this.controller.get("gps-longdesc").innerHTML="Only accept results that are accurate up to 500 meters. May be slow indoors.";
 			v=500;
 		}else if(v>500 && v<750) {
-			$("gps-description").innerHTML="Mostly Accurate (up to 750m)";
-			$("gps-longdesc").innerHTML="Only accept results that are accurate up to 750 meters. Will work most anywhere.";
+			this.controller.get("gps-description").innerHTML="Mostly Accurate (up to 750m)";
+			this.controller.get("gps-longdesc").innerHTML="Only accept results that are accurate up to 750 meters. Will work most anywhere.";
 			v=750;
 		}else if(v>750 && v<1001) {
-			$("gps-description").innerHTML="Not So Accurate (up to 1000m)";
-			$("gps-longdesc").innerHTML="Only accept results that are accurate up to 1000 meters. Might say you're several blocks away if cloudy or indoors.";
+			this.controller.get("gps-description").innerHTML="Not So Accurate (up to 1000m)";
+			this.controller.get("gps-longdesc").innerHTML="Only accept results that are accurate up to 1000 meters. Might say you're several blocks away if cloudy or indoors.";
 			v=1001;
 		}
 		
@@ -141,6 +164,17 @@ PreferencesAssistant.prototype.handleUnits = function(event) {
 			{"units":v}
 		)
 		_globals.units=v;
+	}
+}
+PreferencesAssistant.prototype.handleNotifs = function(event) {
+	if(event.type===Mojo.Event.propertyChange || event=="setup-routine") {
+		var v=this.notifsModel.value;
+				
+		this.cookieData=new Mojo.Model.Cookie("notifications");
+		this.cookieData.put(
+			{"notifs":v}
+		)
+		_globals.notifs=v;
 	}
 }
 

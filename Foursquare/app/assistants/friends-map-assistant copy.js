@@ -11,20 +11,11 @@ function FriendsMapAssistant(lat,long,f,u,p,uid,ps,what) {
 	   this.uid=uid;
 	   this.prevScene=ps;
 	   this.what=what;
-	   
-	   _globals.curmap=this;
-
 }
 
 FriendsMapAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
-		    Mojo.Log.error("Initializing Google Loader");
-    // Code from Google Sample
-    var script = document.createElement("script");
-    script.src = "http://maps.google.com/maps/api/js?sensor=true&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=mapLoaded";
-    script.type = "text/javascript";
-    document.getElementsByTagName("head")[0].appendChild(script);
-
+		
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
 	
 	/* setup widgets here */
@@ -141,100 +132,208 @@ FriendsMapAssistant.prototype.handleGestureEnd = function(event) {
 
 }
 
-FriendsMapAssistant.prototype.setMarkers = function(map) {
-  var cimage = new google.maps.MarkerImage('http://google-maps-icons.googlecode.com/files/leftthendown.png',
-      // This marker is 20 pixels wide by 32 pixels tall.
-      new google.maps.Size(32, 37),
-      // The origin for this image is 0,0.
-      new google.maps.Point(0,0),
-      // The anchor for this image is the base of the flagpole at 0,32.
-      new google.maps.Point(0, 27));
 
-  var friendsfaces=[];
+FriendsMapAssistant.prototype.initMap = function(event) {
+    try
+    {
+        this.map = Maps.createMap('map_canvas');
 
-  var cmarker = new google.maps.Marker({
-  	position: new google.maps.LatLng(_globals.lat,_globals.long),
-  	map: map,
-  	icon: cimage
-  });
-  
-    var shadow = new google.maps.MarkerImage('images/map-marker-bg.png',
-      // The shadow image is larger in the horizontal dimension
-      // while the position and offset are the same as for the main image.
-      new google.maps.Size(58, 65),
-      new google.maps.Point(0,0),
-      new google.maps.Point(22, 45));
+        /*GEvent.addListener(this.map, "click",
+        function(clickable) {
+            this.controller.stageController.pushScene("StopInfo", clickable.oba_stop);
+        }.bind(this));*/
+        var the_center=new GLatLng(_globals.lat, _globals.long);
+		this.map.setCenter(the_center, 15);
+		var yahIcon = new GIcon();
+		yahIcon.image = "http://google-maps-icons.googlecode.com/files/leftthendown.png";
+		yahIcon.shadow = "http://google-maps-icons.googlecode.com/files/shadow.png";
+		yahIcon.iconSize = new GSize(32, 37);
+		yahIcon.shadowSize = new GSize(51, 35);
+		yahIcon.iconAnchor = new GPoint(24, 38);
+		yahIcon.infoWindowAnchor = new GPoint(5, 1);
 
-  
-  
-  		for(var v=0;v<this.friends.length;v++) {
+		markerOptions = { icon:yahIcon };
+
+		var yahmarker=new GMarker(the_center, markerOptions);
+		this.map.addOverlay(yahmarker);
+		
+		
+		//set up venue markers
+		// Create our "cafe" marker icon
+		var cafeIcon = new GIcon();
+		cafeIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=+|62195D";
+		cafeIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
+		cafeIcon.iconSize = new GSize(30, 38);
+		cafeIcon.shadowSize = new GSize(40, 38);
+		cafeIcon.iconAnchor = new GPoint(24, 38);
+		cafeIcon.infoWindowAnchor = new GPoint(5, 1);
+
+		var friendsfaces=[];
+	/*	for (var f=0;f<this.friends.length;f++) {
+			friendsfaces[f] = new GIcon();
+			friendsfaces[f].image = this.friends[f].photo;
+			friendsfaces[f].shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
+			friendsfaces[f].iconSize = new GSize(32, 32);
+			friendsfaces[f].shadowSize = new GSize(40, 38);
+			friendsfaces[f].iconAnchor = new GPoint(24, 38);
+			friendsfaces[f].infoWindowAnchor = new GPoint(5, 1);
+		}*/
+
+		
+		
+		
+		// Set up our GMarkerOptions object literal
+		markerOptions = { icon:cafeIcon };
+
+
+		for(var v=0;v<this.friends.length;v++) {
 		  if(this.friends[v].geolat!=0 && this.friends[v].geolat!=undefined) { //don't show friends that haven't done anything
-  			friendsfaces[v] = new google.maps.MarkerImage(this.friends[v].photo,
-      		new google.maps.Size(43, 43),
-      		new google.maps.Point(0,0),
-		    new google.maps.Point(17, 40));
+			friendsfaces[f] = new GIcon();
+			friendsfaces[f].image = this.friends[v].photo;
+			friendsfaces[f].shadow = "images/map-marker-bg.png";
+			friendsfaces[f].iconSize = new GSize(43, 43);
+			friendsfaces[f].shadowSize = new GSize(58, 65);
+			friendsfaces[f].iconAnchor = new GPoint(22, 45);
+			friendsfaces[f].infoWindowAnchor = new GPoint(5, 1);
 
 			
 			
-			var point = new google.maps.LatLng(this.friends[v].geolat,this.friends[v].geolong);
+			var point = new GLatLng(this.friends[v].geolat,this.friends[v].geolong);
 			
-			var marker=new google.maps.Marker({
-				position: point,
-				map: map,
-				icon: friendsfaces[v],
-				shadow: shadow,
-				friend: this.friends[v],
-				vindex: v,
-				username: this.username,
-				password: this.password,
-				uid: this.uid
-			});
-			this.attachBubble(marker, v);
-
+			
+			var marker=new GMarker(point, {icon:friendsfaces[f]});
+			marker.friend=this.friends[v];
+			marker.vindex=v;
+			marker.username=this.username;
+			marker.password=this.password;
+			marker.uid=this.uid;
+  			this.map.addOverlay(marker);
+			/*GEvent.addListener(marker, "click",function() {
+				NearbyVenuesMapAssistant.showVenue(NearbyVenuesMapAssistant.vvv);
+			});*/
 		  }
 
 
 		}
 
 
-	this.spinnerModel.spinning = false;
-    this.controller.modelChanged(this.spinnerModel);
-	this.controller.get("mapSpinner").hide();
+		/*Set up an Event on the clicking of the map itself.
+			Adding events to the markers themselves udner Mojo is a pain,
+			So we add the evnt to the map, then we get the instance of the clickable object
+			Under the user's finger, if any. If it's a marker, sho the info window
+			and attach an event to the Venue Info link to show the Venue Detail scene
+		*/
+		GEvent.addListener(this.map, "click",
+        function(clickable,noideawhatthisargumentis,point) {
+           if(clickable.friend != undefined) {
+           var iw=this.map.openInfoWindowHtml(point, '<div id="iw-'+clickable.friend.id+'"><b>'+clickable.friend.firstname+"</b><br/>"+
+           										clickable.friend.checkin+"<br/></div>"+
+           										'<a href="javascript:;" id="friend-'+clickable.friend.id+'" class="friendLink" data="'+clickable.vindex+'">Friend Info</a>'
+           										,{onOpenFn: function(){
+													var eid="friend-"+clickable.friend.id;
+													Mojo.Log.error("#########adding event to "+eid)
+													Mojo.Event.stopListening($(eid),Mojo.Event.tap,this.showFriendInfo); //avoid conflicts
+													Mojo.Event.listen($(eid),Mojo.Event.tap,this.showFriendInfo.bind(this));
+													Mojo.Log.error("#########added event to "+eid)
+           										
+           										
+           										
+           										
+           										}.bind(this)
+           										});
+           										
+        }}.bind(this));
+		
+// A TextualZoomControl is a GControl that displays textual "Zoom In"
+// and "Zoom Out" buttons (as opposed to the iconic buttons used in
+// Google Maps).
 
-
-
+// We define the function first
+function TextualZoomControl() {
 }
 
+// To "subclass" the GControl, we set the prototype object to
+// an instance of the GControl object
+TextualZoomControl.prototype = new GControl();
 
-FriendsMapAssistant.prototype.attachBubble = function(marker,i) {
+// Creates a one DIV for each of the buttons and places them in a container
+// DIV which is returned as our control element. We add the control to
+// to the map container and return the element for the map class to
+// position properly.
+TextualZoomControl.prototype.initialize = function(map) {
+  var container = document.createElement("div");
 
-
-  var infowindow = new google.maps.InfoWindow(
-      { content: '<div id="iw-'+this.friends[i].id+'"><b>'+this.friends[i].firstname+"</b><br/>"+
-           										this.friends[i].checkin+"<br/></div>"+
-           										'<a href="javascript:;" id="friend-'+this.friends[i].id+'" class="friendLink" data="'+i+'">Friend Info</a>'
-      });
-  
-  google.maps.event.addListener(marker, 'click', function() {
-    infowindow.open(this.map,marker);
+  var zoomInDiv = document.createElement("div");
+  this.setButtonStyle_(zoomInDiv);
+  container.appendChild(zoomInDiv);
+  zoomInDiv.appendChild(document.createTextNode("+"));
+  GEvent.addDomListener(zoomInDiv, "click", function() {
+    map.zoomIn();
   });
-	google.maps.event.addListener(infowindow,"domready",function(){	
-		Mojo.Event.listen(this.controller.get('iw-'+this.venuesfriends.id),Mojo.Event.tap, this.showFriendInfo.bind(this));
-	}.bind(this));
+  GEvent.addDomListener(zoomInDiv, "mousedown", function() {
+    zoomInDiv.style.backgroundPosition="-4px -54px"
+  });
+  GEvent.addDomListener(zoomInDiv, "mouseup", function() {
+    zoomInDiv.style.backgroundPosition="-4px -4px"
+  });
 
+  var zoomOutDiv = document.createElement("div");
+  this.setButtonStyle_(zoomOutDiv);
+  container.appendChild(zoomOutDiv);
+  zoomOutDiv.appendChild(document.createTextNode("-"));
+  GEvent.addDomListener(zoomOutDiv, "click", function() {
+    map.zoomOut();
+  });
+  GEvent.addDomListener(zoomOutDiv, "mousedown", function() {
+    zoomOutDiv.style.backgroundPosition="-4px -54px"
+  });
+  GEvent.addDomListener(zoomOutDiv, "mouseup", function() {
+    zoomOutDiv.style.backgroundPosition="-4px -4px"
+  });
+
+  map.getContainer().appendChild(container);
+  return container;
 }
 
-FriendsMapAssistant.prototype.initMap = function(event) {
-  var myOptions = {
-    zoom: 15,
-    center: new google.maps.LatLng(_globals.lat, _globals.long),
-    mapTypeId: google.maps.MapTypeId.ROADMAP
-  }
-  this.map = new google.maps.Map(this.controller.get("map_canvas"),
-                                myOptions);
+// By default, the control will appear in the top left corner of the
+// map with 7 pixels of padding.
+TextualZoomControl.prototype.getDefaultPosition = function() {
+  return new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(9, 60));
+}
 
-  this.setMarkers(this.map);
+// Sets the proper CSS for the given button element.
+TextualZoomControl.prototype.setButtonStyle_ = function(button) {
+  button.style.textDecoration = "none";
+  button.style.color = "#fff";
+  //button.style.backgroundColor = "white";
+  button.style.background="transparent url(images/palm-menu-button.png) no-repeat -4px -4px"
+  button.style.font = "22px Arial";
+  button.style.fontWeight="bold";
+  //button.style.border = "1px solid black";
+  button.style.paddingTop = "5px";
+  button.style.marginBottom = "3px";
+  button.style.textAlign = "center";
+  button.style.width = "43px";
+  button.style.height="42px";
+  button.style.cursor = "pointer";
+}
 
+this.map.addControl(new TextualZoomControl());
+		
+		
+		this.spinnerModel.spinning = false;
+	    this.controller.modelChanged(this.spinnerModel);
+
+	    this.controller.get("statusinfo").update("");
+	
+        Mojo.Log.info("Map Created");
+		
+       // this.updateMap(true);
+    }
+    catch(error)
+    {
+        Mojo.Log.error("Error during setup: " + error);
+    }
 }
 
 var auth;

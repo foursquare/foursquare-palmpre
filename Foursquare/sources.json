@@ -1,12 +1,9 @@
 [
+    {"source": "app/assistants/app-assistant.js"},
     {"source": "app/assistants/stage-assistant.js"},
     {
         "scenes": "main",
         "source": "app/assistants/main-assistant.js"
-    },
-    {
-        "scenes": "nearby-venues-map",
-        "source": "maps.js"
     },
     {
         "scenes": "friends-map",

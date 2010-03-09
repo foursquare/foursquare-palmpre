@@ -11,7 +11,7 @@
 	<br class="breaker-small"/>
 	<br/>
 <div x-mojo-element="Drawer" id="drawerId" class="drawerClass" name="drawerName">
-<div class="palm-group">
+<div class="palm-group" style="display:none;" id="searchgroup">
 	<div class="palm-group-title" x-mojo-loc=''>Search Venues</div>
 	<div class="palm-list">
    		<div class="palm-row single">
@@ -47,7 +47,7 @@
 -->
 
 <div id='message' style='padding: 0 20px;'></div>
-<div id="gps_banner">
+<div id="gps_banner" style="display:none;">
 	<span id="banner_text"></span>
 	<div x-mojo-element="Spinner" id="smallSpinner" class="spinnerClass" name="spinnerName"></div>
 	<span id="refresh-venues" class="vtip">Refresh</span>
@@ -68,7 +68,7 @@
 </div>
 <div id="menuhere" style="float: right; position: fixed; top: 30px;right:0px;"></div>
 
-<div id="getting-gps-alert" class="alert-overlay" style="display:block;">
+<div id="getting-gps-alert" class="alert-overlay" style="display:none;">
           <div class="fullscreen-message" id="fullscreen-info-message"><img src="images/radar.png" width="27" height="27" style="margin-right: 5px;"/> <span id="gpsmsg">Getting Your Location...</span></div>
           
 </div>

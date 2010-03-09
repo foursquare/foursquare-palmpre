@@ -23,7 +23,7 @@ FlickrAuthAssistant.prototype.setup = function() {
     );
 
 	/* add event handlers to listen to events from widgets */
-	Mojo.Event.listen($("flickrWeb"),Mojo.Event.webViewTitleUrlChanged, this.handleWebUrl.bind(this));
+	Mojo.Event.listen(this.controller.get("flickrWeb"),Mojo.Event.webViewTitleUrlChanged, this.handleWebUrl.bind(this));
 
 	
 	//gotta set up out app-sig first
@@ -56,7 +56,7 @@ FlickrAuthAssistant.prototype.getFrobSuccess = function(response) {
 	
 	var url="http://flickr.com/services/auth/?api_key="+_globals.flickr_key+"&perms=write&frob="+this.frob+"&api_sig="+api_sig;
 	
-	$("flickrWeb").mojo.openURL(url);
+	this.controller.get("flickrWeb").mojo.openURL(url);
 	
 }
 FlickrAuthAssistant.prototype.getFrobFailed = function(response) {
@@ -76,8 +76,8 @@ FlickrAuthAssistant.prototype.handleWebUrl = function(event,title,url) {
 		var presig=_globals.flickr_secret+"api_key"+_globals.flickr_key+"frob"+this.frob+"methodflickr.auth.getToken";
 		var api_sig=hex_md5(presig);
 		
-		$("flickrWeb").hide();
-		$("msg").innerHTML="Getting authorization token...";
+		this.controller.get("flickrWeb").hide();
+		this.controller.get("msg").innerHTML="Getting authorization token...";
 		
 		var url="http://api.flickr.com/services/rest/?method=flickr.auth.getToken&api_key="+_globals.flickr_key+"&frob="+this.frob+"&api_sig="+api_sig;
 		var request = new Ajax.Request(url, {
@@ -132,5 +132,20 @@ FlickrAuthAssistant.prototype.deactivate = function(event) {
 FlickrAuthAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
+   		var presig=_globals.flickr_secret+"api_key"+_globals.flickr_key+"frob"+this.frob+"methodflickr.auth.getToken";
+		var api_sig=hex_md5(presig);
+		
+		this.controller.get("flickrWeb").hide();
+		this.controller.get("msg").innerHTML="Getting authorization token...";
+		
+		var url="http://api.flickr.com/services/rest/?method=flickr.auth.getToken&api_key="+_globals.flickr_key+"&frob="+this.frob+"&api_sig="+api_sig;
+		var request = new Ajax.Request(url, {
+	   		method: 'get',
+	   		evalJSON: 'force',
+	   		onSuccess: this.getTokenSuccess.bind(this),
+	   		onFailure: this.getTokenFailed.bind(this)
+	 	});
+
+	   
 	   zBar.showToolbar();
 }

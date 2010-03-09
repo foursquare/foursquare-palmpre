@@ -12,25 +12,21 @@ function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps,q,what) {
 	   this.prevScene=ps;
 	   this.query=q;
 	   this.what=what;
-	   
-	   _globals.curmap=this;
-	   
 }
-
 
 NearbyVenuesMapAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
-
-   	    var appController = Mojo.Controller.getAppController();
-  	  	var cardStageController = appController.getStageController("mainStage");
-		var doc=cardStageController.document;
-
-    Mojo.Log.error("Initializing Google Loader");
-    // Code from Google Sample
-    var script = document.createElement("script");
-    script.src = "http://maps.google.com/maps/api/js?sensor=true&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=mapLoaded";
-    script.type = "text/javascript";
-    document.getElementsByTagName("head")[0].appendChild(script);
+    this.controller.setupWidget("WebId",
+        this.attributes = {
+            url:    Mojo.appPath + 'map.html',
+            minFontSize:18,
+            /*virtualpagewidth: 20,
+            virtualpageheight: 10,*/
+            interrogateClicks: true
+        },
+        this.model = {
+        }
+    ); 
 
 	
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
@@ -97,6 +93,7 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
 */
 
 
+Mojo.Log.error(Mojo.appPath + 'map.html');
 
 	
 _globals.ammodel.items[0].disabled=true;
@@ -159,131 +156,227 @@ NearbyVenuesMapAssistant.prototype.handleGestureEnd = function(event) {
 
 }
 
+NearbyVenuesMapAssistant.prototype.initMap = function(event) {
+    try
+    {
+        this.map = Maps.createMap('map_canvas');
+
+        /*GEvent.addListener(this.map, "click",
+        function(clickable) {
+            this.controller.stageController.pushScene("StopInfo", clickable.oba_stop);
+        }.bind(this));*/
+        //set up the center of the map and the You Are Here icon.
+       
+       
+       
+       
+       /*
+        
+        var the_center=new google.maps.LatLng(this.lat, this.long);
+		this.map.setCenter(the_center, 15);
+		var yahIcon = new google.maps.MarkerImage();
+		yahIcon.image = "http://google-maps-icons.googlecode.com/files/leftthendown.png";
+		yahIcon.shadow = "http://google-maps-icons.googlecode.com/files/shadow.png";
+		yahIcon.iconSize = new google.maps.Size(32, 37);
+		yahIcon.shadowSize = new google.maps.Size(51, 35);
+		yahIcon.iconAnchor = new google.maps.Point(24, 38);
+		yahIcon.infoWindowAnchor = new google.maps.Point(5, 1);
+
+		markerOptions = { icon:yahIcon };
+
+		var yahmarker=new google.maps.Marker({position: the_center, icon:yahIcon});
+		//this.map.addOverlay(yahmarker);
+
+		*/
+		
+		/*
+		//set up venue markers
+		// Create our "cafe" marker icon
+		var cafeIcon = new GIcon();
+		cafeIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=+|56739e";
+		cafeIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
+		cafeIcon.iconSize = new GSize(30, 38);
+		cafeIcon.shadowSize = new GSize(40, 38);
+		cafeIcon.iconAnchor = new GPoint(40, 42);
+		cafeIcon.infoWindowAnchor = new GPoint(5, 1);
+		var cafeIcon = new GIcon();
+		cafeIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_icon&chld=cafe|62195D";
+		cafeIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
+		cafeIcon.iconSize = new GSize(25, 33);
+		cafeIcon.shadowSize = new GSize(35, 33);
+		cafeIcon.iconAnchor = new GPoint(19, 33);
+		cafeIcon.infoWindowAnchor = new GPoint(5, 1);*/
+/*
+		var airportIcon = new GIcon();
+		airportIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_icon&chld=airport|62195D";
+		airportIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
+		airportIcon.iconSize = new GSize(25, 33);
+		airportIcon.shadowSize = new GSize(35, 33);
+		airportIcon.iconAnchor = new GPoint(19, 33);
+		airportIcon.infoWindowAnchor = new GPoint(5, 1);*/
+		
+		
+		
+		// Set up our GMarkerOptions object literal
+		//markerOptions = { icon:cafeIcon };
+
+if(1==2){
+		for(var v=0;v<this.venues.length;v++) {
+			var point = new GLatLng(this.venues[v].geolat,this.venues[v].geolong);
+			
+			
+			var marker=new GMarker(point, markerOptions);
+			marker.venue=this.venues[v];
+			marker.vindex=v;
+			marker.username=this.username;
+			marker.password=this.password;
+			marker.uid=this.uid;
+  			this.map.addOverlay(marker);
+			/*GEvent.addListener(marker, "click",function() {
+				NearbyVenuesMapAssistant.showVenue(NearbyVenuesMapAssistant.vvv);
+			});*/
+			
+
+
+		}
+
+
+		/*Set up an Event on the clicking of the map itself.
+			Adding events to the markers themselves udner Mojo is a pain,
+			So we add the evnt to the map, then we get the instance of the clickable object
+			Under the user's finger, if any. If it's a marker, sho the info window
+			and attach an event to the Venue Info link to show the Venue Detail scene
+		*/
+		GEvent.addListener(this.map, "click",
+        function(clickable,noideawhatthisargumentis,point) {
+           if(clickable.venue != undefined) {
+           var iw=this.map.openInfoWindowHtml(point, '<div id="iw-'+clickable.venue.id+'"><b>'+clickable.venue.name+"</b><br/>"+
+           										clickable.venue.address+"<br/></div>"+
+           										'<a href="javascript:;" id="venue-'+clickable.venue.id+'" class="venueLink" data="'+clickable.vindex+'">Venue Info</a>'
+           										,{onOpenFn: function(){
+													var eid="venue-"+clickable.venue.id;
+													Mojo.Log.error("#########adding event to "+eid)
+													Mojo.Event.stopListening($(eid),Mojo.Event.tap,this.showVenueInfo); //avoid conflicts
+													Mojo.Event.listen($(eid),Mojo.Event.tap,this.showVenueInfo.bind(this));
+													Mojo.Log.error("#########added event to "+eid)
+           										
+           										
+           										
+           										
+           										}.bind(this)
+           										});
+           										
+        }}.bind(this));
+		
+// A TextualZoomControl is a GControl that displays textual "Zoom In"
+// and "Zoom Out" buttons (as opposed to the iconic buttons used in
+// Google Maps).
+
+// We define the function first
+function TextualZoomControl() {
+}
+
+// To "subclass" the GControl, we set the prototype object to
+// an instance of the GControl object
+TextualZoomControl.prototype = new GControl();
+
+// Creates a one DIV for each of the buttons and places them in a container
+// DIV which is returned as our control element. We add the control to
+// to the map container and return the element for the map class to
+// position properly.
+TextualZoomControl.prototype.initialize = function(map) {
+  var container = document.createElement("div");
+
+  var zoomInDiv = document.createElement("div");
+  this.setButtonStyle_(zoomInDiv);
+  container.appendChild(zoomInDiv);
+  zoomInDiv.appendChild(document.createTextNode("+"));
+  GEvent.addDomListener(zoomInDiv, "click", function() {
+    map.zoomIn();
+  });
+  GEvent.addDomListener(zoomInDiv, "mousedown", function() {
+    zoomInDiv.style.backgroundPosition="-4px -54px"
+  });
+  GEvent.addDomListener(zoomInDiv, "mouseup", function() {
+    zoomInDiv.style.backgroundPosition="-4px -4px"
+  });
+
+  var zoomOutDiv = document.createElement("div");
+  this.setButtonStyle_(zoomOutDiv);
+  container.appendChild(zoomOutDiv);
+  zoomOutDiv.appendChild(document.createTextNode("-"));
+  GEvent.addDomListener(zoomOutDiv, "click", function() {
+    map.zoomOut();
+  });
+  GEvent.addDomListener(zoomOutDiv, "mousedown", function() {
+    zoomOutDiv.style.backgroundPosition="-4px -54px"
+  });
+  GEvent.addDomListener(zoomOutDiv, "mouseup", function() {
+    zoomOutDiv.style.backgroundPosition="-4px -4px"
+  });
+
+  map.getContainer().appendChild(container);
+  return container;
+}
+
+// By default, the control will appear in the top left corner of the
+// map with 7 pixels of padding.
+TextualZoomControl.prototype.getDefaultPosition = function() {
+  return new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(9, 60));
+}
+
+// Sets the proper CSS for the given button element.
+TextualZoomControl.prototype.setButtonStyle_ = function(button) {
+  button.style.textDecoration = "none";
+  button.style.color = "#fff";
+  //button.style.backgroundColor = "white";
+  button.style.background="transparent url(images/palm-menu-button.png) no-repeat -4px -4px"
+  button.style.font = "22px Arial";
+  button.style.fontWeight="bold";
+  //button.style.border = "1px solid black";
+  button.style.paddingTop = "5px";
+  button.style.marginBottom = "3px";
+  button.style.textAlign = "center";
+  button.style.width = "43px";
+  button.style.height="42px";
+  button.style.cursor = "pointer";
+}
+
+this.map.addControl(new TextualZoomControl());
+		
+		
+		this.spinnerModel.spinning = false;
+	    this.controller.modelChanged(this.spinnerModel);
+
+	    this.controller.get("statusinfo").update("");
+	
+        Mojo.Log.info("Map Created");
+		
+       // this.updateMap(true);
+}   
+       
+    
+    }
+    catch(error)
+    {
+        Mojo.Log.error("Error during setup: " + error);
+    }
+}
 
 NearbyVenuesMapAssistant.prototype.showVenueInfo = function(event) {
 	Mojo.Log.error("trying venue info!!!!!");
 	var v=event.target.readAttribute("data");
-	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.venues[v],this.username,this.password,this.uid,false,this,true);
+	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.venues[v],this.username,this.password,this.uid);
 }
 
 
 
+NearbyVenuesMapAssistant.prototype.initMap2 = function(event) {
+    Mojo.Log.error("Initializing Google Maps");
+    google.load("maps", "3", {"callback" : Maps.mapsLoaded.bind(Maps),"other_params":"sensor=true"});
 
-
-
-NearbyVenuesMapAssistant.prototype.initMap = function() {
-
-
-//window.initMap = function() {
-  var myOptions = {
-    zoom: 15,
-    center: new google.maps.LatLng(_globals.lat, _globals.long),
-    mapTypeId: google.maps.MapTypeId.ROADMAP
-  }
-  this.map = new google.maps.Map(this.controller.get("map_canvas"),
-                                myOptions);
-
-  this.setMarkers(this.map);
-}
-
-
-
-NearbyVenuesMapAssistant.prototype.setMarkers = function (map) {
-  // Add markers to the map
-
-  // Marker sizes are expressed as a Size of X,Y
-  // where the origin of the image (0,0) is located
-  // in the top left of the image.
-
-  // Origins, anchor positions and coordinates of the marker
-  // increase in the X direction to the right and in
-  // the Y direction down.
-  
-  
-  var cimage = new google.maps.MarkerImage('http://google-maps-icons.googlecode.com/files/leftthendown.png',
-      // This marker is 20 pixels wide by 32 pixels tall.
-      new google.maps.Size(32, 37),
-      // The origin for this image is 0,0.
-      new google.maps.Point(0,0),
-      // The anchor for this image is the base of the flagpole at 0,32.
-      new google.maps.Point(0, 27));
-
-  var image = new google.maps.MarkerImage('http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=+|56739e',
-      // This marker is 20 pixels wide by 32 pixels tall.
-      new google.maps.Size(20, 32),
-      // The origin for this image is 0,0.
-      new google.maps.Point(0,0),
-      // The anchor for this image is the base of the flagpole at 0,32.
-      new google.maps.Point(0, 27));
-  var shadow = new google.maps.MarkerImage('http://chart.apis.google.com/chart?chst=d_map_pin_shadow',
-      // The shadow image is larger in the horizontal dimension
-      // while the position and offset are the same as for the main image.
-      new google.maps.Size(37, 32),
-      new google.maps.Point(0,0),
-      new google.maps.Point(0, 27));
-      // Shapes define the clickable region of the icon.
-      // The type defines an HTML &lt;area&gt; element 'poly' which
-      // traces out a polygon as a series of X,Y points. The final
-      // coordinate closes the poly by connecting to the first
-      // coordinate.
-      
-  var cmarker = new google.maps.Marker({
-  	position: new google.maps.LatLng(_globals.lat,_globals.long),
-  	map: map,
-  	icon: cimage
-  });
-  
-  
-  for(var v=0;v<this.venues.length;v++) {
-	var point = new google.maps.LatLng(this.venues[v].geolat,this.venues[v].geolong);
-			
-			
-	var marker=new google.maps.Marker({
-		position: point,
-		map: map,
-		icon: image,
-		shadow: shadow,
-		venue: this.venues[v],
-		vindex: v,
-		username: this.username,
-		password: this.password,
-		uid: this.uid
-	});
-	
-	this.attachBubble(marker, v);
-
-
-  }
-
-
-			    
-	this.spinnerModel.spinning = false;
-    this.controller.modelChanged(this.spinnerModel);
-	this.controller.get("mapSpinner").hide();
 
 }
-
-
-NearbyVenuesMapAssistant.prototype.attachBubble = function(marker,i) {
-
-
-  var infowindow = new google.maps.InfoWindow(
-      { content: '<div id="iw-'+this.venues[i].id+'" style="height:260px;font-size:16px;"  data="'+i+'"><b>'+this.venues[i].name+"</b><br/>" +
-           					this.venues[i].address+"<br/>"/*+
-           					'<a href="javascript:;" id="venue-'+this.venues[i].id+'" class="venueLink" data="'+i+'">Venue Info</a></div><br/>'*/
-      });
-  
-  google.maps.event.addListener(marker, 'click', function() {
-    infowindow.open(this.map,marker);
-  });
-	google.maps.event.addListener(infowindow,"domready",function(){	
-		Mojo.Event.listen(this.controller.get('iw-'+this.venues[i].id),Mojo.Event.tap, this.showVenueInfo.bind(this));
-	}.bind(this));
-
-}
-
-
-
 
 
 
@@ -291,13 +384,25 @@ NearbyVenuesMapAssistant.prototype.attachBubble = function(marker,i) {
 
 NearbyVenuesMapAssistant.prototype.activate = function(event) {
 //Mojo.Log.error("protocol="+window.location.protocol);
-	//try {
-//		this.initMap();
-//	}
-//	catch(err) {
-//		window.setInterval("this.activate()",750);
-//	}
-//	window.setTimeout("mapLoaded().bind(this);",5000);
+ /*               if (this.map === undefined)
+                {
+					// Kick off google maps initialization
+					if(!Maps.isLoaded())
+					{
+						this.spinnerModel.spinning = true;
+					    this.controller.modelChanged(this.spinnerModel);
+
+					    this.controller.get("statusinfo").update("Loading Google Maps...");
+					
+						Maps.loadedCallback(this.initMap.bind(this));
+						//initLoader();
+						this.initMap2();
+					}
+					else
+					{
+						this.initMap2();
+					}
+                }*/
 }
 
 

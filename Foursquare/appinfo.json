@@ -1,7 +1,9 @@
 {
 	"id": "com.foursquare.foursquare",
-	"version": "0.9.6",
+	"version": "0.9.8",
 	"vendor": "foursquare",
+	"noWindow" : "true",
+	"timingEnabled": "true",
 	"type": "web",
 	"main": "index.html",
 	"title": "Foursquare",

@@ -127,7 +127,7 @@ LeaderboardAssistant.prototype.friendboardSuccess = function(response) {
 	//make sure we have some things to display. if not, tell the user
 	this.friendBoard=(this.friendBoard.indexOf('class="mini"')>-1)? this.friendBoard: "None of your friends have checked-in near "+this.city+" yet!";
 		
-	$("leaderboard").innerHTML=this.friendBoard; 
+	this.controller.get("leaderboard").innerHTML=this.friendBoard; 
 	
 	
 	
@@ -201,20 +201,20 @@ LeaderboardAssistant.prototype.handleCommand = function(event) {
                 	_globals.checkUpdate(this);
                 	break;
                 case "lb-all":
-               		$("fmenu-caption").update("City");
-                	$("leaderboard").innerHTML=this.cityBoard;
+               		this.controller.get("fmenu-caption").update("City");
+                	this.controller.get("leaderboard").innerHTML=this.cityBoard;
                 	var scroller = this.controller.getSceneScroller();
 					//call the widget method for scrolling to the top
 					scroller.mojo.revealTop(0);
-                	$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
+                	$this.controller.get("#leaderboard td:nth-of-type(2)").addClassName("truncate");
                 	break;
                 case "lb-friends":
-                	$("fmenu-caption").update("Friends");
-                	$("leaderboard").innerHTML=this.friendBoard;
+                	this.controller.get("fmenu-caption").update("Friends");
+                	this.controller.get("leaderboard").innerHTML=this.friendBoard;
                 	var scroller = this.controller.getSceneScroller();
 					//call the widget method for scrolling to the top
 					scroller.mojo.revealTop(0);
-                	$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
+                	$this.controller.get("#leaderboard td:nth-of-type(2)").addClassName("truncate");
                 	break;
             }
         }
@@ -223,20 +223,20 @@ LeaderboardAssistant.prototype.handleCommand = function(event) {
 LeaderboardAssistant.prototype.popUpChoose = function(event){
 	switch(event) {
                 case "lb-all":
-               		$("fmenu-caption").update("City");
-                	$("leaderboard").innerHTML=this.cityBoard;
+               		this.controller.get("fmenu-caption").update("City");
+                	this.controller.get("leaderboard").innerHTML=this.cityBoard;
                 	var scroller = this.controller.getSceneScroller();
 					//call the widget method for scrolling to the top
 					scroller.mojo.revealTop(0);
-                	//$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
+                	//$this.controller.get("#leaderboard td:nth-of-type(2)").addClassName("truncate");
                 	break;
                 case "lb-friends":
-                	$("fmenu-caption").update("Friends");
-                	$("leaderboard").innerHTML=this.friendBoard;
+                	this.controller.get("fmenu-caption").update("Friends");
+                	this.controller.get("leaderboard").innerHTML=this.friendBoard;
                 	var scroller = this.controller.getSceneScroller();
 					//call the widget method for scrolling to the top
 					scroller.mojo.revealTop(0);
-                	//$$("#leaderboard td:nth-of-type(2)").addClassName("truncate");
+                	//$this.controller.get("#leaderboard td:nth-of-type(2)").addClassName("truncate");
                 	break;
 	
 	}

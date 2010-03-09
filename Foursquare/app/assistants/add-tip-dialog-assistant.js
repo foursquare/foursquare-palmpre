@@ -31,12 +31,12 @@ AddTipDialogAssistant.prototype.setup = function(widget) {
   
 	this.sceneAssistant.controller.setupWidget('newtip', this.tipAttributes = {hintText:'Enter '+this.type+' here...',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
 
-	$("addtip-title").innerHTML="Add a "+this.type;
+	this.sceneAssistant.controller.get("addtip-title").innerHTML="Add a "+this.type;
 //	this.init();
 }
 
 AddTipDialogAssistant.prototype.activate = function() {
-	$('newtip').mojo.focus();
+	this.sceneAssistant.controller.get('newtip').mojo.focus();
 }
 
 
@@ -58,7 +58,7 @@ AddTipDialogAssistant.prototype.okTapped = function() {
 			onFailure: this.tipFailed.bind(this)
 		});
 	} else {
-		//$('message').innerHTML = 'Not Logged In';
+		//this.sceneAssistant.controller.get('message').innerHTML = 'Not Logged In';
 	}
 	
 
@@ -67,7 +67,7 @@ AddTipDialogAssistant.prototype.okTapped = function() {
 
 AddTipDialogAssistant.prototype.tipSuccess = function() {
 	Mojo.Controller.getAppController().showBanner("Successfully added your "+this.type+"!", {source: 'notification'});
-	$("okButton").mojo.deactivate();
+	this.sceneAssistant.controller.get("okButton").mojo.deactivate();
 	this.sceneAssistant.getVenueInfo();
 	this.widget.mojo.close();
 }

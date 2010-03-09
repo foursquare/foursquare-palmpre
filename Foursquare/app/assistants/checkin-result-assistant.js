@@ -26,8 +26,8 @@ CheckinResultAssistant.prototype.setup = function() {
 CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 
 	//set the title message
-	$('checkin-display').innerHTML = checkinJSON.checkin.message;
-	$('scores-box').innerHTML=" ";
+	this.controller.get('checkin-display').innerHTML = checkinJSON.checkin.message;
+	this.controller.get('scores-box').innerHTML=" ";
 	
 	//set the individual scores - handle changes in JSON response...
 	if(checkinJSON.checkin.scoring != undefined){
@@ -44,11 +44,11 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 				var imgpath = scores[i].icon;
 				totalpoints+=parseInt(scores[i].points);
 				var msg = '+' + scores[i].points + ' ' +scores[i].message;
-				$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-score-item"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';
+				this.controller.get('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-score-item"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';
 			}
 		}
 		var totalPts = (totalpoints != 1)? totalpoints+' pts': totalpoints+' pt';
-		$('score-title').innerHTML = "Score! That's " + totalPts+"!";
+		this.controller.get('score-title').innerHTML = "Score! That's " + totalPts+"!";
 	}else{
 		this.noscores=true;
 	}
@@ -60,7 +60,7 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			var badge_name=checkinJSON.checkin.badges[b].name;
 			var badge_icon=checkinJSON.checkin.badges[b].icon;
 			var badge_text=checkinJSON.checkin.badges[b].description;
-			$('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-badge-item"><img align="absmiddle" src="'+badge_icon+'" width="32" height="32" /> <span>'+badge_name+': '+badge_text+'</span></div></div>';
+			this.controller.get('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-badge-item"><img align="absmiddle" src="'+badge_icon+'" width="32" height="32" /> <span>'+badge_name+': '+badge_text+'</span></div></div>';
 		}
 	}
 
@@ -75,14 +75,14 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			Mojo.Log.error("^^^^^^^^^^^^checkin dialog - same mayor");
 
 			if(checkinJSON.checkin.mayor.user== undefined) {  //we're the mayor still
-				$('checkin-mayorship').innerHTML = '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';
+				this.controller.get('checkin-mayorship').innerHTML = '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';
 		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - same mayor");
 			}
 		}else{ //we're the new mayor!
-			$('checkin-mayorship').innerHTML = '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';	
+			this.controller.get('checkin-mayorship').innerHTML = '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';	
 		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - new mayor");
 		}*/
-		$('checkin-mayorship').innerHTML = '<div class="palm-row single"><span>'+checkinJSON.checkin.mayor.message+'</span></div>';
+		this.controller.get('checkin-mayorship').innerHTML = '<div class="palm-row single"><span>'+checkinJSON.checkin.mayor.message+'</span></div>';
 
 	}else{
 		this.nomayor=true;
@@ -112,13 +112,13 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			//spt="Mayor Special";
 			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
 			//special_venue="@ Venue Name (123 Venue St.)";
-			$('checkin_specials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
+			this.controller.get('checkin_specials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
 		}
 	}
 
 	
 	//make sure the next stays in the white box!
-	//$('scores-box').innerHTML+='<br class="breaker-small"/>';
+	//this.controller.get('scores-box').innerHTML+='<br class="breaker-small"/>';
 
 	
 
@@ -133,8 +133,8 @@ CheckinResultAssistant.prototype.okTappedCheckin = function() {
 CheckinResultAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
-	   if(this.noscores) {$("checkin-scores").hide();}
-	   if(this.nomayor) {$("mayor-group").hide();}
+	   if(this.noscores) {this.controller.get("checkin-scores").hide();}
+	   if(this.nomayor) {this.controller.get("mayor-group").hide();}
 }
 
 

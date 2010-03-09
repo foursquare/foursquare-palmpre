@@ -36,8 +36,13 @@ MapsHelper.prototype.mapsLoaded = function(id)
 
 MapsHelper.prototype.createMap = function(id)
 {
-    var map = new GMap2($(id));
-	map.enableContinuousZoom();
+//    var map = new GMap2($(id));
+   	    var appController = Mojo.Controller.getAppController();
+  	  	var cardStageController = appController.getStageController("mainStage");
+		var doc=cardStageController.document;
+
+    var map = new google.maps.Map(doc.getElementById(id));
+	//map.enableContinuousZoom();
     return map;
 };
 
@@ -49,18 +54,21 @@ MapsHelper.prototype.loadedCallback = function(callback)
 
 var Maps = new MapsHelper();
 
-function loadMaps() {
+function loadMaps () {
     
     Mojo.Log.error("Initializing Google Maps");
     google.load("maps", "2", {"callback" : Maps.mapsLoaded.bind(Maps),"other_params":"sensor=true"});
 }
 
 function initLoader() {
-    
+   	    var appController = Mojo.Controller.getAppController();
+  	  	var cardStageController = appController.getStageController("mainStage");
+		var doc=cardStageController.document;
+
     Mojo.Log.error("Initializing Google Loader");
     // Code from Google Sample
-    var script = document.createElement("script");
-    script.src = "http://www.google.com/jsapi?key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=loadMaps";
+    var script = doc.createElement("script");
+    script.src = "http://www.google.com/jsapi?key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=Maps.loadMaps";
     script.type = "text/javascript";
-    document.getElementsByTagName("head")[0].appendChild(script);
+    doc.getElementsByTagName("head")[0].appendChild(script);
 }

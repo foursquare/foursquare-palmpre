@@ -16,6 +16,15 @@ AddVenueAssistant.prototype.setup = function(widget) {
   Mojo.Log.error("setup starting");
 
   // Setup button and event handler
+    this.controller.setupWidget("setCategory",
+    this.attributes = {},
+    this.catButtonModel = {
+      buttonLabel: "Choose Category...",
+      disabled: false
+    }
+  );
+  Mojo.Event.listen(this.controller.get('setCategory'), Mojo.Event.tap, this.categoryTapped.bindAsEventListener(this));
+
   this.controller.setupWidget("okButton",
     this.attributes = {type : Mojo.Widget.activityButton},
     this.OKButtonModel = {
@@ -45,7 +54,27 @@ AddVenueAssistant.prototype.setup = function(widget) {
 	this.controller.setupWidget('venue-twitter', this.twitterAttributes = {hintText:'Twitter Username',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.twitterModel = {value:'', disabled:false});
 
 Mojo.Log.error("setup textbxes");
+this.catsmainAttributes={choices:[{label:'',value:'-1'}]};
+this.catsmainModel={value:'-1'};
+for (var c=0;c<_globals.categories.length;c++) {
+	this.catsmainAttributes.choices.push({label:_globals.categories[c].nodename,value:c});
+}
 
+//this.controller.setupWidget("venue-cat-main",
+//	this.catsmainAttributes,this.catsmainModel
+//);
+
+this.catssub1Attributes={choices:[]};
+this.catssub1Model={value:''};
+this.controller.setupWidget("venue-cat-sub1",
+	this.catssub1Attributes,this.catssub1Model
+);
+
+this.catssub2Attributes={choices:[]};
+this.catssub2Model={value:''};
+this.controller.setupWidget("venue-cat-sub2",
+	this.catssub2Attributes,this.catssub2Model
+);
 
     this.controller.setupWidget("venue-state",
         this.stateattributes = {
@@ -110,6 +139,8 @@ Mojo.Log.error("setup textbxes");
         }
     );
 
+//	Mojo.Event.listen(this.controller.get("venue-cat-main"),Mojo.Event.propertyChange,this.loadSubCat.bindAsEventListener(this));
+	Mojo.Event.listen(this.controller.get("venue-cat-sub1"),Mojo.Event.propertyChange,this.loadSubSubCat.bindAsEventListener(this));
 
 
 Mojo.Log.error("setuplist");
@@ -119,7 +150,7 @@ zBar.hideToolbar();
 }
 
 AddVenueAssistant.prototype.activate = function() {
-	$('venue-name').mojo.focus();
+	this.controller.get('venue-name').mojo.focus();
 	
 	//if we're proposing an edit to a venue, populate the fields
 	if(this.editing) {
@@ -147,7 +178,7 @@ AddVenueAssistant.prototype.activate = function() {
 		this.statemodel.value=this.venue.state;
 		this.controller.modelChanged(this.statemodel);
 		
-		$("addvenue-header").innerHTML="Edit Venue";
+		this.controller.get("addvenue-header").innerHTML="Edit Venue";
 		
 	}else{
 		Mojo.Log.error("trying to get addy...lat="+_globals.lat+", long="+_globals.long);
@@ -178,7 +209,7 @@ AddVenueAssistant.prototype.gotLocation = function(event) {
 		var loca=addylines[1].split(", ");
 		var city=trim(loca[0]);
 		var country=trim(addylines[2]);
-		if(country!="USA"){$("venue-state").hide();}
+		if(country!="USA"){this.controller.get("venue-state").hide();}
 		
 		var statezip=loca[1].split(" ");
 		var state=trim(statezip[0]);
@@ -209,6 +240,7 @@ Mojo.Log.error("### we got not auth!");
 		var credentials=this.cookieData.get();
 
 		if(!this.editing) {
+			pcat=this.categoryId;
 			var url = 'http://api.foursquare.com/v1/addvenue.json';
 			var params={
 				name: this.nameModel.value,
@@ -220,7 +252,8 @@ Mojo.Log.error("### we got not auth!");
 				geolat: _globals.lat,
 				geolong: _globals.long,
 				phone: this.phoneModel.value,
-				twitter: this.twitterModel.value
+				twitter: this.twitterModel.value,
+				primarycategoryid: pcat
 			};
 		}else{
 			var url = 'http://api.foursquare.com/v1/venue/proposeedit.json';
@@ -250,7 +283,7 @@ Mojo.Log.error("### we got not auth!");
 			onFailure: this.venueFailed.bind(this)
 		});
 	} else {
-		//$('message').innerHTML = 'Not Logged In';
+		//this.controller.get('message').innerHTML = 'Not Logged In';
 	}
 	
 
@@ -260,7 +293,7 @@ Mojo.Log.error("### we got not auth!");
 AddVenueAssistant.prototype.venueSuccess = function(response) {
 	Mojo.Controller.getAppController().showBanner("Venue saved to Foursquare!", {source: 'notification'});
 	Mojo.Log.error(response.responseText);
-	$("okButton").mojo.deactivate();
+	this.controller.get("okButton").mojo.deactivate();
 	
 	if(response.responseJSON.venue != undefined) {
 	
@@ -317,7 +350,7 @@ AddVenueAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 			onFailure: this.checkInFailed.bind(this)
 		});
 	} else {
-		//$('message').innerHTML = 'Not Logged In';
+		//this.controller.get('message').innerHTML = 'Not Logged In';
 	}
 }
 
@@ -354,4 +387,93 @@ AddVenueAssistant.prototype.cancelTapped = function() {
 
 AddVenueAssistant.prototype.cleanup = function(event) {
 	zBar.showToolbar();
+}
+
+AddVenueAssistant.prototype.loadSubCat = function(event) {
+	var i = this.catsmainModel.value;
+	this.maincat=i;
+	var subcats=_globals.categories[i].categories;
+	this.catssub1Attributes.choices=[{label:"",value:"-1"}];
+	for(var s=0;s<subcats.length;s++) {
+		this.catssub1Attributes.choices.push({label:subcats[s].nodename,value:subcats[s].id});
+	}
+	this.controller.modelChanged(this.catssub1Model);
+	this.controller.get("subcat1").show();
+}
+
+AddVenueAssistant.prototype.loadSubSubCat = function(event) {
+	var v = event.value;
+	var eff;
+	for(var f=0;f<_globals.categories[this.maincat].categories.length;f++){
+		if(_globals.categories[this.catsmainModel.value].categories[f].id==v){
+			eff=f;
+		}
+	}
+	var subcats=_globals.categories[this.catsmainModel.value].categories[eff].categories;
+Mojo.Log.error(Object.toJSON(subcats));
+
+
+
+	if(subcats) {
+		this.catssub2Attributes.choices=[{label:"",value:"-1"}];
+		for(var s=0;s<subcats.length;s++) {
+			this.catssub2Attributes.choices.push({label:subcats[s].nodename,value:subcats[s].id});
+		}
+		this.controller.modelChanged(this.catssub2Model);
+		this.controller.get("subcat2").show();
+	}else{
+		this.catssub2Attributes.choices=[{label:"",value:"-1"}];
+		this.controller.modelChanged(this.catssub2Model);
+		this.controller.get("subcat2").hide();
+	}
+}
+
+AddVenueAssistant.prototype.categoryTapped = function(event){
+	//generate items list
+	var items=[];
+	for(var i =0; i<_globals.categories.length; i++){
+		var a={};
+		a.label=$L(_globals.categories[i].nodename);
+		a.command=_globals.categories[i].id;
+		a.secondaryIconPath=_globals.categories[i].iconurl;
+		
+		var subitems=[];
+		for(var s=0;s<_globals.categories[i].categories.length;s++){
+			var b={};
+			b.label=$L(_globals.categories[i].categories[s].nodename);
+			b.command=b.label+"|||"+_globals.categories[i].categories[s].id;
+			b.secondaryIconPath=_globals.categories[i].categories[s].iconurl;
+			
+			if(_globals.categories[i].categories[s].categories != undefined){
+				var subsub=[{label:$L('Use: '+b.label), command: b.command}];
+				for(var t=0; t<_globals.categories[i].categories[s].categories.length; t++){
+					var c={};
+					c.label=_globals.categories[i].categories[s].categories[t].nodename;
+					c.command=c.label+"|||"+_globals.categories[i].categories[s].categories[t].id;
+					c.secondaryIconPath=_globals.categories[i].categories[s].categories[t].iconurl;
+					subsub.push(c);
+				}
+				
+				b.items=subsub;
+			}
+			subitems.push(b);
+		}
+		
+		a.items=subitems;
+		items.push(a);
+
+	}
+
+	this.controller.popupSubmenu({
+		onChoose:function(choice){
+			var data=choice.split("|||");
+			this.categoryId=data[1];
+			this.catButtonModel.buttonLabel=data[0];
+			this.controller.modelChanged(this.catButtonModel);
+			
+		}.bind(this),
+       	placeNear:this.controller.get(event.target),
+		items: items
+	});
+
 }

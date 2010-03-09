@@ -51,17 +51,14 @@
 			</div>
 		</div>
 	</div>
+
 	<div class="palm-group unlabeled" id='venue'>
-		<div class="palm-list">
-	   		<div class="palm-row single">
-				<div class="palm-row-wrapper" x-mojo-focus-highlight="true">
-					<div class="title">
+			<div class="palm-row" x-mojo-tap-highlight="momentary">
+				<div class="palm-row-wrapper">
 						<div class="label">State</div>
 						<div x-mojo-element="ListSelector" id="venue-state" class="listselectorClass" name="listselectorName"></div>
-					</div>
 				</div>
 			</div>
-		</div>
 	</div>
 	<div class="palm-group unlabeled" id='venue'>
 		<div class="palm-list">
@@ -99,6 +96,32 @@
 			</div>
 		</div>
 	</div>			
+	<div class="palm-group unlabeled" id='venue'>
+			<div class="palm-row single" x-mojo-tap-highlight="momentary" style="padding:2px;">
+				<div class="palm-row-wrapper" style="padding:0px;">
+						<!--<div class="label">Category</div>
+						<div x-mojo-element="ListSelector" id="venue-cat-main" class="listselectorClass" name="listselectorName"></div>-->
+							<div x-mojo-element="Button" class="palmbutton primary" id="setCategory"></div>
+				</div>
+			</div>
+	</div>
+	<div class="palm-group unlabeled" id='subcat1' style="display:none;">
+			<div class="palm-row" x-mojo-tap-highlight="momentary" style="padding:2px;">
+				<div class="palm-row-wrapper" style="padding:0px;">
+						<div class="label">Sub-Category</div>
+						<div x-mojo-element="ListSelector" id="venue-cat-sub1" class="listselectorClass" name="listselectorName"></div>
+				</div>
+			</div>
+	</div>
+	<div class="palm-group unlabeled" id='subcat2' style="display:none;padding: 0px;">
+			<div class="palm-row" x-mojo-tap-highlight="momentary" style="padding:2px;">
+				<div class="palm-row-wrapper" style="padding:0px;">
+						<div class="label">Sub-Category</div>
+						<div x-mojo-element="ListSelector" id="venue-cat-sub2" class="listselectorClass" name="listselectorName"></div>
+				</div>
+			</div>
+	</div>
+
 	<div style="font-size: 14px; padding: 7px;">Adding a non-US venue? Enter everything except for the address, state, and zip and Foursquare will fill in the rest using your current location.</div>
 			<br/>
 	<div x-mojo-element="Button" class="palmbutton primary addtipok" id="okButton"></div>

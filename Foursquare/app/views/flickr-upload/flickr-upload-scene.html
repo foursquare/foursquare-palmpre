@@ -1,6 +1,6 @@
 <div id="fupload-main" class="palm-hasheader">
 	<div class="palm-header center" id="list-header">
-		Upload to Flickr
+		Upload Photo
 	</div>
 	<br/><br/>
 	<div class="palm-group unlabeled">
@@ -39,8 +39,18 @@
 			</div>
 		</div>
 	</div>
+				<div class="palm-group unlabeled" id="listborder">
+					<div class="palm-list">
+						<div class="palm-row-single" x-mojo-tap-highlight="momentary">
+							<div class="palm-row-wrapper">
+								<div x-mojo-element="ListSelector" id="photohostList" class="listselectorClass"  name="listselectorName"></div>				
+							</div>
+						</div>
+					</div>
+				</div>
 
 	<div x-mojo-element="Button" class="palmbutton primary" id="uploadButton"></div>
 	<div x-mojo-element="ProgressPill" id="uploadProgress" class="progresspillClass" name="progresspillName"></div>
+	<div id="img_preview"></div>
 	<div id="msg"></div>
 </div>
