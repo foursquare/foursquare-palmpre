@@ -1,39 +1,25 @@
-function FlickrUploadAssistant(ps,vid,vn) {
-	/* this is the creator function for your scene assistant object. It will be passed all the 
-	   additional parameters (after the scene name) that were passed to pushScene. The reference
-	   to the scene controller (this.controller) has not be established yet, so any initialization
-	   that needs the scene controller should be done in the setup function below. */
+function FlickrUploadAssistant(ps,vid,vn,sc,img) {
 	   this.prevScene=ps;
 	   this.fileName="";
 	   this.vid=vid;
 	   this.venueName=vn;
+	   this.stage=sc;
+	   this.imagepath=img;
 }
 
 FlickrUploadAssistant.prototype.setup = function() {
-	/* this function is for setup tasks that have to happen when the scene is first created */
-		zBar.hideToolbar();
-	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
-	
-	/* setup widgets here */
+
 	this.controller.setupWidget('photo-title', this.titleattributes = {hintText:''}, this.titleModel = {value:'', disabled:false});
 	this.controller.setupWidget('photo-description', this.descriptattributes = {hintText:'',multiline:true}, this.descriptionModel = {value:'', disabled:false});
 	this.controller.setupWidget('photo-tags', this.tagsattributes = {hintText:''}, this.tagsModel = {value:'', disabled:false});
 	this.controller.setupWidget('uploadButton', this.accattributes = {type:Mojo.Widget.activityButton}, this.uploadBtnModel = {label:'Upload', disabled:false});
-    this.controller.setupWidget("uploadProgress",
-         this.progattributes = {
-             title: 'Uploading...',
-             modelProperty: "progress"
-         },
-         this.progModel = {
-             progress: 0
-         });
-	/* add event handlers to listen to events from widgets */
+	this.controller.setupWidget('chooseButton', this.chooseattributes = {}, this.chooseBtnModel = {label:'Choose photo...', disabled:false});
 		Mojo.Event.listen(this.controller.get("uploadButton"),Mojo.Event.tap, this.doUpload.bind(this));
+		Mojo.Event.listen(this.controller.get("chooseButton"),Mojo.Event.tap, this.choosePhoto.bind(this));
       this.controller.setupWidget("photohostList",
         this.phAttributes = {
             choices: [
                 {label: "Flickr", value: "flickr"},
-               /* {label: "TweetPhoto", value: "tweetphoto"},*/ //tweetphoto forces a checkin on upload... not good
                 {label: "Pikchur", value: "pikchur"},
                 {label: "FSPic", value: "fspic"}
 
@@ -43,36 +29,38 @@ FlickrUploadAssistant.prototype.setup = function() {
             disabled: false
         }
     ); 
-
-	 this.controller.get("uploadProgress").hide();
-Mojo.FilePicker.pickFile({'actionName':'Upload','kinds':['image'],'defaultKind':'image','onSelect':function(fn){this.controller.get("img_preview").update('<img src="'+fn.fullPath+'" width="100"/>');this.fileName=fn.fullPath;}.bind(this)},this.controller.stageController);
+               /* {label: "TweetPhoto", value: "tweetphoto"},*/ //tweetphoto forces a checkin on upload... not good
+	
 
 }
 
-FlickrUploadAssistant.prototype.doUpload = function(event) {
-	this.controller.get("uploadButton").mojo.activate();
-	//this.progattributes.title="Uploading...";
 
-	//params we need:
-	//title,description,tags,format,nojsoncallback,api_key,auth_token,api_sig,photo
+FlickrUploadAssistant.prototype.doUpload = function(event) {
+
+	if(this.fileName){
+		this.controller.get("uploadButton").mojo.activate();
+		//params we need:
+		//title,description,tags,format,nojsoncallback,api_key,auth_token,api_sig,photo
 	
 	
 	
-	switch(this.phModel.value){
-		case "flickr":
-			this.flickrUpload();
-			break;
-		case "tweetphoto":
-			this.tweetphotoUpload();
-			break;
-		case "pikchur":
-			this.pikchurUpload();	
-			break;
-		case "fspic":
-			this.fspicUpload();		
-			break;
+		switch(this.phModel.value){
+			case "flickr":
+				this.flickrUpload();
+				break;
+			case "tweetphoto":
+				this.tweetphotoUpload();
+				break;
+			case "pikchur":
+				this.pikchurUpload();	
+				break;
+			case "fspic":
+				this.fspicUpload();		
+				break;
+		}
+	}else{
+		this.controller.get("uploadButton").mojo.deactivate();	
 	}
-	
 	
 	
 	 
@@ -91,9 +79,9 @@ FlickrUploadAssistant.prototype.fspicUpload = function() {
 					params.push({"key":"phone_or_email","data":un,"contentType":"text/plain"});
 					params.push({"key":"password","data":pw,"contentType":"text/plain"});
 
-					var controller = Mojo.Controller.stageController.activeScene();
+					//var controller = Mojo.Controller.stageController.activeScene();
 			        // Queue the upload request with the download manager service.
-			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+			        this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
             			method: 'upload',
 			            parameters: {
             			    'url': "http://fspic.com/api/uploadPhoto",
@@ -104,7 +92,6 @@ FlickrUploadAssistant.prototype.fspicUpload = function() {
 			            },
             			onSuccess: function (resp,j){
 						 	if(resp.responseString){
-							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
 							 	this.controller.get("uploadButton").mojo.deactivate();
 							 	this.controller.stageController.popScene("flickr-upload");
 							}
@@ -121,12 +108,15 @@ FlickrUploadAssistant.prototype.fspicUpload = function() {
 
 
 FlickrUploadAssistant.prototype.pikchurUpload = function() {
+					Mojo.Log.error("upload part0");
 					var eauth=_globals.auth.replace("Basic ","");
 					var plaintext=Base64.decode(eauth);//Njk1
+					Mojo.Log.error("upload part1");
 					var creds=plaintext.split(":");
 					var un=creds[0];
 					var pw=creds[1];
 					var params=[];
+					Mojo.Log.error("upload part2");
 					params.push({"key":"api_key","data":"QTG1n51CVNEJNDkkiMQIXQ","contentType":"text/plain"});
 					params.push({"key":"encodedAuth","data":eauth,"contentType":"text/plain"});
 					params.push({"key":"message","data":this.descriptionModel.value,"contentType":"text/plain"});
@@ -137,9 +127,11 @@ FlickrUploadAssistant.prototype.pikchurUpload = function() {
 					params.push({"key":"venue_id","data":this.vid,"contentType":"text/plain"});
 					Mojo.Log.error("params="+Object.toJSON(params));
 				
-					var controller = Mojo.Controller.stageController.activeScene();
+					//var controller = Mojo.Controller.stageController.activeScene();
 			        // Queue the upload request with the download manager service.
-			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+			        var appController = Mojo.Controller.getAppController();
+  	  				var cardStageController = appController.getStageController("mainStage");
+			        this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
             			method: 'upload',
 			            parameters: {
             			    'url': "http://api.pikchur.com/geosocial/upload/json",
@@ -185,9 +177,9 @@ FlickrUploadAssistant.prototype.tweetphotoUpload = function() {
 					params.push({"key":"password","data":pw,"contentType":"text/plain"});
 					params.push({"key":"vid","data":this.vid,"contentType":"text/plain"});
 
-					var controller = Mojo.Controller.stageController.activeScene();
+					//var controller = Mojo.Controller.stageController.activeScene();
 			        // Queue the upload request with the download manager service.
-			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+			        this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
             			method: 'upload',
 			            parameters: {
             			    'url': "http://tweetphotoapi.com/api/upload.aspx",
@@ -234,7 +226,6 @@ FlickrUploadAssistant.prototype.flickrUpload = function() {
 	//machine tags won't work unless at least 1 normal tag is added also
 	
 	
-	Mojo.Log.error("##set up params");
 	
 	var params=[];
 	params.push({"key":"api_key","data":api_key,"contentType":"text/plain"});
@@ -246,12 +237,11 @@ FlickrUploadAssistant.prototype.flickrUpload = function() {
 	params.push({"key":"tags","data":ptags,"contentType":"text/plain"});
 	params.push({"key":"title","data":ptitle,"contentType":"text/plain"});
 	
-	Mojo.Log.error("##created params array");
 	
 
-	 var controller = Mojo.Controller.stageController.activeScene();
+	 //var controller = Mojo.Controller.stageController.activeScene();
         // Queue the upload request with the download manager service.
-        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+        this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
             method: 'upload',
             parameters: {
                 'url': "http://api.flickr.com/services/upload/",
@@ -358,19 +348,28 @@ FlickrUploadAssistant.prototype.escape_utf8= function(data, url) {
     
     
 FlickrUploadAssistant.prototype.activate = function(event) {
-	/* put in event handlers here that should only be in effect when this scene is active. For
-	   example, key handlers that are observing the document */
+
+//	this.controller.get("img_preview").update('<img src="'+this.imagepath+'" width="100"/>');
+
+}
+
+FlickrUploadAssistant.prototype.choosePhoto = function(event) {
+ 	Mojo.FilePicker.pickFile({'actionName':'Upload',
+		'kinds':['image'],
+		'defaultKind':'image',
+		'actionType':'attach',
+		'onSelect':function(fn){
+			this.fileName=fn.fullPath;
+			this.controller.get("img_preview").update('<img src="'+this.fileName+'" width="100"/>');
+		}.bind(this)},
+		this.controller.stageController);
 
 }
 
 
 FlickrUploadAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
 }
 
 FlickrUploadAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
 	   zBar.showToolbar();
 }

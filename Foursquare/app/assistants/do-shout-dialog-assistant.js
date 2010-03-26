@@ -4,10 +4,6 @@ function DoShoutDialogAssistant(sceneAssistant,a) {
 }
 DoShoutDialogAssistant.prototype.setup = function(widget) {
   this.widget = widget;
-  Mojo.Log.error("################shouting?");
-  //this.initData(this.data);
-  
-  // Setup button and event handler
   this.sceneAssistant.controller.setupWidget("okButtonShout",
     this.attributes = {type : Mojo.Widget.activityButton},
     this.OKButtonModel = {
@@ -45,7 +41,6 @@ DoShoutDialogAssistant.prototype.setup = function(widget) {
   
 	this.sceneAssistant.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
 
-//	this.init();
 }
 
 DoShoutDialogAssistant.prototype.activate = function() {
@@ -76,7 +71,6 @@ DoShoutDialogAssistant.prototype.okTappedShout = function() {
 	} else {
 		Mojo.Controller.getAppController().showBanner("Not logged in!", {source: 'notification'});
 	}
-	//this.widget.mojo.close();
 }
 
 

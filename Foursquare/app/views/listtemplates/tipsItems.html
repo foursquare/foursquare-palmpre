@@ -1,18 +1,25 @@
 
-<div class='result row' x-mojo-tap-highlight='momentary' style="padding:0; text-align: left; padding-top: 3px; padding-bottom: 7px;">
+<div class='result row'  x-mojo-tap-highlight='momentary' style="padding:0; text-align: left; padding-top: 3px; padding-bottom: 7px;">
 	<!--<div class="" style="font-size: 16px;">#{text}</div>
 	<div class='truncating-text palm-info-text capitalize' style='padding:0;padding-left:10px;padding-bottom: 7px;margin-bottom:1px;'>#{address}</div>
 	<div class='truncating-text palm-info-text capitalize' style='padding:0;padding-left:10px;padding-bottom: 7px;margin-bottom:1px;margin-top:-4px;'>#{venue.name}</div>
 	<div class='truncating-text palm-info-text capitalize' style='padding:0;padding-left:10px;padding-bottom: 7px;margin-bottom:1px;margin-top:-4px;'>#{distance} Away <img src="#{user.photo}" width="18" height="18" style="margin-left: 8px;" /> #{user.firstname} #{user.lastname}</div>
 -->
-	<div class="venue-info-wrap">
-		<div class="tip-text">#{text}</div>
+
+	<img src="#{user.photo}" width="48" height="48" class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/>
+	<div style="float: left;margin-left: 3px; width: 250px; padding-top: 0px; padding-bottom:0px;font-size:16px;">
+		<b>@ #{venue.name}</b>
+		<div class="friend-shout">#{text}</div>
+		<div class="friend-checkin">via #{user.firstname} #{user.lastname}</div>
+	</div>
+	<br class="breaker"/>
+	<!--<div class="venue-info-wrap">
 	</div>
 	<div class='venue-distance'>
 		<div class="distance-num">#{distance}</div>
 		<div class="distance-unit">#{unit}</div>
 	</div>
 	<br class="breaker"/>
-	<div class='tip-info'>@ #{venue.name} <span class="tip-user">from <img src="#{user.photo}" width="18" height="18" style="" /> #{user.firstname} #{user.lastname}</span></div>
+	<div class='tip-info'>@ #{venue.name} <span class="tip-user">from  #{user.firstname} #{user.lastname}</span></div>-->
 
 </div>

@@ -1,11 +1,12 @@
 {
 	"id": "com.foursquare.foursquare",
-	"version": "0.9.8",
+	"version": "1.0.0",
 	"vendor": "foursquare",
 	"noWindow" : "true",
 	"timingEnabled": "true",
 	"type": "web",
 	"main": "index.html",
-	"title": "Foursquare",
-	"icon": "icon_64x64.png"
+	"title": "foursquare",
+	"icon": "icon_64x64.png",
+	"splashBackground": "images/splash.png"
 }

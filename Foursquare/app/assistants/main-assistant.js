@@ -1,8 +1,4 @@
 function MainAssistant(expressLogin,credentials,fp) {
-	/* this is the creator function for your scene assistant object. It will be passed all the 
-	   additional parameters (after the scene name) that were passed to pushScene. The reference
-	   to the scene controller (this.controller) has not be established yet, so any initialization
-	   that needs the scene controller should be done in the setup function below. */
 	   
 	   this.expressLogin=expressLogin;
 	   this.credentials=credentials;
@@ -25,27 +21,20 @@ function MainAssistant(expressLogin,credentials,fp) {
 }
 
 MainAssistant.prototype.setup = function() {
-	/* this function is for setup tasks that have to happen when the scene is first created */
 	if (this.expressLogin) {
 		Mojo.Log.error("expresslogin");
 		this.controller.get("loginfields").style.visibility="hidden";
 		this.controller.get("main").removeClassName("palm-hasheader");
 		this.controller.get("message").style.marginTop="70px";
 		this.controller.get("main").style.background="url(SPLASH_boy_transparent.png) no-repeat left top";
-			Mojo.Log.error("going to login");
 
 		this.login(this.username,this.password);
 	}
-	
-	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
-	
-	/* setup widgets here */
 	this.controller.setupWidget('username', this.attributes = {hintText:'Email/Phone',textCase: Mojo.Widget.steModeLowerCase}, this.usernameModel = {value:'', disabled:false});
 	this.controller.setupWidget('password', this.attributes = {hintText:'Password'}, this.passwordModel = {value:'', disabled:false});
 	
 	this.controller.setupWidget('goLogin', this.attributes = {}, this.loginBtnModel = {label:'Log In', disabled:false});
 	
-	/* add event handlers to listen to events from widgets */
 	Mojo.Event.listen(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTapped.bind(this));
     this.controller.document.addEventListener("keyup", this.keyDownHandler.bind(this), true);
 }
@@ -55,7 +44,6 @@ MainAssistant.prototype.onLoginTapped = function(event){
 	
 	this.username=this.usernameModel.value;
 	this.password=this.passwordModel.value;
-	Mojo.Log.error(this.username + ":" + this.password);
 	
 	this.login(this.usernameModel.value, this.passwordModel.value)
 }
@@ -65,7 +53,6 @@ var auth;
 function make_base_auth(user, pass) {
   var tok = user + ':' + pass;
   var hash = Base64.encode(tok);
-  //this.controller.get('message').innerHTML += '<br/>'+ hash;
   _globals.auth="Basic " + hash;
   return "Basic " + hash;
 }
@@ -73,11 +60,6 @@ function make_base_auth(user, pass) {
 MainAssistant.prototype.login = function(uname, pass){
  
 	var url = "http://api.foursquare.com/v1/user.json";
-	
-	Mojo.Log.error("######express? "+this.expressLogin+", auth="+_globals.auth);
-	
-	
-	
 	
 	auth = (this.expressLogin)? _globals.auth: make_base_auth(uname, pass);
 	
@@ -92,7 +74,6 @@ MainAssistant.prototype.login = function(uname, pass){
 	   onSuccess: this.loginRequestSuccess.bind(this),
 	   onFailure: this.loginRequestFailed.bind(this)
 	 });
-	 Mojo.Log.error("tried login.");
 }
 
 var userData;
@@ -101,14 +82,10 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 	userData = response.responseJSON.user;
 	var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
 	this.controller.get('message').innerHTML = '<br/>' + disp;
-	Mojo.Log.error(response.responseText);
 	var uid=response.responseJSON.user.id;
 	var savetw=response.responseJSON.user.settings.sendtotwitter;
 	var savefb=response.responseJSON.user.settings.sendtofacebook;
  	var ping=response.responseJSON.user.settings.pings;
- 	Mojo.Log.error("ping="+ping);
-	//var cityid=response.responseJSON.user.city.id;
-	//var city=response.responseJSON.user.city.name;
 	_globals.uid=uid;
 	_globals.username=this.username;
 	_globals.password=this.password;
@@ -135,11 +112,16 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 		this.controller.stageController.popScene('preferences');
 		this.controller.stageController.popScene('main');
 	}else{
-		Mojo.Log.error("##donelogin: gotgps="+this.gotGPS+", loggedin="+this.loggedIn);
 		if(this.gotGPS){
 			_globals.firstLoad=true;
 			this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
 		}else{
+			this.gpscheck=this.controller.window.setInterval(function(){
+				if(this.gotGPS){
+					_globals.firstLoad=true;
+					this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
+				}
+			}.bind(this),200);
 			this.controller.get('message').innerHTML+='<div class="small-text">Getting location...</div>';
 		}
 	
@@ -149,7 +131,6 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 MainAssistant.prototype.loginRequestFailed = function(response) {
 	auth = undefined;
 	this.controller.get('main').style.background="";
-	Mojo.Log.error(response.responseText);
 	this.controller.get("loginfields").style.visibility="visible";
 	var msg="";
 	if(response.responseJSON.ratelimited != undefined) {
@@ -157,6 +138,16 @@ MainAssistant.prototype.loginRequestFailed = function(response) {
 	}else{
 		msg='Login Failed... Try Again';
 	}
+	var eauth=_globals.auth.replace("Basic ","");
+	var plaintext=Base64.decode(eauth);
+	var creds=plaintext.split(":");
+	var un=creds[0];
+	var pw=creds[1];
+
+	this.usernameModel.value=un;
+	this.passwordModel.value=pw;
+	this.controller.modelChanged(this.usernameModel);
+	this.controller.modelChanged(this.passwordModel);
 	this.controller.get('message').innerHTML = msg;
 }
 
@@ -173,40 +164,32 @@ MainAssistant.prototype.keyDownHandler = function(event) {
 
 
 MainAssistant.prototype.activate = function(event) {
-	/* put in event handlers here that should only be in effect when this scene is active. For
-	   example, key handlers that are observing the document */
-//sneakily grab coords in the background...
+	//sneakily grab coords in the background...
    	if(!this.fromPrefs) {
-   		this.controller.serviceRequest('palm://com.palm.location', {
+   	/*	this.controller.serviceRequest('palm://com.palm.location', {
 			method: "getCurrentPosition",
 			parameters: {accuracy: 1, maximumAge:0, responseTime: 1},
 			onSuccess: this.gotLocation.bind(this),
 			onFailure: this.failedLocation.bind(this)
-		});
+		});*/
+		
+//		_globals.GPS = new Location(_globals.gotLocation);
+//		_globals.GPS.start();
+		
+		_globals.main=this;
 	}
 }
 
-MainAssistant.prototype.gotLocation = function(event) {
-		this.lat=event.latitude;
-		this.long=event.longitude;
-		this.hacc=event.horizAccuracy;
-		this.vacc=event.vertAccuracy;
-		this.altitude=event.altitude;
-		Mojo.Log.error("from main: hacc="+this.hacc+", vacc="+this.vacc+", alt="+this.altitude);
-		_globals.lat=this.lat;
-		_globals.long=this.long;
-		_globals.hacc=this.hacc;
-		_globals.vacc=this.vacc;
-		_globals.altitude=this.altitude;
-		_globals.gps=event;
-		this.gotGPS=true;
-				Mojo.Log.error("##donegps: gotgps="+this.gotGPS+", loggedin="+this.loggedIn);
-		if(this.loggedIn){
-			_globals.firstLoad=true;
-			this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,_globals.uid);
-		}
 
-}
+
+
+
+
+
+
+
+
+
 
 MainAssistant.prototype.failedLocation = function(event) {
 	this.controller.get('message').innerHTML = 'failed to get location: ' + event.errorCode;
@@ -217,13 +200,10 @@ MainAssistant.prototype.failedLocation = function(event) {
 
 
 MainAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
 }
 
 MainAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
+	this.controller.window.clearInterval(this.gpscheck);
 }
 
 

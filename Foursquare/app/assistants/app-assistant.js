@@ -1,41 +1,226 @@
-    Mojo.Log.error("starting appassistant11111");
-
+//Handle Global Vars 
 _globals = {};
-//$=function (id){return document.getElementById(id);}
+window.maps = window.maps || {};
+
+
+_globals.db = new Mojo.Depot({name:"feed"}, function(){Mojo.Log.error("depot OK");}, function(){Mojo.Log.error("depot FAIL");}); 
+
+//_globals.db.discard("feed");
+
+_globals.onVenues=false;
+_globals.retryingGPS=false;
+_globals.hiddenVenues=[];
+_globals.userData={};
+_globals.cmmodel = {
+          visible: true,
+          items: [{
+          	items: [ 
+          		{},
+                 { iconPath: "images/venue_button.png", command: "do-Venues"},
+                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+                 { iconPath: "images/todo_button.png", command: "do-Tips"},
+                 { iconPath: "images/user_info.png", command: "do-Badges"},
+                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'},
+                 {}
+                 ],
+            toggleCmd: "do-Venues",
+            checkEnabled: true
+            }]
+    };
+_globals.main=_globals.main || {};
+_globals.gotLocation = function(event) {
+Mojo.Log.error("doing got location");
+		_globals.main.lat=event.latitude;
+		_globals.main.long=event.longitude;
+		_globals.main.hacc=event.horizAccuracy;
+		_globals.main.vacc=event.vertAccuracy;
+		_globals.main.altitude=event.altitude;
+		
+		_globals.lat=_globals.main.lat;
+		_globals.long=_globals.main.long;
+		_globals.hacc=_globals.main.hacc;
+		_globals.vacc=_globals.main.vacc;
+		_globals.altitude=_globals.main.altitude;
+		_globals.gps=event;
+		_globals.main.gotGPS=true;
+		Mojo.Log.error("li="+_globals.main.loggedIn+", ov="+_globals.onVenues);
+		if(_globals.main.loggedIn && !_globals.onVenues){
+			Mojo.Log.error("swapping scene");
+			_globals.firstLoad=true;
+			var appController = Mojo.Controller.getAppController();
+	  	  	var cardStageController = appController.getStageController("mainStage");
+			cardStageController.swapScene('nearby-venues',auth,userData,_globals.main.username,_globals.main.password,_globals.uid);
+		}
+		
+		if(_globals.onVenues){
+			Mojo.Log.error("onvenues");
+			var appController = Mojo.Controller.getAppController();
+	  	  	var cardStageController = appController.getStageController("mainStage");
+	  	  	cardStageController.delegateToSceneAssistant(NearbyVenuesAssistant.gotLocation,event);
+			var stage = Mojo.Controller.getAppController().getStageProxy("mainStage");
+		
+			
+			var acc=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy): 0;
+			Mojo.Log.error("acc="+acc);
+			if((acc>_globals.GPS.get().horizAccuracy || acc==0) && _globals.retryingGPS==false){
+				Mojo.Log.error("okay on first try");
+				_globals.GPS.stop();
+				_globals.gpsokay=true;
+				Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
+			}
+			if((acc<_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==false) {
+					Mojo.Log.error("bad radius; retrying");
+					/*cardStageController.document.getElementById("gps_banner").show();
+					cardStageController.document.getElementById("smallSpinner").hide();
+					cardStageController.document.getElementById("banner_text").innerHTML="Getting better accuracy... ";
+					cardStageController.document.getElementById("refresh-venues").show();
+					cardStageController.document.getElementById("accuracy").innerHTML="Accuracy: &plusmn;"+roundNumber(this.hacc,2)+"m";
+					Mojo.Event.send(cardStageController.document.getElementById("retryloc"),"handleit");*/
+
+
+					_globals.GPS.stop();
+					_globals.retryingGPS=true;
+					_globals.GPS.restart();
+			}
+					
+			if((acc>_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==true){
+						Mojo.Log.error("got it on second try");
+						_globals.GPS.stop();
+						_globals.gpsokay=true;
+						Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
+			}
+					
+			if((acc<_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==true && _globals.gpsokay==false){
+						Mojo.Log.error("giving up");
+						_globals.GPS.stop();
+						_globals.gpsokay=true;
+						_globals.retryingGPS=false;
+						Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
+			}
+			
+		}
+
+
+}
+
+_globals.gotLocation2 = function(event) {
+	Mojo.Log.error("doing got location2");
+		_globals.lat=event.latitude;
+		_globals.long=event.longitude;
+		_globals.hacc=event.horizAccuracy;
+		_globals.vacc=event.vertAccuracy;
+		_globals.altitude=event.altitude;
+		_globals.gps=event;
+		_globals.gotGPS=true;
+		Mojo.Log.error("li2="+_globals.loggedIn+", ov2="+_globals.onVenues);
+		if(_globals.loggedIn && !_globals.onVenues){
+			Mojo.Log.error("doing nothing...");
+			_globals.firstLoad=true;
+//			var appController = Mojo.Controller.getAppController();
+//	  	  	var cardStageController = appController.getStageController("mainStage");
+//			cardStageController.swapScene('nearby-venues',auth,userData,_globals.main.username,_globals.main.password,_globals.uid);
+		}
+		
+		if(_globals.onVenues){
+			Mojo.Log.error("onvenues2");
+			var appController = Mojo.Controller.getAppController();
+	  	  	var cardStageController = appController.getStageController("mainStage");
+	  	  	cardStageController.delegateToSceneAssistant(NearbyVenuesAssistant.gotLocation,event);
+			var stage = Mojo.Controller.getAppController().getStageProxy("mainStage");
+		
+			
+			var acc=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy): 0;
+			Mojo.Log.error("acc="+acc);
+			if((acc>_globals.GPS.get().horizAccuracy || acc==0) && _globals.retryingGPS==false){
+				Mojo.Log.error("okay on first try2");
+				_globals.GPS.stop();
+				_globals.gpsokay=true;
+				//Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
+				_globals.accuracy="&plusmn;"+roundNumber(_globals.hacc,2)+"m";
+			}
+			if((acc<_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==false) {
+					Mojo.Log.error("bad radius; retrying2");
+					/*cardStageController.document.getElementById("gps_banner").show();
+					cardStageController.document.getElementById("smallSpinner").hide();
+					cardStageController.document.getElementById("banner_text").innerHTML="Getting better accuracy... ";
+					cardStageController.document.getElementById("refresh-venues").show();
+					cardStageController.document.getElementById("accuracy").innerHTML="Accuracy: &plusmn;"+roundNumber(this.hacc,2)+"m";
+					Mojo.Event.send(cardStageController.document.getElementById("retryloc"),"handleit");*/
+
+
+					_globals.GPS.stop();
+					_globals.retryingGPS=true;
+					_globals.GPS.restart();
+			}
+					
+			if((acc>_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==true){
+						Mojo.Log.error("got it on second try2");
+						_globals.GPS.stop();
+						_globals.gpsokay=true;
+						//Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
+						_globals.accuracy="&plusmn;"+roundNumber(_globals.hacc,2)+"m";
+			}
+					
+			if((acc<_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==true && _globals.gpsokay==false){
+						Mojo.Log.error("giving up2");
+						_globals.GPS.stop();
+						_globals.gpsokay=true;
+						_globals.retryingGPS=false;
+						_globals.accuracy="&plusmn;"+roundNumber(_globals.hacc,2)+"m";
+
+						//Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
+			}
+			
+		}
+
+
+}
+
+
+
+_globals.categoryFailed = function(event) {
+	Mojo.Log.error("category failed");
+}
+
+_globals.categorySuccess = function(r) {
+	Mojo.Log.error("got categories");
+	if(r.responseJSON.categories){
+		_globals.categories=r.responseJSON.categories;
+	}
+}
+
+
 
 function AppAssistant() {
 	
 }
 
 AppAssistant.prototype.setup = function() {
+
+    var cardStageController = this.controller.getStageController("mainStage");
+    var dashboardStageController = this.controller.getStageController("fsqDash");
+
+	/*if(!cardStageController && !dashboardStageController){ //no dash but no normal stage
+	
     Mojo.Log.error("starting appassistant");
-//   	zBar.activeScene=this.controller.activeScene();
+		
+	   //grab categories in the background...
+	 var url = "http://api.foursquare.com/v1/categories.json";
+	 var request = new Ajax.Request(url, {
+	   method: 'get',
+	   evalJSON: 'force',
+	   onSuccess: _globals.categorySuccess.bind(this),
+	   onFailure: _globals.categoryFailed.bind(this)
+	 });
+	}*/
+//		_globals.GPS = new Location(_globals.gotLocation);
+//		_globals.GPS.start();
+
+
 
     // Set up first timeout alarm
-    this.setWakeup();
-    
+  //  this.setWakeup();
 };
-
-
-/*APP.cmmodel = {
-          visible: true,
-          items: [{
-          	items: [ 
-                 { iconPath: "images/venue_button.png", command: "do-Venues"},
-                 { iconPath: "images/friends_button.png", command: "do-Friends"},
-                 { iconPath: "images/todo_button.png", command: "do-Tips"},
-                 { iconPath: "images/shout_button.png", command: "do-Shout"},
-                 { iconPath: "images/badges_button.png", command: "do-Badges"},
-                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
-                 ],
-            toggleCmd: "do-Venues",
-            checkEnabled: true
-            }]
-    }*/
-
-//function _globals() {
-//}
-
 
 
 /********HANDLE NOTIFICATIONS****************/
@@ -51,11 +236,13 @@ AppAssistant.prototype.setWakeup = function() {
 
 
     if (_globals.notifs == "1") {
+    	Mojo.Log.error("setting alarm");
+    try{
         this.wakeupRequest = new Mojo.Service.Request("palm://com.palm.power/timeout", {
             method: "set",
             parameters: {
                 "key": "com.foursquare.foursquare.update",
-                "in": "00:30:00",
+                "in": "00:05:00",
                 "wakeup": true,
                 "uri": "palm://com.palm.applicationManager/open",
                 "params": {
@@ -64,22 +251,25 @@ AppAssistant.prototype.setWakeup = function() {
                 }
             },
             onSuccess: function(response) {
-                Mojo.Log.info("Alarm Set Success", response.returnValue);
+                Mojo.Log.error("Alarm Set Success", response.returnValue);
                 _globals.wakeupTaskId = Object.toJSON(response.taskId);
             },
             onFailure: function(response) {
-                Mojo.Log.info("Alarm Set Failure",
+                Mojo.Log.error("Alarm Set Failure",
                     response.returnValue, response.errorText);
             }
         });
-        Mojo.Log.info("Set Update Timeout");
+      }catch (e) {
+Mojo.Log.error ('AppAssistant.clearSystemTimeout(): ' + e);
+}
+        Mojo.Log.error("Set Update Timeout");
     }
 };
 
 
 
 AppAssistant.prototype.handleLaunch = function (launchParams) {
-    Mojo.Log.info("ReLaunch");
+    Mojo.Log.error("ReLaunch");
  
     var cardStageController = this.controller.getStageController("mainStage");
     var appController = Mojo.Controller.getAppController();
@@ -87,9 +277,20 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
     if (!launchParams) {
         // FIRST LAUNCH
         // Look for an existing main stage by name.
+        	   //grab categories in the background...
+		 var url = "http://api.foursquare.com/v1/categories.json";
+		 var request = new Ajax.Request(url, {
+		   method: 'get',
+		   evalJSON: 'force',
+		   onSuccess: _globals.categorySuccess.bind(this),
+		   onFailure: _globals.categoryFailed.bind(this)
+		 });
+		_globals.GPS = new Location(_globals.gotLocation);
+		_globals.GPS.start();
+
         if (cardStageController) {
             // If it exists, just bring it to the front by focusing its window.
-            Mojo.Log.info("Main Stage Exists");
+            Mojo.Log.error("Main Stage Exists");
             //cardStageController.popScenesTo("feedList");
             cardStageController.activate();
         } else {
@@ -116,9 +317,9 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 					var un=this.units.get();
 					_globals.units=(un)? un.units: "si";
 
-					this.hv=new Mojo.Model.Cookie("hiddenVenues");
+					/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
 					var hv=this.hv.get();
-					_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];
+					_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];*/
 
 
 					this.flickr=new Mojo.Model.Cookie("flickr");
@@ -138,29 +339,92 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 				}
 	
             };
-            Mojo.Log.info("Create Main Stage");
-            var stageArguments = {name: "mainStage", lightweight: true};
+            var stageArguments = {name: "mainStage", lightweight: true,splashBackgroundName:Mojo.appPath+'images/splash.png'};
             this.controller.createStageWithCallback(stageArguments,
                 pushMainScene.bind(this), "card");
         }
     }
     else {
-        Mojo.Log.info("com.foursquare.foursquare -- Wakeup Call", launchParams.action);
+        Mojo.Log.error("com.foursquare.foursquare -- Wakeup Call", launchParams.action);
+		_globals.GPS = new Location(_globals.gotLocation2);
+		_globals.GPS.start();
         switch (launchParams.action) {
                       
     // UPDATE FEEDS
     case "feedUpdate" :
+    	//turn off GPS:
+    	_globals.GPS.stop();
         // Set next wakeup alarm
-        this.setWakeup();
+       // this.setWakeup();
         
+        this.cookieData=new Mojo.Model.Cookie("credentials");
+		var credentials=this.cookieData.get();
+		if(credentials){
+			_globals.auth=credentials.auth;
+			_globals.uid=credentials.uid;
+		}
+		var gpsdata=_globals.GPS.get();
+		_globals.lat=gpsdata.latitude;
+		_globals.long=gpsdata.longitude;
+		_globals.hacc=gpsdata.horizAccuracy;
+		_globals.vacc=gpsdata.vertAccuracy;
+		_globals.altitude=gpsdata.altitude;
+		Mojo.Log.error("lat="+_globals.lat);
+		_globals.userData={};
+		_globals.firstLoad=true;
+		_globals.gpsokay=true;
+		_globals.retryingGPS=false;
+					this.username=credentials.username;
+					_globals.auth=credentials.auth;
+					this.gpsdata=new Mojo.Model.Cookie("gpsdata");
+					var gps=this.gpsdata.get();
+					_globals.gpsAccuracy=(gps)? gps.gpsAccuracy*-1: 0;
+		
+					this.venuecount=new Mojo.Model.Cookie("venuecount");
+					var vc=this.venuecount.get();
+					_globals.venueCount=(vc)? vc.venueCount: 15;
+
+					this.units=new Mojo.Model.Cookie("units");
+					var un=this.units.get();
+					_globals.units=(un)? un.units: "si";
+
+					/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
+					var hv=this.hv.get();
+					_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];*/
+
+
+					this.flickr=new Mojo.Model.Cookie("flickr");
+					var flickrinfo=this.flickr.get();
+					_globals.flickr_token=(flickrinfo)? flickrinfo.token: undefined;
+					_globals.flickr_username=(flickrinfo)? flickrinfo.username: undefined;
+					_globals.flickr_fullname=(flickrinfo)? flickrinfo.fullname: undefined;
+					_globals.flickr_nsid=(flickrinfo)? flickrinfo.nsid: undefined;
+	_globals.cmmodel = {
+          visible: true,
+          items: [{
+          	items: [ 
+          		{},
+                 { iconPath: "images/venue_button.png", command: "do-Venues"},
+                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+                 { iconPath: "images/todo_button.png", command: "do-Tips"},
+                 { iconPath: "images/user_info.png", command: "do-Badges"},
+                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'},
+                 {}
+                 ],
+            toggleCmd: "do-Friends",
+            checkEnabled: true
+            }]
+    };
+
+
         // Update the feed list
-        Mojo.Log.info("Update FeedList");
+        Mojo.Log.error("Update FeedList");
 		var url = 'http://api.foursquare.com/v1/checkins.json';
 		auth = _globals.auth;
 		var request = new Ajax.Request(url, {
 		   method: 'get',
 		   evalJSON: 'force',
-		   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+		   requestHeaders: {Authorization: auth}, 
 		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
 		   onSuccess: this.feedSuccess.bind(this),
 		   onFailure: this.feedFailed.bind(this)
@@ -169,26 +433,29 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
         
         // NOTIFICATION
         case "notification" :
-             Mojo.Log.info("com.foursquare.foursquare -- Notification Tap");
-         /*   if (cardStageController) {
+             Mojo.Log.error("com.foursquare.foursquare -- Notification Tap");
+            //_globals.cmmodel.items.toggleCmd="do-Friends";
+            if (cardStageController) {
                 
                 // If it exists, find the appropriate story list and activate it.
-                Mojo.Log.info("Main Stage Exists");
-                cardStageController.popScenesTo("feedList");
-                cardStageController.pushScene("storyList", this.feeds.list, launchParams.index);
+                Mojo.Log.error("Main Stage Exists");
+                //cardStageController.popScenesTo("feedList");
+                _globals.onVenues=true;
+				cardStageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},_globals.thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
                 cardStageController.activate();
             } else {
                 
                 // Create a callback function to set up a new main stage,
                 // push the feedList scene and then the appropriate story list
                 var pushMainScene2 = function(stageController) {
-                    stageController.pushScene("feedList", this.feeds);
-                    stageController.pushScene("storyList", this.feeds.list, launchParams.index);
+                    //stageController.pushScene("feedList", this.feeds);
+                    //stageController.pushScene("storyList", this.feeds.list, launchParams.index);
+					stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},_globals.auth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
                 };
-                Mojo.Log.info("Create Main Stage");
-                var stageArguments2 = {name: News.MainStageName, lightweight: true};
+                Mojo.Log.error("Create Main Stage");
+                var stageArguments2 = {name: "mainStage", lightweight: true};
                 this.controller.createStageWithCallback(stageArguments2, pushMainScene2.bind(this), "card");
-            }*/
+            }
         break;
         
         }
@@ -197,31 +464,140 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 
 
 
+Array.prototype.inArray = function (value){
+	// Returns true if the passed value is found in the
+	// array. Returns false if it is not.
+
+	var i;
+	for (i=0; i < this.length; i++) {
+		// Matches identical (===), not just similar (==).
+		if (this[i] === value) {
+			return true;
+		}
+	}
+	return false;
+};
 
 
-_globals.loadGoogleMaps = function() {
-   	var appController = Mojo.Controller.getAppController();
-  	var cardStageController = appController.getStageController("mainStage");
-	var doc=cardStageController.document;
 
-    Mojo.Log.error("Initializing Google Loader");
-    // Code from Google Sample
-    var script = doc.createElement("script");
-    script.src = "http://maps.google.com/maps/api/js?sensor=true&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ";
-    script.type = "text/javascript";
-    doc.getElementsByTagName("head")[0].appendChild(script);
 
+AppAssistant.prototype.feedFailed = function(r) {
+	Mojo.Log.error("failed: "+r.responseText);
 }
-
-window.maps = window.maps || {};
-
-
-
 
 
 
 AppAssistant.prototype.feedSuccess = function(r) {
+Mojo.Log.error("got feed");
+	this.r=r;
+	//see if we've got a stored list of old checkins
+	_globals.db.get("feed",function(d){
+		//found an old feed
+		if(d) {var f=d.checkins;}
+		if(!f){
+		
+			var f=[];
+		}
+		Mojo.Log.error("f="+f);
+		this.doFeedData(f,this.r);
+	}.bind(this),function(d){
+		//no feed found
+		this.doFeedData([],this.r);
+	}.bind(this));
+}
 
+AppAssistant.prototype.doFeedData = function(data,r){
+	Mojo.Log.error("checkins="+Object.toJSON(data));
+	/*this.cookieData=new Mojo.Model.Cookie("feed");
+	var feedcookie=this.cookieData.get();
+	if(feedcookie){
+		var oldfeed=feedcookie.feed;
+	}else{
+		var oldfeed=[];
+	}
+	
+	
+	oldfeed=[];*/
+	
+	var oldfeed=data || [];
+	
+	//setup array to hold actually new checkins
+	var newitems=[];
+	
+	Mojo.Log.error("setup arrays");
+	//run through array of newly downloaded checkins
+	var newfeed=r.responseJSON.checkins;
+	if(newfeed){
+		Mojo.Log.error("has newfeed. oldfeed.length="+oldfeed.length);
+		if(oldfeed.length>0){
+			for(var f=0;f<newfeed.length;f++) {
+				var inarray=false;
+				for(var of=0;of<oldfeed.length;of++){
+					if(oldfeed[of].id==newfeed[f].id){
+						inarray=true;
+						break;
+					}					
+				}
+				if(!inarray){newitems.push(newfeed[f]);} //if the checkin is really new, add it to the newitems array
+			}
+		}else{
+			newitems=newfeed;
+		}
+		Mojo.Log.error("added new items to newer array");
+
+		//store the new feed in a cookie
+		/*this.cookieData=new Mojo.Model.Cookie("feed");
+		this.cookieData.put({
+			feed: newfeed
+		});*/
+		this.newitems=newitems;
+		_globals.db.add("feed",r.responseJSON,function(r){Mojo.Log.error("add OK");this.doDashboard();}.bind(this),function(r){Mojo.Log.error("add FAIL");this.doDashboard();}.bind(this));
+	}
+}	
+	
+	
+AppAssistant.prototype.doDashboard = function(){
+	Mojo.Log.error("dodashboard");
+	var newitems=this.newitems;
+	if(newitems.length>0){
+	
+		var appController = Mojo.Controller.getAppController();
+        var stageController = appController.getStageController("mainStage");
+        var dashboardStageController = appController.getStageProxy("fsqDash");
+
+		Mojo.Log.error("got controllers");
+		if(stageController){
+			if(!stageController.isActiveAndHasScenes()){
+				Mojo.Log.error("no active scenes");
+				appController.showBanner(newitems.length+" New Check-ins", {action: "notification"});
+				if(!dashboardStageController) {
+            		Mojo.Log.error("New Dashboard Stage");
+                	var pushDashboard = function(stageController){
+                		stageController.pushScene("dashboard", newitems);
+                	};
+                	appController.createStageWithCallback({name: "fsqDash", lightweight: true}, pushDashboard, "dashboard");
+            	}else {
+                	Mojo.Log.error("Existing Dashboard Stage");
+                	dashboardStageController.delegateToSceneAssistant("updateDashboard");
+            	}
+            }
+		}else{
+				Mojo.Log.error("no mainstage");
+				appController.showBanner(newitems.length+" New Check-ins", {action: "notification"});
+				if(!dashboardStageController) {
+            		Mojo.Log.error("New Dashboard Stage");
+                	var pushDashboard = function(stageController){
+                		stageController.pushScene("dashboard", newitems);
+                	};
+                	appController.createStageWithCallback({name: "fsqDash", lightweight: true}, pushDashboard, "dashboard");
+            	}else {
+                	Mojo.Log.error("Existing Dashboard Stage");
+                	dashboardStageController.delegateToSceneAssistant("updateDashboard");
+            	}
+		
+		}
+		Mojo.Log.error("done feed stuff");
+	}
 }
 
 

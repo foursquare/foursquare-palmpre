@@ -1,9 +1,4 @@
 function VenuedetailAssistant(venue,u,p,i,fui,ps,fm) {
-	/* this is the creator function for your scene assistant object. It will be passed all the 
-	   additional parameters (after the scene name) that were passed to pushScene. The reference
-	   to the scene controller (this.controller) has not be established yet, so any initialization
-	   that needs the scene controller should be done in the setup function below. */
-	   
 	   this.venue=venue;
 	   this.username=_globals.username;
 	   this.password=_globals.password;
@@ -16,45 +11,33 @@ function VenuedetailAssistant(venue,u,p,i,fui,ps,fm) {
 }
 
 VenuedetailAssistant.prototype.setup = function() {
-	/* this function is for setup tasks that have to happen when the scene is first created */
 	this.controller.get("snapMayor").hide();
-	//this.controller.get("snapTips").hide(); //keep it visible -- that way the Add Tip button can be there
 	this.controller.get("checkinVenueName").innerHTML=this.venue.name;
 	this.controller.get("checkinVenueAddress").innerHTML=this.venue.address;
 	if (this.venue.crossstreet) {
-	 this.controller.get("checkinVenueAddress").innerHTML += "<br/>("+this.venue.crossstreet+")";
+		this.controller.get("checkinVenueAddress").innerHTML += " ("+this.venue.crossstreet+")";
 	}
 
 	var query=encodeURIComponent(this.venue.address+' '+this.venue.city+', '+this.venue.state);
-	this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x175&sensor=false&markers=color:blue|"+this.venue.geolat+","+this.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA"
+	this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+this.venue.geolat+","+this.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA"
 	
-	
-	
-	zBar.render("venue","");
-	
-	
-	
-	
-	
+	//zBar.render("venue","");
 	this.getVenueInfo();
 	
-			/* setup widgets here */
-	    this.controller.setupWidget("detailScroller",
+    this.controller.setupWidget("detailScroller",
          this.scrollAttributes = {
              mode: 'vertical-snap'
          },
          this.scrollModel = {
-            /* snapElements: {'y': [this.controller.get("snapMap"),this.controller.get("snapMayor"),this.controller.get("snapTips"),this.controller.get("snapTags"),this.controller.get("snapInfo")]}*/
          });
-	    this.controller.setupWidget("overlayScroller",
+	this.controller.setupWidget("overlayScroller",
          this.scroll2Attributes = {
              mode: 'vertical-snap'
          },
          this.scroll2Model = {
-            /* snapElements: {'y': [this.controller.get("snapMap"),this.controller.get("snapMayor"),this.controller.get("snapTips"),this.controller.get("snapTags"),this.controller.get("snapInfo")]}*/
          });
 
-		this.controller.setupWidget(Mojo.Menu.appMenu,
+	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
 
@@ -66,6 +49,13 @@ VenuedetailAssistant.prototype.setup = function() {
              spinning: true 
          });
 
+    this.controller.setupWidget("checkinButton",
+        this.buttonAttributes = {
+            },
+        this.buttonModel = {
+            label : "Check-in Here",
+            disabled: false
+        });
     this.controller.setupWidget("buttonAddTip",
         this.buttonAttributes = {
             },
@@ -108,7 +98,7 @@ VenuedetailAssistant.prototype.setup = function() {
              unstyled: true
          },
          this.model = {
-             open: false
+             open: true
          });
 
 	this.controller.setupWidget("tagsDrawer",
@@ -117,7 +107,7 @@ VenuedetailAssistant.prototype.setup = function() {
              unstyled: true
          },
          this.model = {
-             open: false
+             open: true
          });
 	this.controller.setupWidget("venueInfoContainer",
          this.attributes = {
@@ -125,7 +115,7 @@ VenuedetailAssistant.prototype.setup = function() {
              unstyled: true
          },
          this.model = {
-             open: false
+             open: true
          });
 	this.controller.setupWidget("mapDrawer",
          this.attributes = {
@@ -153,76 +143,47 @@ VenuedetailAssistant.prototype.setup = function() {
 
 	this.resultsModel = {items: [], listTitle: $L('Results')};
     
-	// Set up the attributes & model for the List widget:
 	this.controller.setupWidget('results-meta-list', 
-					      {itemTemplate:'listtemplates/venueItems'},
+					      {itemTemplate:'listtemplates/overlayItems'},
 					      this.resultsModel);
-
+    this.controller.setupWidget("tabButtons",
+        this.tabAttributes = {
+            choices: [
+                {label: "Details", value: 1},
+                {label: "People", value: 2},
+                {label: "Tips", value: 3}
+            ]
+        },
+        this.tabModel = {
+            value: 1,
+            disabled: false
+        }
+    );
 	
-	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
-	
-	/* add event handlers to listen to events from widgets */
-	Mojo.Event.listen(this.controller.get("docheckin"),Mojo.Event.tap,this.promptCheckin.bind(this));
-	
-	/*var userlinks=$this.controller.get(".userLink");
-	for(var e=0;e<userlinks.length;e++) {
-		var eid=userlinks[e].id;
-		Mojo.Event.listen(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo.bind(this));
-	}*/
-	
+	Mojo.Event.listen(this.controller.get("checkinButton"),Mojo.Event.tap,this.promptCheckin.bind(this));
 	Mojo.Event.listen(this.controller.get("buttonAddTip"),Mojo.Event.tap, this.handleAddTip.bind(this));
 	Mojo.Event.listen(this.controller.get("buttonAddTodo"),Mojo.Event.tap, this.handleAddTodo.bind(this));
 	Mojo.Event.listen(this.controller.get("buttonMarkClosed"),Mojo.Event.tap, this.handleMarkClosed.bind(this));
 	Mojo.Event.listen(this.controller.get("buttonProposeEdit"),Mojo.Event.tap, this.handleProposeEdit.bind(this));
-    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
-        this.cmattributes = {
-           spacerHeight: 0,
-           menuClass: 'blue-command-nope'
-        },*/
-        /*this.cmmodel = {
-          visible: true,
-          items: [{
-          	items: [ 
-                 { iconPath: "images/venue_button.png", command: "do-Venues"},
-                 { iconPath: "images/friends_button.png", command: "do-Friends"},
-                 { iconPath: "images/todo_button.png", command: "do-Tips"},
-                 { iconPath: "images/shout_button.png", command: "do-Shout"},
-                 { iconPath: "images/badges_button.png", command: "do-Nothing"},
-                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'}
-                 ],
-            toggleCmd: "do-Nothing"
-            }]
-    }*//*_globals.cmmodel);*/
-
-	Mojo.Event.listen(this.controller.get("mayorDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-	Mojo.Event.listen(this.controller.get("tipsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-	Mojo.Event.listen(this.controller.get("specialsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-	Mojo.Event.listen(this.controller.get("tagsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-	Mojo.Event.listen(this.controller.get("infoDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-	Mojo.Event.listen(this.controller.get("mapDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+//	Mojo.Event.listen(this.controller.get("mayorDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+//	Mojo.Event.listen(this.controller.get("tipsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+//	Mojo.Event.listen(this.controller.get("specialsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+//	Mojo.Event.listen(this.controller.get("tagsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+//	Mojo.Event.listen(this.controller.get("infoDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
+	//Mojo.Event.listen(this.controller.get("mapDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 	Mojo.Event.listen(this.controller.get("flickr-button"),Mojo.Event.tap, this.showFlickr.bind(this));
 	Mojo.Event.listen(this.controller.get("banks-button"),Mojo.Event.tap, this.showBanks.bind(this));
 	Mojo.Event.listen(this.controller.get("parking-button"),Mojo.Event.tap, this.showParking.bind(this));
  	Mojo.Event.listen(this.controller.get("venueMap"),Mojo.Event.tap, this.showGoogleMaps.bind(this));
-		Mojo.Event.listen(this.controller.get("overlay-closer"),Mojo.Event.tap, function(){zBar.showToolbar();this.controller.get("docheckin-fields").hide();this.controller.get("overlay-content").innerHTML="";this.controller.get("meta-overlay").hide();}.bind(this));
-		//Mojo.Event.listen(this.controller.get("venueMap"),Mojo.Event.tap, this.mapClicked.bind(this));
+	Mojo.Event.listen(this.controller.get("overlay-closer"),Mojo.Event.tap, function(){this.controller.get("docheckin-fields").hide();this.controller.get("overlay-content").innerHTML="";this.controller.get("meta-overlay").hide();}.bind(this));
+	Mojo.Event.listen(this.controller.get("tabButtons"), Mojo.Event.propertyChange, this.swapTabs.bind(this));
 
-
-	//this.controller.get("venueMap").setAttribute("data","maploc:("+this.venue.geolat+","+this.venue.geolong+")");
 	this.controller.get("meta-overlay").hide();
 	this.controller.get("results-meta-list").hide();
 	
 	
 	this.flickrUpload='<span id="flickrUploader" class="vtip-black" style="white-space:nowrap;">Upload</span>';
-
-
-
-
-
 	this.setupCheckin();
-
-
-
 }
 
 var auth;
@@ -230,21 +191,31 @@ var auth;
 function make_base_auth(user, pass) {
   var tok = user + ':' + pass;
   var hash = Base64.encode(tok);
-  //this.controller.get('message').innerHTML += '<br/>'+ hash;
   return "Basic " + hash;
 }
 
+VenuedetailAssistant.prototype.swapTabs = function(event) {
+	this.controller.get("detailScroller").mojo.revealTop();
+	switch(this.tabModel.value){
+		case 1:
+			this.controller.get("people-group").hide();
+			this.controller.get("tips-group").hide();
+			this.controller.get("details-group").show();
+			break;
+		case 2:
+			this.controller.get("people-group").show();
+			this.controller.get("tips-group").hide();
+			this.controller.get("details-group").hide();		
+			break;
+		case 3:
+			this.controller.get("people-group").hide();
+			this.controller.get("tips-group").show();
+			this.controller.get("details-group").hide();
+			break;
+	}
+}
+
 VenuedetailAssistant.prototype.showGoogleMaps = function() {
-/*this.controller.serviceRequest('palm://com.palm.applicationManager', {
- 	method: 'open',
- 	parameters: {
- 	id: 'com.palm.app.maps',
- 	params: {
- 		location: {lat: this.venue.geolat, lng: this.venue.geolong, acc: 1},
- 		daddr: this.vgeolat+","+this.vgeolong
- 		}
- 	}
- });*/ 
  this.controller.serviceRequest('palm://com.palm.applicationManager', {
  	method:'open',
  	parameters:{target: "maploc:("+this.vgeolat+","+this.vgeolong+")" }
@@ -259,7 +230,7 @@ VenuedetailAssistant.prototype.getVenueInfo = function() {
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization:auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization:auth},
 	   parameters: {vid:this.venue.id},
 	   onSuccess: this.getVenueInfoSuccess.bind(this),
 	   onFailure: this.getVenueInfoFailed.bind(this)
@@ -269,10 +240,27 @@ function trim(stringToTrim) {
 	return stringToTrim.replace(/^\s+|\s+$/g,"");
 }
 
+VenuedetailAssistant.prototype.relativeTime = function(offset){
+	// got this from: http://github.com/trek/thoughtbox/blob/master/js_relative_dates/src/relative_date.js
+    var distanceInMinutes = (offset.abs() / 60000).round();
+    if (distanceInMinutes == 0) { return 'less than a minute'; }
+    else if ($R(0,1).include(distanceInMinutes)) { return 'about a minute'; }
+    else if ($R(2,44).include(distanceInMinutes)) { return distanceInMinutes + ' minutes';}
+    else if ($R(45,89).include(distanceInMinutes)) { return 'about 1 hour';}
+    else if ($R(90,1439).include(distanceInMinutes)) { return 'about ' + (distanceInMinutes / 60).round() + ' hours'; }
+    else if ($R(1440,2879).include(distanceInMinutes)) {return '1 day'; }
+    else if ($R(2880,43199).include(distanceInMinutes)) {return 'about ' + (distanceInMinutes / 1440).round() + ' days'; }
+    else if ($R( 43200,86399).include(distanceInMinutes)) {return 'about a month' }
+    else if ($R(86400,525599).include(distanceInMinutes)) {return 'about ' + (distanceInMinutes / 43200).round() + ' months'; }
+    else if ($R(525600,1051199).include(distanceInMinutes)) {return 'about a year';}
+    else return 'over ' + (distanceInMinutes / 525600).round() + ' years';
+  }
+
+
+
+
 VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
-	Mojo.Log.error(response.responseText);
 	var th=this;
-	Mojo.Log.error("this="+th.constructor.name);
 	this.controller.get("vcategory").innerHTML=(response.responseJSON.venue.primarycategory)? 
 		'<img src="'+response.responseJSON.venue.primarycategory.iconurl+'"><br/>'+response.responseJSON.venue.primarycategory.nodename: '';
 	
@@ -281,11 +269,10 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	
 	
 	if (response.responseJSON.venue.crossstreet && !this.venue.crossstreet) {
-	 this.controller.get("checkinVenueAddress").innerHTML += "<br/>("+response.responseJSON.venue.crossstreet+")";
+	 this.controller.get("checkinVenueAddress").innerHTML += " ("+response.responseJSON.venue.crossstreet+")";
 	}
-	if(this.controller.get("venueMap").src!="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x175&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA") {
-		this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x175&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA";
-		//this.controller.get("venueMap").setAttribute("data","maploc:("+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+")");
+	if(this.controller.get("venueMap").src!="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA") {
+		this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA";
 		this.venue.geolat=response.responseJSON.venue.geolat;
 		this.venue.geolong=response.responseJSON.venue.geolong;
 	}
@@ -300,6 +287,8 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		this.controller.get("mayorPic").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
 		this.controller.get("mayorPicBorder").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
 		this.controller.get("mayorPicBorder").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
+		this.controller.get("mayorAvatar").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
+		this.controller.get("mayorAvatar").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
 		
 		this.controller.get("mayorName").innerHTML=response.responseJSON.venue.stats.mayor.user.firstname+" "+lname;
 		this.controller.get("mayorName").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
@@ -321,6 +310,10 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 				mInfo="They've checked in here "+response.responseJSON.venue.stats.mayor.count+" time"+s+".";
 				break;
 				
+		}
+		if(response.responseJSON.venue.stats.mayor.user.id==_globals.uid){
+				var s=(response.responseJSON.venue.stats.mayor.count!=1)? "s": ""; 
+				mInfo="You've checked in here "+response.responseJSON.venue.stats.mayor.count+" time"+s+".";			
 		}
 		this.controller.get("mayorInfo").innerHTML=mInfo;
 		
@@ -369,7 +362,14 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			var photo=response.responseJSON.venue.tips[t].user.photo;
 			var uid=response.responseJSON.venue.tips[t].user.id;
 
-			tips+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink" user="'+username+'" data="'+uid+'"/> <span class="venueTipUser userLink" user="'+username+'" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+tip+'</span><br class="breaker"/><div class="tip-buttons"><span class="vtip tipsave" id="tip-save-'+t+'" data="'+tipid+'">Save Tip</span> <span class="vtip-black tipdone" id="tip-done-'+t+'" data="'+tipid+'">I\'ve Done This</span></div></div>'+"\n";
+			tips+='<div class="palm-row single aTip">';
+			tips+='<img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="48" class="userLink friend-avatar" user="'+username+'" data="'+uid+'" style="display: block;float:left;"/>';
+			tips+='<div style="float:right;width:240px;margin-right: 4px;"><span class="venueTip" style="">'+tip+'</span><br/>';
+			tips+='<span class="venueTipUser userLink" user="'+username+'" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >by '+username+'</span>';
+			tips+='<br class="breaker"/><div class="tip-buttons" style="width:100%;margin:5px auto 5px -20px">';
+			tips+='<span class="vtip tipsave" id="tip-save-'+t+'" data="'+tipid+'">Save Tip</span> ';
+			tips+='<span class="vtip-black tipdone" id="tip-done-'+t+'" data="'+tipid+'">I\'ve Done This</span></div></div></div>'+"\n";
+			tips+='<br class="breaker"/>';
 		}
 		this.controller.get("venueTips").update(tips);
 	}
@@ -386,8 +386,27 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			var username=response.responseJSON.venue.checkins[t].user.firstname+" "+tlname;
 			var photo=response.responseJSON.venue.checkins[t].user.photo;
 			var uid=response.responseJSON.venue.checkins[t].user.id;
+			if(response.responseJSON.venue.checkins[t].created != undefined) {
+				var now = new Date;
+				var later = new Date(response.responseJSON.venue.checkins[t].created);
+				var offset = later.getTime() - now.getTime();
+				var when=this.relativeTime(offset) + " ago";
+			}else{
+			   	var when="";
+			}
+			var urlmatch=/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+			shout=shout.replace(urlmatch,'<a href="$1" class="listlink">$1</a>');
 
-			users+='<div class="palm-row single aTip"><img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="24" class="userLink"  user="'+username+'" data="'+uid+'"/>&nbsp; <span class="venueTipUser userLink" data="'+uid+'" user="'+username+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="palm-info-text venueTip">'+shout+'</span></div>'+"\n";
+
+			users+='<div class="palm-row single aTip">';
+			users+='<img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="48" class="userLink friend-avatar"  user="'+username+'" data="'+uid+'" style="display: block;float:left;"/>'; 
+			if(shout!=undefined && shout!=""){
+				users+='<div style="float:right;width:240px;margin-right: 4px;"><span class="venueTip">'+shout+'</span>';
+				users+='<br/><span class="venueTipUser fakelink userLink" data="'+uid+'" user="'+username+'" id="tip-name-'+uid+'-'+t+'" >'+username+' '+when+'</span></div></div>'+"\n";
+			}else{
+				users+='<div style="float:right;width:240px;margin-right: 4px;">';
+				users+='<span class="venueTip fakelink userLink" data="'+uid+'" user="'+username+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="venueTipUser">'+when+'</span></div></div>'+"\n";			
+			}
 		}
 		this.controller.get("venueUsers").update(users);
 	}else{
@@ -454,17 +473,19 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	
 	
 	
-	//atatch events to any new user links
-	var userlinks=$this.controller.get(".userLink");
+	//attach events to any new user links
+	var userlinks=zBar.getElementsByClassName(".userLink",this.controller.get("main-venuedetail"));
 	for(var e=0;e<userlinks.length;e++) {
 		var eid=userlinks[e].id;
 		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo);
 		Mojo.Event.listen(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo.bind(this));
 		Mojo.Log.error("#########added event to "+eid)
 	}
+		Mojo.Event.listen(this.controller.get("mayorAvatar"),Mojo.Event.tap,this.showUserInfo.bind(this));
 
-	//atatch events to any new save tip links
-	var savetips=$this.controller.get(".tipsave");
+
+	//attach events to any new save tip links
+	var savetips=zBar.getElementsByClassName(".tipsave",this.controller.get("snapTips"));
 	for(var e=0;e<savetips.length;e++) {
 		var eid=savetips[e].id;
 		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.tipTapped);
@@ -472,7 +493,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		Mojo.Log.error("#########added event to "+eid)
 	}
 
-	var donetips=$this.controller.get(".tipdone");
+	var donetips=zBar.getElementsByClassName(".tipdone",this.controller.get("snapTips"));
 	for(var e=0;e<donetips.length;e++) {
 		var eid=donetips[e].id;
 		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.tipTapped);
@@ -493,23 +514,6 @@ var checkinDialog;
 
 
 VenuedetailAssistant.prototype.promptCheckin = function(event) {
-/*	this.controller.showAlertDialog({
-		onChoose: function(value) {
-			if (value) {
-				Mojo.Log.error("#######click yeah");
-				this.checkIn(this.venue.id, this.venue.name,'','','0');
-			}
-		},
-		title:"Foursquare Check In",
-		message:"Go ahead and check-in here?",
-		cancelable:true,
-		choices:[ {label:'Yeah!', value:true, type:'affirmative'}, {label:'Eh, nevermind.', value:false, type:'negative'} ]
-	});*/
-	/*	checkinDialog = this.controller.showDialog({
-		template: 'listtemplates/do-checkin',
-		assistant: new DoCheckinDialogAssistant(this,this.venue.id,this.venue.name)
-	});*/
-	zBar.hideToolbar();
 	this.controller.get("overlay-title").innerHTML="Check-in";
 	this.controller.get("overlay-content").innerHTML="";
 	this.controller.get("docheckin-fields").show();
@@ -521,10 +525,8 @@ VenuedetailAssistant.prototype.promptCheckin = function(event) {
 }
 
 VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
-	Mojo.Log.error("###check in please??");
 	if (_globals.auth) {
-	Mojo.Log.error("ping="+sf);
-	sf=(sf==0)? 1: 0;
+		sf=(sf==0)? 1: 0;
 		var url = 'http://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
@@ -543,11 +545,9 @@ VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 			onFailure: this.checkInFailed.bind(this)
 		});
 	} else {
-		//this.controller.get('message').innerHTML = 'Not Logged In';
 	}
 }
 VenuedetailAssistant.prototype.markClosed = function() {
-	Mojo.Log.error("###mark closed");
 	if (_globals.auth) {
 		var url = 'http://api.foursquare.com/v1/venue/flagclosed.json';
 		var request = new Ajax.Request(url, {
@@ -563,51 +563,41 @@ VenuedetailAssistant.prototype.markClosed = function() {
 			onFailure: this.markClosedFailed.bind(this)
 		});
 	} else {
-		//this.controller.get('message').innerHTML = 'Not Logged In';
 	}
 }
 
 VenuedetailAssistant.prototype.showBanks = function(event) {
-Mojo.Log.error("##getting banks");
-this.controller.get("meta-overlay").show();
-this.controller.get("overlaySpinner").mojo.start();
-this.controller.get("overlaySpinner").show();
-this.controller.get("overlay-content").innerHTML="";
-this.controller.get("overlay-title").innerHTML="Banks & ATMs";
+	this.controller.get("meta-overlay").show();
+	this.controller.get("overlaySpinner").mojo.start();
+	this.controller.get("overlaySpinner").show();
+	this.controller.get("overlay-content").innerHTML="";
+	this.controller.get("overlay-title").innerHTML="Banks & ATMs";
 
-		//var url = 'http://api.flickr.com/services/feeds/photos_public.gne?&tagmode=any&format=json&jsoncallback=?&tags=foursquare:venue='+this.venue.id;
-		var url='http://api.geoapi.com/v1/q?apikey=3KbTrN2r4h&q={%22lat%22:'+this.vgeolat+',%22lon%22:'+this.vgeolong+',%22entity%22:[{%22guid%22:null,%22name%22:null,%22geom%22:null,%22distance-from-origin%22:null,%22type%22:%22business%22,%22view.listing%22:{%22*%22:null,%22verticals%22:%22financial:banks%22}}],%22radius%22:%221km%22,%22limit%22:20}';
-		Mojo.Log.error("url="+url);
-		var request = new Ajax.Request(url, {
+	var url='http://api.geoapi.com/v1/q?apikey=3KbTrN2r4h&q={%22lat%22:'+this.vgeolat+',%22lon%22:'+this.vgeolong+',%22entity%22:[{%22guid%22:null,%22name%22:null,%22geom%22:null,%22distance-from-origin%22:null,%22type%22:%22business%22,%22view.listing%22:{%22*%22:null,%22verticals%22:%22financial:banks%22}}],%22radius%22:%221km%22,%22limit%22:20}';
+	var request = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'true',
 			onSuccess: this.banksSuccess.bind(this),
 			onFailure: this.banksFailed.bind(this)
-		});
+	});
 }
 
 VenuedetailAssistant.prototype.banksSuccess = function(response) {
-	Mojo.Log.error("banks="+response.responseText);
 	this.controller.get("meta-overlay").show();
 	this.controller.get("overlaySpinner").mojo.stop();
 	this.controller.get("overlaySpinner").hide();
-
-	//this.controller.get("overlay-content").innerHTML='No Flickr images found for this venue.';
 	this.controller.get("overlay-title").innerHTML="Banks & ATMs";
 
 	//there's a stupid dot in one of the object properties that effs all this up. gotta fix it.
 	var j=eval("("+response.responseText.replace(/view.listing/ig,"viewlisting").replace(/distance-from-origin/ig,"distance")+")");
-	Mojo.Log.error(Object.toJSON(j));
 	var entities=j.entity;
 	if(entities.length>0) {
 		var banks=[];
 		for(var e=0;e<entities.length;e++) {
-			Mojo.Log.error("in loop");
 			var thisbank={};
 			thisbank.address=entities[e].viewlisting.address[0];
 			thisbank.name=entities[e].viewlisting.name;
 			var dist=parseInt(entities[e].distance);
-			Mojo.Log.error("distance="+entities[e].distance);
 			var amile=0.000621371192;
 			dist=roundNumber(dist*amile,1);
 			var unit="";
@@ -615,9 +605,7 @@ VenuedetailAssistant.prototype.banksSuccess = function(response) {
 			thisbank.distance=dist;
 			thisbank.unit=unit;
 			banks.push(thisbank);
-			Mojo.Log.error("##entity: "+thisbank.name);
 		}
-		Mojo.Log.error("banks="+banks.length);
 		this.resultsModel.items=banks;
 		this.controller.modelChanged(this.resultsModel);
 		this.controller.get("results-meta-list").show();
@@ -628,57 +616,47 @@ VenuedetailAssistant.prototype.banksSuccess = function(response) {
 	
 }
 VenuedetailAssistant.prototype.banksFailed = function(response) {
-this.controller.get("meta-overlay").show();
-this.controller.get("overlaySpinner").mojo.stop();
-this.controller.get("overlaySpinner").hide();
-this.controller.get("results-meta-list").hide();
-
+	this.controller.get("meta-overlay").show();
+	this.controller.get("overlaySpinner").mojo.stop();
+	this.controller.get("overlaySpinner").hide();
+	this.controller.get("results-meta-list").hide();
 	this.controller.get("overlay-content").innerHTML='Error loading nearby banks and ATMs.';
 	this.controller.get("overlay-title").innerHTML="Banks & ATMs";
 
 }
 
 VenuedetailAssistant.prototype.showParking = function(event) {
-Mojo.Log.error("##getting parking");
-this.controller.get("meta-overlay").show();
-this.controller.get("overlaySpinner").mojo.start();
-this.controller.get("overlaySpinner").show();
-this.controller.get("overlay-content").innerHTML="";
-this.controller.get("overlay-title").innerHTML="Parking";
+	this.controller.get("meta-overlay").show();
+	this.controller.get("overlaySpinner").mojo.start();
+	this.controller.get("overlaySpinner").show();
+	this.controller.get("overlay-content").innerHTML="";
+	this.controller.get("overlay-title").innerHTML="Parking";
 
-		//var url = 'http://api.flickr.com/services/feeds/photos_public.gne?&tagmode=any&format=json&jsoncallback=?&tags=foursquare:venue='+this.venue.id;
-		var url='http://api.geoapi.com/v1/q?apikey=3KbTrN2r4h&pretty=1&q={%22lat%22:'+this.vgeolat+',%22lon%22:'+this.vgeolong+',%22entity%22:[{%22guid%22:null,%22name%22:null,%22geom%22:null,%22distance-from-origin%22:null,%22type%22:%22business%22,%22view.listing%22:{%22*%22:null,%22verticals%22:%22tourist-center:parking%22}}],%22radius%22:%221km%22,%22limit%22:20}';
-		Mojo.Log.error("url="+url);
-		var request = new Ajax.Request(url, {
+	var url='http://api.geoapi.com/v1/q?apikey=3KbTrN2r4h&pretty=1&q={%22lat%22:'+this.vgeolat+',%22lon%22:'+this.vgeolong+',%22entity%22:[{%22guid%22:null,%22name%22:null,%22geom%22:null,%22distance-from-origin%22:null,%22type%22:%22business%22,%22view.listing%22:{%22*%22:null,%22verticals%22:%22tourist-center:parking%22}}],%22radius%22:%221km%22,%22limit%22:20}';
+	var request = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'true',
 			onSuccess: this.parkingSuccess.bind(this),
 			onFailure: this.parkingFailed.bind(this)
-		});
+	});
 }
 
 VenuedetailAssistant.prototype.parkingSuccess = function(response) {
-	Mojo.Log.error("parking="+response.responseText);
 	this.controller.get("meta-overlay").show();
 	this.controller.get("overlaySpinner").mojo.stop();
 	this.controller.get("overlaySpinner").hide();
-
-	//this.controller.get("overlay-content").innerHTML='No Flickr images found for this venue.';
 	this.controller.get("overlay-title").innerHTML="Parking";
 
 	//there's a stupid dot in one of the object properties that effs all this up. gotta fix it.
 	var j=eval("("+response.responseText.replace(/view.listing/ig,"viewlisting").replace(/distance-from-origin/ig,"distance")+")");
-	Mojo.Log.error(Object.toJSON(j));
 	var entities=j.entity;
 	if(entities.length>0) {
 		var parking=[];
 		for(var e=0;e<entities.length;e++) {
-			Mojo.Log.error("in loop");
 			var thisparking={};
 			thisparking.address=entities[e].viewlisting.address[0];
 			thisparking.name=entities[e].viewlisting.name;
 			var dist=parseInt(entities[e].distance);
-			Mojo.Log.error("distance="+entities[e].distance);
 			var amile=0.000621371192;
 			dist=roundNumber(dist*amile,1);
 			var unit="";
@@ -686,9 +664,7 @@ VenuedetailAssistant.prototype.parkingSuccess = function(response) {
 			thisparking.distance=dist;
 			thisparking.unit=unit;
 			banks.push(thisbank);
-			Mojo.Log.error("##entity: "+thisparking.name);
 		}
-		Mojo.Log.error("parking="+parking.length);
 		this.resultsModel.items=parking;
 		this.controller.modelChanged(this.resultsModel);
 		this.controller.get("results-meta-list").show();
@@ -699,64 +675,50 @@ VenuedetailAssistant.prototype.parkingSuccess = function(response) {
 	
 }
 VenuedetailAssistant.prototype.parkingFailed = function(response) {
-this.controller.get("meta-overlay").show();
-this.controller.get("overlaySpinner").mojo.stop();
-this.controller.get("overlaySpinner").hide();
-this.controller.get("results-meta-list").hide();
-
+	this.controller.get("meta-overlay").show();
+	this.controller.get("overlaySpinner").mojo.stop();
+	this.controller.get("overlaySpinner").hide();
+	this.controller.get("results-meta-list").hide();
 	this.controller.get("overlay-content").innerHTML='Error loading nearby parking.';
 	this.controller.get("overlay-title").innerHTML="Parking";
-
 }
 
 
 VenuedetailAssistant.prototype.showFlickr = function(event) {
-Mojo.Log.error("##getting flickr");
-this.controller.get("meta-overlay").show();
-this.controller.get("overlaySpinner").mojo.start();
-this.controller.get("overlaySpinner").show();
-this.controller.get("overlay-content").innerHTML="";
-this.controller.get("results-meta-list").hide();
+	this.controller.get("meta-overlay").show();
+	this.controller.get("overlaySpinner").mojo.start();
+	this.controller.get("overlaySpinner").show();
+	this.controller.get("overlay-content").innerHTML="";
+	this.controller.get("results-meta-list").hide();
 
-		//var url = 'http://api.flickr.com/services/feeds/photos_public.gne?&tagmode=any&format=json&jsoncallback=?&tags=foursquare:venue='+this.venue.id;
-		var url='http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key='+_globals.flickr_key+'&machine_tags=foursquare:venue="'+this.venue.id+'"&nojsoncallback=1&format=json';
-		var request = new Ajax.Request(url, {
+	var url='http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key='+_globals.flickr_key+'&machine_tags=foursquare:venue="'+this.venue.id+'"&nojsoncallback=1&format=json';
+	var request = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'true',
-			/*requestHeaders: {
-				Authorization: _globals.auth
-			},
-			parameters: {
-				vid: this.venue.id,
-			},*/
 			onSuccess: this.flickrSuccess.bind(this),
 			onFailure: this.flickrFailed.bind(this)
-		});
+	});
 }
 
 VenuedetailAssistant.prototype.flickrFailed = function(response) {
-Mojo.Log.error("##flickr failed: "+response.responseText);
-this.controller.get("meta-overlay").show();
-this.controller.get("overlaySpinner").mojo.stop();
-this.controller.get("overlaySpinner").hide();
-
+	this.controller.get("meta-overlay").show();
+	this.controller.get("overlaySpinner").mojo.stop();
+	this.controller.get("overlaySpinner").hide();
 	this.controller.get("overlay-content").innerHTML='No Flickr images found for this venue.';
 	this.controller.get("overlay-title").innerHTML="Photos "+this.flickrUpload;
 	Mojo.Event.listen(this.controller.get("flickrUploader"),Mojo.Event.tap, this.tryflickrUpload.bind(this));
 }
 
 VenuedetailAssistant.prototype.flickrSuccess = function(response) {
-Mojo.Log.error("##flickr succeeded: "+response.responseText);
-	
-		var j=eval("("+response.responseText+")");
-		this.controller.get("overlay-title").innerHTML='Photos '+this.flickrUpload;
+	var j=eval("("+response.responseText+")");
+	this.controller.get("overlay-title").innerHTML='Photos '+this.flickrUpload;
 
 	if(j.photos!=undefined && j.photos.photo.length!=0) {
 		this.controller.get("meta-overlay").show();
 
 		var html=this.controller.get("overlay-content");
-this.controller.get("overlaySpinner").mojo.stop();
-this.controller.get("overlaySpinner").hide();
+		this.controller.get("overlaySpinner").mojo.stop();
+		this.controller.get("overlaySpinner").hide();
 		html.update(html.innerHTML+"Flickr<br/>");
 		for(var i=0;i<j.photos.photo.length;i++) {
 			var id=j.photos.photo[i].id;
@@ -786,34 +748,26 @@ this.controller.get("overlaySpinner").hide();
 }
 
 VenuedetailAssistant.prototype.flickrNearby = function() {
-Mojo.Log.error("######getting nearby flickr");
-this.controller.get("meta-overlay").show();
-this.controller.get("overlaySpinner").mojo.start();
-this.controller.get("overlaySpinner").show();
+	this.controller.get("meta-overlay").show();
+	this.controller.get("overlaySpinner").mojo.start();
+	this.controller.get("overlaySpinner").show();
 
-		var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key='+_globals.flickr_key+'&lat='+this.vgeolat+'&lon='+this.vgeolong+'&radius=5&radius_units=km&nojsoncallback=1&format=json';
-		Mojo.Log.error("url="+url);
-		//url="http://zhephree.com/foursquare/index.php";
-		var requester = new Ajax.Request(url, {
+	var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key='+_globals.flickr_key+'&lat='+this.vgeolat+'&lon='+this.vgeolong+'&radius=5&radius_units=km&nojsoncallback=1&format=json';
+	var requester = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'true',
 			onSuccess: this.flickrNearbySuccess.bind(this),
 			onFailure: this.flickrFailed.bind(this)
-		});
-
+	});
 }
 
 VenuedetailAssistant.prototype.flickrNearbySuccess = function(response) {
-	Mojo.Log.error(response.responseText);
 	var j=eval("("+response.responseText+")");
 
 	if(j.photos!=undefined && j.photos.photo.length>0) {
 		if(j.photos.total=="0"){this.flickrFailed(response);}
-
-		//this.controller.get("meta-overlay").show();
-		//this.controller.get("overlay-title").innerHTML='Flickr <span class="small-text">(Nearby)</span> '+this.flickrUpload;
-this.controller.get("overlaySpinner").mojo.stop();
-this.controller.get("overlaySpinner").hide();
+		this.controller.get("overlaySpinner").mojo.stop();
+		this.controller.get("overlaySpinner").hide();
 
 		var html=this.controller.get("overlay-content");
 		html.update(html.innerHTML+"<br/>Flickr (Nearby)<br/>");
@@ -833,8 +787,6 @@ this.controller.get("overlaySpinner").hide();
 			Mojo.Event.listen(this.controller.get("flickrnearby"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
 		}
 		html.show();
-		//Mojo.Event.listen(this.controller.get("flickrUploader"),Mojo.Event.tap, this.tryflickrUpload.bind(this));
-
 		this.tweetPhoto();
 	}else{
 		this.flickrFailed(response);
@@ -842,26 +794,20 @@ this.controller.get("overlaySpinner").hide();
 }
 
 VenuedetailAssistant.prototype.tweetPhoto = function() {
-Mojo.Log.error("######getting tweetphoto");
-this.controller.get("meta-overlay").show();
-//this.controller.get("overlaySpinner").mojo.start();
-//this.controller.get("overlaySpinner").show();
+	this.controller.get("meta-overlay").show();
 
-		var url = 'http://tweetphotoapi.com/api/tpapi.svc/json/photos/byvenue?vid='+this.venue.id;
-		Mojo.Log.error("url="+url);
-		//url="http://zhephree.com/foursquare/index.php";
-		var requester = new Ajax.Request(url, {
+	var url = 'http://tweetphotoapi.com/api/tpapi.svc/json/photos/byvenue?vid='+this.venue.id;
+	var requester = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'true',
 			onSuccess: this.tweetPhotoSuccess.bind(this),
 			onFailure: this.flickrFailed.bind(this)
-		});
+	});
 
 }
 
 
 VenuedetailAssistant.prototype.tweetPhotoSuccess = function(r) {
-	Mojo.Log.error("tp="+r.responseText);
 	var j=r.responseJSON;
 	if(j) {
 		if(j.Count!=undefined && j.Count!=0) {
@@ -889,27 +835,20 @@ VenuedetailAssistant.prototype.tweetPhotoSuccess = function(r) {
 
 
 VenuedetailAssistant.prototype.pikchur = function() {
-Mojo.Log.error("######getting pikchur");
-this.controller.get("meta-overlay").show();
-//this.controller.get("overlaySpinner").mojo.start();
-//this.controller.get("overlaySpinner").show();
+	this.controller.get("meta-overlay").show();
 
-		var url = 'http://api.pikchur.com/geosocial/venue/json';
-		Mojo.Log.error("url="+url);
-		//url="http://zhephree.com/foursquare/index.php";
-		var requester = new Ajax.Request(url, {
+	var url = 'http://api.pikchur.com/geosocial/venue/json';
+	var requester = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
 			parameters: {venue_id: this.venue.id, api_key: "QTG1n51CVNEJNDkkiMQIXQ", service:"foursquare"},
 			onSuccess: this.pikchurSuccess.bind(this),
 			onFailure: this.flickrFailed.bind(this)
-		});
-
+	});
 }
 
 
 VenuedetailAssistant.prototype.pikchurSuccess = function(r) {
-	Mojo.Log.error("tp="+r.responseText);
 	var j=eval("(" + r.responseText + ")");
 	if(j) {
 			var pics=j.feed;
@@ -933,29 +872,23 @@ VenuedetailAssistant.prototype.pikchurSuccess = function(r) {
 			
 	}
 	
-	//this.pkichur();
 }
 
 
 VenuedetailAssistant.prototype.tryflickrUpload = function(event) {
 	//gotta get the file:
-	Mojo.Log.error("trying to ask for file...");
-//	Mojo.FilePicker.pickFile({'actionName':'Upload','kinds':['image'],'defaultKind':'image','onSelect':this.doUpload.bind(this)},this.controller.stageController);
-	//if(_globals.flickr_token){
-		this.controller.stageController.pushScene({name: "flickr-upload", transition: Mojo.Transition.crossFade},this,this.venue.id,this.venue.name);
-	//}else{
-//		this.controller.stageController.pushScene({name: "flickr-auth", transition: Mojo.Transition.crossFade});
-//	}
+			this.controller.stageController.pushScene({name: "flickr-upload", transition: Mojo.Transition.crossFade},this,this.venue.id,this.venue.name,null,this.imgfileName);
+
 }
 
 VenuedetailAssistant.prototype.doUpload = function(event) {
 	var fn=event.fullPath;
-	
-	this.controller.stageController.pushScene({name: "flickr-upload", transition: Mojo.Transition.crossFade},this,fn,this.venue.id);
+	var appController = Mojo.Controller.getAppController();
+  	var cardStageController = appController.getStageController("mainStage");
+	cardStageController.pushScene({name: "flickr-upload", transition: Mojo.Transition.crossFade},this,fn,this.venue.id);
 }
 
 VenuedetailAssistant.prototype.handleFlickrTap = function(event) {
-	Mojo.Log.error("trying flickr tap");
 	var url=event.target.getAttribute("link");
 	this.controller.serviceRequest('palm://com.palm.applicationManager', {
 	    method: 'open',
@@ -966,17 +899,7 @@ VenuedetailAssistant.prototype.handleFlickrTap = function(event) {
 }
 
 VenuedetailAssistant.prototype.checkInSuccess = function(response) {
-	Mojo.Log.error(response.responseText);
-	
 	var json=response.responseJSON;
-		Mojo.Log.error("^^^^^^^^^^^^^^^^made it here...");
-	//checkinDialog.mojo.close();
-	//checkinDialog=null;
-	//var dialog = this.controller.showDialog({
-	//	template: 'listtemplates/checkin-info',
-	//	assistant: new CheckInDialogAssistant(this, json,this.uid)
-	//});
-	zBar.showToolbar();
 	this.controller.get("docheckin-fields").hide();
 	this.controller.get("overlay-content").innerHTML="";
 	this.controller.get("meta-overlay").hide();
@@ -1032,35 +955,32 @@ VenuedetailAssistant.prototype.handleProposeEdit=function(event) {
 }
 
 VenuedetailAssistant.prototype.showUserInfo = function(event) {
-	Mojo.Log.error("############user info! the uid="+event.target.readAttribute("data")+",target="+event.target.id);
 	var thisauth=auth;
-	//this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,event.target.readAttribute("data"));
 	var uid=event.target.readAttribute("data");
 	var uname=event.target.readAttribute("user");
 	
 
-	Mojo.Log.error("##getting userinfo");
-	this.controller.get("meta-overlay").show();
+	/*this.controller.get("meta-overlay").show();
 	this.controller.get("overlaySpinner").mojo.start();
 	this.controller.get("overlaySpinner").show();
 	this.controller.get("overlay-content").innerHTML="";
 	this.controller.get("overlay-title").innerHTML=uname;
 
-		//var url = 'http://api.flickr.com/services/feeds/photos_public.gne?&tagmode=any&format=json&jsoncallback=?&tags=foursquare:venue='+this.venue.id;
-		var url='http://api.foursquare.com/v1/user.json';
-		Mojo.Log.error("url="+url);
-		var request = new Ajax.Request(url, {
+	var url='http://api.foursquare.com/v1/user.json';
+	var request = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'true',
 	   		requestHeaders: {Authorization:_globals.auth}, 
 	   		parameters: {uid: uid,badges: '1', mayor: '1'},
 			onSuccess: this.userSuccess.bind(this),
 			onFailure: this.userFailed.bind(this)
-		});
+	});*/
+	
+	this.controller.stageController.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,uid,this,true);
+
 
 }
 VenuedetailAssistant.prototype.userSuccess = function(response) {
-	Mojo.Log.error("userinfo="+response.responseText);
 	this.controller.get("meta-overlay").show();
 	this.controller.get("overlaySpinner").mojo.stop();
 	this.controller.get("overlaySpinner").hide();
@@ -1107,8 +1027,6 @@ VenuedetailAssistant.prototype.userSuccess = function(response) {
 	
 	fs='<span id="friend_button">'+fs+'</span>';
 	
-	//var uname=j.user.firstname+" "+lname+"";
-	//this.controller.get("userCity").innerHTML=j.user.city.name+"<br class=\"breaker\"/>";
 	if(j.user.checkin != undefined) {
 		var v=(j.user.checkin.venue != undefined)? " @ "+j.user.checkin.venue.name: "";
 		var s=(j.user.checkin.shout)? j.user.checkin.shout: "";
@@ -1126,7 +1044,6 @@ VenuedetailAssistant.prototype.userSuccess = function(response) {
 		o += '<tr><td></td><td></td><td></td></tr>';
 		var id=0
 		for(var m=0;m<j.user.badges.length;m++) {
-//			this.controller.get("badges-box").innerHTML+='<div class="palm-row single"><div class="checkin-badge"><img src="'+j.user.badges[m].icon+'" width="48" height="48" style="float:left" /> <span>'+j.user.badges[m].name+'</span><br/><span class="palm-info-text" style="margin-left:0;padding-left:0">'+j.user.badges[m].description+'</span></div></div>';
 			id++;
 			
 			if(id==1) {
@@ -1142,7 +1059,6 @@ VenuedetailAssistant.prototype.userSuccess = function(response) {
 	}else{
 		html='<div class="small-text">'+j.user.firstname+' doesn\'t have any badges yet.</div>';
 	}
-			Mojo.Log.error("got badges stuff");
 
 	this.controller.get("overlay-content").innerHTML+='<br/><b>Badges</b><br/>'+html;
 
@@ -1151,7 +1067,6 @@ VenuedetailAssistant.prototype.userSuccess = function(response) {
 
 
 	if(j.user.mayor != null && j.user.mayor != undefined) {
-		Mojo.Log.error("###got mayorships");
 		var s=(j.user.mayor.length==1)? "":"s";
 		var mayor_title=j.user.mayor.length+" Mayorship"+s;
 
@@ -1161,7 +1076,6 @@ VenuedetailAssistant.prototype.userSuccess = function(response) {
 		}
 		html='<b>'+mayor_title+'</b><br/><div class="small-text">'+mayorships+'</div>';
 	}else{
-		Mojo.Log.error("###no mayorships");
 		html='<b>'+mayor_title+'</b><br/><div class="small-text">'+j.user.firstname+' isn\'t the mayor of anything yet.</div>';
 	}
 
@@ -1179,9 +1093,6 @@ VenuedetailAssistant.prototype.userSuccess = function(response) {
 VenuedetailAssistant.prototype.userFailed = function(event) {
 }
 VenuedetailAssistant.prototype.activate = function(event) {
-	/* put in event handlers here that should only be in effect when this scene is active. For
-	   example, key handlers that are observing the document */
-	   
 	
 }
 
@@ -1191,7 +1102,7 @@ VenuedetailAssistant.prototype.approveFriend = function(event) {
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization:_globals.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization:_globals.auth}, 
 	   parameters: {uid:event.target.getAttribute("data")},
 	   onSuccess: this.approveSuccess.bind(this),
 	   onFailure: this.approveFailed.bind(this)
@@ -1214,7 +1125,7 @@ VenuedetailAssistant.prototype.denyFriend = function(event) {
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization:_globals.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization:_globals.auth},
 	   parameters: {uid:event.target.getAttribute("data")},
 	   onSuccess: this.denySuccess.bind(this),
 	   onFailure: this.denyFailed.bind(this)
@@ -1234,12 +1145,11 @@ VenuedetailAssistant.prototype.denyFailed = function(response) {
 }
 
 VenuedetailAssistant.prototype.addFriend = function(event) {
-Mojo.Log.error("##trying to add friend");
 	var url = 'http://api.foursquare.com/v1/friend/sendrequest.json';
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization:_globals.auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization:_globals.auth}, 
 	   parameters: {uid:event.target.getAttribute("data")},
 	   onSuccess: this.addSuccess.bind(this),
 	   onFailure: this.addFailed.bind(this)
@@ -1264,10 +1174,6 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
 				case "do-Venues":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid);
-					//this.prevScene.cmmodel.items[0].toggleCmd="do-Nothing";
-				    //this.prevScene.controller.modelChanged(this.prevScene.cmmodel);
-
-					//this.controller.stageController.popScene("user-info");
 					break;
                 case "do-Badges":
                 	var thisauth=_globals.auth;
@@ -1278,13 +1184,8 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
 					break;
                 case "do-Shout":
-                //	var checkinDialog = this.controller.showDialog({
-				//		template: 'listtemplates/do-shout',
-				//		assistant: new DoShoutDialogAssistant(this,auth)
-				//	});
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
-
                 	break;
                 case "do-Tips":
                 	var thisauth=_globals.auth;
@@ -1304,7 +1205,6 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
 					this.controller.get("venueScrim").show();
 					this.controller.get("venueSpinner").mojo.start();
 					this.controller.get("venueSpinner").show();
-                	//_globals.friendList=undefined;
 					this.getVenueInfo();
                 	break;
                 case "do-Update":
@@ -1313,10 +1213,6 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
       			case "do-Nothing":
       				break;
             }
-           // var scenes=this.controller.stageController.getScenes();
-            //Mojo.Log.error("########this scene="+scenes[scenes.length-1].name+", below is "+scenes[scenes.length-2].name);
-            //scenes[scenes.length-2].getSceneController().cmmodel.items[0].toggleCmd="do-Nothing";
-            //scenes[scenes.length-2].getSceneController().modelChanged(scenes[scenes.length-2].getSceneController().cmmodel);
         }else if(event.type===Mojo.Event.back && this.fromuserinfo!=true && this.fromMap!=true) {
 			event.preventDefault();
 	        var thisauth=_globals.auth;
@@ -1331,7 +1227,7 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
 
 VenuedetailAssistant.prototype.tagTapped = function(event) {
 	var q=event.target.innerHTML;
-	this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},_globals.auth,_globals.userData,this.username,this.password,this.uid,true,q);
+	//this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},_globals.auth,_globals.userData,this.username,this.password,this.uid,true,q);
 	
 }
 
@@ -1354,14 +1250,13 @@ VenuedetailAssistant.prototype.markTip = function(tip,how){
 		var request = new Ajax.Request(url, {
 		   method: 'post',
 		   evalJSON: 'force',
-		   requestHeaders: {Authorization: _globals.auth}, //Not doing a search with auth due to malformed JSON results from it
+		   requestHeaders: {Authorization: _globals.auth}, 
 		   parameters: {tid: tip},
 		   onSuccess: this.markTipSuccess.bind(this),
 		   onFailure: this.markTipFailed.bind(this)
 		 });
 }
 VenuedetailAssistant.prototype.markTipSuccess = function(response){
-	Mojo.Log.error(response.responseText);
 	if(response.responseJSON.tip!=undefined){
 		Mojo.Controller.getAppController().showBanner("Tip was marked!", {source: 'notification'});
 	}else{
@@ -1375,7 +1270,6 @@ VenuedetailAssistant.prototype.markTipFailed = function(response){
 
 
 VenuedetailAssistant.prototype.handleDividerTap = function(event) {
-	Mojo.Log.error("divider tapped: "+event.target.id);
 	switch(event.target.id) {
 		case "mayorArrow":
 		case "mayorLine":
@@ -1461,14 +1355,10 @@ VenuedetailAssistant.prototype.handleDividerTap = function(event) {
 
 
 VenuedetailAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
 }
 
 VenuedetailAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
-	   zBar.render(zBar.oldBar,"venues");
+	  // zBar.render(zBar.oldBar,"venues");
 }
 
 VenuedetailAssistant.prototype.okTapped = function() {
@@ -1492,7 +1382,6 @@ VenuedetailAssistant.prototype.okTapped = function() {
 						"description":pdesc,
 						"tags":ptags
 					};
-					Mojo.Log.error("##set up params");
 	
 					var params=[];
 					params.push({"key":"api_key","data":api_key,"contentType":"text/plain"});
@@ -1504,7 +1393,6 @@ VenuedetailAssistant.prototype.okTapped = function() {
 					params.push({"key":"tags","data":ptags,"contentType":"text/plain"});
 					params.push({"key":"title","data":ptitle,"contentType":"text/plain"});
 	
-					Mojo.Log.error("##created params array");
 	
 
 				    var appController = Mojo.Controller.getAppController();
@@ -1521,7 +1409,6 @@ VenuedetailAssistant.prototype.okTapped = function() {
             			    'subscribe': true
 			            },
 			            onSuccess: function (resp){
-						 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
 						 	//gonna old school parse the xml since it's in plain etxt and not an object...
 						 	var xml=resp.responseString;
 						 	if(xml) {
@@ -1530,9 +1417,7 @@ VenuedetailAssistant.prototype.okTapped = function() {
 							 		var pe=xml.indexOf("</photoid>");
 							 		var len=pe-ps;
 							 		var photoid=parseInt(xml.substring(ps,pe));
-							 		Mojo.Log.error("photoid="+photoid);
 							 		var epid=this.base58_encode(photoid);
-							 		Mojo.Log.error("epid="+epid);
 						 			var extra="http://flic.kr/p/"+epid;
 						 			
 									this.checkIn(this.venue.id,this.venue.name,this.tipModel.value+" "+extra,this.sfmodel.value,this.twmodel.value,this.fbmodel.value);
@@ -1561,7 +1446,6 @@ VenuedetailAssistant.prototype.okTapped = function() {
 					params.push({"key":"venue_id","data":this.venue.id,"contentType":"text/plain"});
 					params.push({"key":"service","data":"foursquare","contentType":"text/plain"});
 					params.push({"key":"source","data":"Njk1","contentType":"text/plain"});
-					Mojo.Log.error("params="+Object.toJSON(params));
 				
 				    var appController = Mojo.Controller.getAppController();
 			  	  	var cardStageController = appController.getStageController("mainStage");
@@ -1578,7 +1462,6 @@ VenuedetailAssistant.prototype.okTapped = function() {
 			            },
             			onSuccess: function (resp,j){
 						 	var r=resp.responseString;
-						 	Mojo.Log.error(Object.toJSON(resp));
 						 	if(r != undefined) {
 								Mojo.Log.error("r="+r);
 						 		var json=eval("("+r+")");
@@ -1631,7 +1514,7 @@ VenuedetailAssistant.prototype.okTapped = function() {
 						 		var json=eval("("+r+")");
 						 		var url=json.MediaUrl;
 						 		Mojo.Log.error("longurl="+url);
-						 		//shorten with bit.ly
+						 		//shorten with is.gd
 						 		var url = 'http://is.gd/api.php?longurl='+url;
 								var request = new Ajax.Request(url, {
 								   method: 'get',
@@ -1649,7 +1532,6 @@ VenuedetailAssistant.prototype.okTapped = function() {
 
 
 						 	}
-//							if(resp.re)
 					  	}.bind(this),
 			            onFailure: function (e){
 	  						Mojo.Log.error('Failure : ' + Object.toJSON(e));
@@ -1685,7 +1567,6 @@ VenuedetailAssistant.prototype.okTapped = function() {
             			    'subscribe': true
 			            },
             			onSuccess: function (resp,j){
-						 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
 						 	var xml=resp.responseString;
 						 	if(xml) {
 							 	if(xml.indexOf('status="ok"')>-1) {
@@ -1707,13 +1588,7 @@ VenuedetailAssistant.prototype.okTapped = function() {
 			}
 		}else{
 			this.checkIn(this.venue.id,this.venue.name,this.tipModel.value,this.sfmodel.value,this.twmodel.value,this.fbmodel.value);
-		}
-
-
-
-
-	//this.checkIn(this.venue.id,this.venue.name,this.tipModel.value,this.sfmodel.value,this.twmodel.value,this.fbmodel.value);
-	
+		}	
 }
 
 VenuedetailAssistant.prototype.cancelTapped = function() {
@@ -1723,7 +1598,6 @@ VenuedetailAssistant.prototype.cancelTapped = function() {
 
 VenuedetailAssistant.prototype.setupCheckin = function() {
 
-Mojo.Log.error("trying to setup checkin fields");
   this.controller.setupWidget("okButton",
     this.attributes = {type : Mojo.Widget.activityButton},
     this.OKButtonModel = {
@@ -1733,24 +1607,14 @@ Mojo.Log.error("trying to setup checkin fields");
   );
   Mojo.Event.listen(this.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
 
- /* this.controller.setupWidget("cancelButton",
-    this.attributes = {},
-    this.CancelButtonModel = {
-      buttonLabel: "Nevermind",
-      disabled: false
-    }
-  );
-  Mojo.Event.listen(this.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));*/
-  
   	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 	var pings=(credentials.ping=="on")? '1': '0';
-	Mojo.Log.error("pings="+pings);
 	var stt=(credentials.savetotwitter==true)? '1': '0';
 	var stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
   
   
-      this.controller.setupWidget("chkShowFriends",
+    this.controller.setupWidget("chkShowFriends",
          this.sfattributes = {
              trueValue: '1',
              trueLabel: 'Yes',
@@ -1785,17 +1649,15 @@ Mojo.Log.error("trying to setup checkin fields");
          });
   
 	this.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true,focusMode:Mojo.Widget.focusSelectMode}, this.tipModel = {value:'', disabled:false});
-
-  Mojo.Event.listen(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
-  Mojo.Event.listen(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
-  Mojo.Event.listen(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
-  Mojo.Event.listen(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
+	
+	Mojo.Event.listen(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
+	Mojo.Event.listen(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
+	Mojo.Event.listen(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
+	Mojo.Event.listen(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
 
   		this.lhc=new Mojo.Model.Cookie("photohost");
 		var lh=this.lhc.get();
 		_globals.lasthost=(lh)? lh.photohost: "pikchur";
-Mojo.Log.error("ph="+_globals.lasthost);
-//_globals.lasthost="flickr";
   
       this.controller.setupWidget("photohostList",
         this.phAttributes = {
@@ -1919,13 +1781,12 @@ VenuedetailAssistant.prototype.escape_utf8= function(data, url) {
 
 VenuedetailAssistant.prototype.attachImage = function(event) {
 	Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image'],'defaultKind':'image','onSelect':function(fn){
-	this.fileName=fn.fullPath;
-	Mojo.Log.error(Object.toJSON(fn));
-	this.hasPhoto=true;
-	this.controller.get("img").src=this.fileName;
-	this.controller.get("img-preview").show();
-	this.controller.get("photohostList").show();
-	this.controller.get("listborder").show();
+		this.fileName=fn.fullPath;
+		this.hasPhoto=true;
+		this.controller.get("img").src=this.fileName;
+		this.controller.get("img-preview").show();
+		this.controller.get("photohostList").show();
+		this.controller.get("listborder").show();
 	}.bind(this)},this.controller.stageController);
 }
 

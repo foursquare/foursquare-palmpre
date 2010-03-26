@@ -27,7 +27,6 @@ function FriendsListAssistant(a, ud, un, pw,i,la,lo,ps,ss,what) {
 
 FriendsListAssistant.prototype.setup = function() {
 	zBar.activeScene=this;
-	//Create the attributes for the textfield //{popupClass: "palm-device-menu"}
 	this.textFieldAtt = {
 			hintText: 'Find some friends!',
 			textFieldName:	'name', 
@@ -43,21 +42,17 @@ FriendsListAssistant.prototype.setup = function() {
 			maxLength: 30,
 			requiresEnterKey: false
 	};
-	//Create the model for the text field
 	this.textModel = {
 		value : ''
 	};
 	
 	this.resultsModel = {items: [], listTitle: $L('Results')};
-	//Setup the textfield widget and observer
 	this.controller.setupWidget('sendField', this.textFieldAtt, this.textModel);
     
-	// Set up the attributes & model for the List widget:
 	this.controller.setupWidget('results-friends-list', 
 					      {itemTemplate:'listtemplates/friendItems',dividerTemplate: 'listtemplates/dividertemplate'},
 					      this.resultsModel);
 
-	//Set up button handlers
 	this.buttonModel1 = {
 		buttonLabel : 'Find Friends',
 		buttonClass : '',
@@ -69,7 +64,6 @@ FriendsListAssistant.prototype.setup = function() {
 	
 	this.controller.setupWidget('go_button',this.buttonAtt1,this.buttonModel1);
 	
-	//Set up button handlers
 	this.buttonModelT = {
 		buttonLabel : 'Find Friends via Twitter',
 		buttonClass : '',
@@ -81,7 +75,6 @@ FriendsListAssistant.prototype.setup = function() {
 	
 	this.controller.setupWidget('go_twitter_button',this.buttonAttT,this.buttonModelT);
 
-	//Set up button handlers
 	this.buttonModelP = {
 		buttonLabel : 'Show Pending Requests',
 		buttonClass : '',
@@ -91,7 +84,6 @@ FriendsListAssistant.prototype.setup = function() {
 		type : Mojo.Widget.activityButton
 	}
 	
-	//this.controller.setupWidget('go_pending_button',this.buttonAttP,this.buttonModelP);
 
 
 	this.avbuttonModel1 = {
@@ -106,36 +98,38 @@ FriendsListAssistant.prototype.setup = function() {
 	
 	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onSearchFriends.bind(this));
 	Mojo.Event.listen(this.controller.get('go_twitter_button'),Mojo.Event.tap, this.onSearchTwitterFriends.bind(this));
-	//Mojo.Event.listen(this.controller.get('go_pending_button'),Mojo.Event.tap, this.onPendingFriends.bind(this));
 	Mojo.Event.listen(this.controller.get('fmenu'),Mojo.Event.tap, this.showMenu.bind(this));
-	Mojo.Event.listen(this.controller.get('results-friends-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+//	Mojo.Event.listen(this.controller.get('results-friends-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+//	Mojo.Event.listen(this.controller.get('friend-refresh'),"mousedown", function(){this.controller.get('friend-refresh').addClassName("pressed");}.bind(this));
+//	Mojo.Event.listen(this.controller.get('friend-refresh'),"mouseup", function(){this.controller.get('friend-refresh').removeClassName("pressed");}.bind(this));
+//	Mojo.Event.listen(this.controller.get('friend-refresh'),Mojo.Event.tap, this.hardRefresh.bind(this));
+
+	Mojo.Event.listen(this.controller.get('friend-shout'),"mousedown", function(){this.controller.get('friend-shout').addClassName("pressed");}.bind(this));
+	Mojo.Event.listen(this.controller.get('friend-shout'),"mouseup", function(){this.controller.get('friend-shout').removeClassName("pressed");}.bind(this));
+	Mojo.Event.listen(this.controller.get('friend-shout'),Mojo.Event.tap, this.doShout.bind(this));
 
 
-   /* this.controller.setupWidget(Mojo.Menu.viewMenu,
-        this.menuAttributes = {
-           spacerHeight: 0,
-           menuClass: 'blue-view-nope'
-        },
-        this.menuModel = {
-            visible: true,
-            items: [ {
-                items: [
-                { iconPath: 'map.png', command: 'friend-map', label: "  "},
-                { label: "Friends", width: 200 ,command: 'friends-list'},
-                { iconPath: 'palm-popup-fade-arrow-down-dark.png', command: 'friend-menu', label: "  "}]
-            }]
-        });*/
+
+	Mojo.Event.listen(this.controller.get('mainfeed'),Mojo.Event.tap, this.hardRefresh.bind(this));
+
+	Mojo.Event.listen(this.controller.get('friend-map'),"mousedown", function(){this.controller.get('friend-map').addClassName("pressed");}.bind(this));
+	Mojo.Event.listen(this.controller.get('friend-map'),"mouseup", function(){this.controller.get('friend-map').removeClassName("pressed");}.bind(this));
+	Mojo.Event.listen(this.controller.get('friend-map'),Mojo.Event.tap, this.showMap.bind(this));
+
+	    var appController = Mojo.Controller.getAppController();
+  	  	var cardStageController = appController.getStageController("mainStage");
+		this.doc=cardStageController.document;
+
+    this.doc.addEventListener("shaking",this.handleShake.bind(this), true);
+	this.controller.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bindAsEventListener(this));
+	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandler.bindAsEventListener(this));
+    this.doc.addEventListener("keyup", this.keyUpHandler.bind(this), true);
+
+
 	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
         
-    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
-        this.cmattributes = {
-           spacerHeight: 0,
-           menuClass: 'blue-command-nope'
-        },
-     _globals.cmmodel);*/
-    
     
         this.controller.setupWidget("drawerId",
          this.drawerAttributes = {
@@ -155,15 +149,21 @@ FriendsListAssistant.prototype.setup = function() {
              spinning: true 
          });
 
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    	this.attributes = {
+	        spacerHeight: 0,
+        	menuClass: 'fsq-fade'
+    	},
+	    _globals.cmmodel
+	);
 
     
     _globals.ammodel.items[0].disabled=false;
-this.controller.modelChanged(_globals.ammodel);
+	this.controller.modelChanged(_globals.ammodel);
 
     this.controller.get("message").hide();
     this.controller.get("fsearchgroup").show();
-   // this.requestList=[];
-    	       this.getFeed();
+    this.getFeed();
 
 }
 
@@ -172,7 +172,6 @@ var auth;
 function make_base_auth(user, pass) {
   var tok = user + ':' + pass;
   var hash = Base64.encode(tok);
-  //this.controller.get('message').innerHTML += '<br/>'+ hash;
   return "Basic " + hash;
 }
 
@@ -193,7 +192,6 @@ FriendsListAssistant.prototype.getFriends = function() {
 		   onFailure: this.getFriendsFailed.bind(this)
 		 });
 	}else{
-		Mojo.Log.error("friends exist!");
 		if(this.showList){
 			var l=_globals.friendList;
 			this.controller.get("fmenu-caption").update("List");
@@ -217,22 +215,66 @@ FriendsListAssistant.prototype.getFriends = function() {
 
 
 
+FriendsListAssistant.prototype.onKeyPressHandler = function(event) {
+	var char = String.fromCharCode(event.originalEvent.keyCode);
+	this.firstChar=char;
+	Mojo.Log.error("press keycode="+event.originalEvent.keyCode+", value="+this.textModel.value);
+	if(!this.searchShowing){
+		Mojo.Log.error("notshowing yet");
+		this.searchShowing=true;
+		this.controller.get("sendField").show();
+		this.controller.get("sendField").mojo.focus();		
+		if(!this.searchHasShown){
+		//	this.textModel.value=char;
+		//	this.controller.modelChanged(this.textModel);
+		}
+		this.searchHasShown=true;
+	}else{
+		Mojo.Log.error("showing");
+	}
+}
+
+FriendsListAssistant.prototype.keyDownHandler = function(event) {
+	var char = String.fromCharCode(event.originalEvent.keyCode);
+	Mojo.Log.error("down keycode="+event.originalEvent.keyCode+", value="+this.textModel.value);
+	if(this.controller.get("sendField").mojo.getValue()==char){
+		event.stop();
+		Mojo.Log.error("stopped");
+	}
+
+}	
+FriendsListAssistant.prototype.keyUpHandler = function(event) {
+	var code=event.keyCode; //event.originalEvent.keyCode;
+	Mojo.Log.error("up keycode="+event.keyCode+", value="+this.textModel.value);
+	if(this.textModel.value.length<2 && code==8){
+		this.searchShowing=false;
+		this.controller.get("sendField").mojo.blur();
+    	setTimeout(function(){this.controller.get("sendField").hide();}.bind(this),5);
+	}
+    if(Mojo.Char.isEnterKey(code)) {
+        if(event.srcElement.parentElement.id=="sendField") {
+	   		setTimeout(this.onSearchFriends.bind(this), 10);
+   			this.controller.get("sendField").hide();
+   			this.searchShowing=false;
+   			this.searchHasShown=false;
+        }
+     }
+
+}
+
+
+
 /*
 this funciton gets called when the getfriendslist ajax is successful.
 it loads the friend names and icons into the list, then sets the global var for total count of friends
 and the fires off the loop that gets the details of each friend
 */
 FriendsListAssistant.prototype.getFriendsSuccess = function(response) {
-	//var mybutton = this.controller.get('go_button');
-	//mybutton.mojo.deactivate();
 
 	if (response.responseJSON == undefined) {
 		this.controller.get('message').innerHTML = 'No Results Found';
 	}
 	else {
-		//this.controller.get("spinnerId").mojo.stop();
-		//this.controller.get("spinnerId").hide();
-		//this.controller.get('resultListBox').style.display = 'block';
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.friendList = [];
 		this.looping=false;
@@ -293,7 +335,7 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 					var request = new Ajax.Request(url, {
 					   method: 'get',
 					   evalJSON: 'force',
-					   requestHeaders: {"user-agent":"Foursquare for webOS/"+Mojo.appInfo.version,Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+					   requestHeaders: {"user-agent":"Foursquare for webOS/"+Mojo.appInfo.version,Authorization: auth}, 
 					   parameters: {uid: theuser,badges: '1', mayor: '1'},
 					   onSuccess: function(uresponse){
 					   	//here's an idea -- let's cache user info so it doesn't kill our rate limit
@@ -301,7 +343,6 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 					   	//all user-related methods will then check the array and only download
 					   	//if necessary. this should have been a multiline comment.
 					   //	_globals.userCache[this.friendList[this.onfriend].id]=uresponse;
-					   
 					   //to be continued...more of a pain in the ass than expected
 					   
 						if(uresponse.responseJSON.user.checkin != undefined) {
@@ -324,7 +365,6 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 							this.resultsModel.items =this.friendList;// $A(venueList);
 							this.controller.modelChanged(this.resultsModel);
 						}
-							//this.controller.get('whenfield'+uresponse.responseJSON.user.id).each(function(date) { new RelativeDate(date) });
 							this.onfriend++;
 							this.getFriendsInfo();
 					   }.bind(this),
@@ -380,6 +420,13 @@ FriendsListAssistant.prototype.onSearchFriends = function(event) {
   this.searchFriends(how);
 }
 
+FriendsListAssistant.prototype.handleShake = function(event) {
+	if(event.magnitude>2){
+		this.hardRefresh();
+	}
+}
+
+
 FriendsListAssistant.prototype.onSearchTwitterFriends = function(event) {
   this.searchFriends("twitter");
 }
@@ -391,7 +438,7 @@ FriendsListAssistant.prototype.searchFriends = function(how) {
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization: auth}, 
 	   parameters: what,
 	   onSuccess: this.searchFriendsSuccess.bind(this),
 	   onFailure: this.getFriendsFailed.bind(this)
@@ -403,13 +450,12 @@ FriendsListAssistant.prototype.searchFriends = function(how) {
 FriendsListAssistant.prototype.onPendingFriends = function(event) {
 	if(this.requestList==undefined) {
 	
-	//var what=(how=="twitter")? {}: {q: this.textModel.value};
 	var url = 'http://api.foursquare.com/v1/friend/requests.json';
 	auth = _globals.auth;
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization: auth}, 
 	   parameters: {},
 	   onSuccess: this.requestFriendsSuccess.bind(this),
 	   onFailure: this.getFriendsFailed.bind(this)
@@ -422,22 +468,16 @@ FriendsListAssistant.prototype.onPendingFriends = function(event) {
 		this.controller.get("spinnerId").mojo.stop();
 		this.controller.get("spinnerId").hide();
 		this.controller.get('resultListBox').style.display = 'block';
-		//Mojo.Controller.getAppController().showBanner("No pending requests", {source: 'notification'});
 	}
 	
 }
 
 FriendsListAssistant.prototype.searchFriendsSuccess = function(response) {
-	//var mybutton = this.controller.get('go_button');
-	//mybutton.mojo.deactivate();
 
 	if (response.responseJSON == undefined) {
 		this.controller.get('message').innerHTML = 'No Results Found';
 	}
 	else {
-		//this.controller.get("spinnerId").mojo.stop();
-		//this.controller.get("spinnerId").hide();
-		//this.controller.get('resultListBox').style.display = 'block';
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.searchList = [];
 		this.looping=false;
@@ -449,7 +489,7 @@ FriendsListAssistant.prototype.searchFriendsSuccess = function(response) {
 		}
 		this.resultsModel.items =this.searchList; //update list with basic user info
 		this.controller.modelChanged(this.resultsModel);
-		
+		this.controller.get('mainfeed').show();
 		
 		var mybutton = this.controller.get('go_button');
 		mybutton.mojo.deactivate();
@@ -458,6 +498,12 @@ FriendsListAssistant.prototype.searchFriendsSuccess = function(response) {
 		this.controller.get("spinnerId").mojo.stop();
 		this.controller.get("spinnerId").hide();
 		this.controller.get('resultListBox').style.display = 'block';
+			var userlinks=zBar.getElementsByClassName(".userLink",this.controller.get("resultListBox"));
+			for(var e=0;e<userlinks.length;e++) {
+				var eid=userlinks[e].id;
+				Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo);
+				Mojo.Event.listen(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo.bind(this));
+			}
 
 	}
 		
@@ -465,16 +511,10 @@ FriendsListAssistant.prototype.searchFriendsSuccess = function(response) {
 }
 
 FriendsListAssistant.prototype.requestFriendsSuccess = function(response) {
-	//var mybutton = this.controller.get('go_button');
-	//mybutton.mojo.deactivate();
-Mojo.Log.error(response.responseText);
 	if (response.responseJSON == undefined) {
 		this.controller.get('message').innerHTML = 'No Results Found';
 	}
 	else {
-		//this.controller.get("spinnerId").mojo.stop();
-		//this.controller.get("spinnerId").hide();
-		//this.controller.get('resultListBox').style.display = 'block';
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.requestList = [];
 		this.looping=false;
@@ -507,15 +547,23 @@ Mojo.Log.error(response.responseText);
 
 }
 
+FriendsListAssistant.prototype.showMap = function(event) {
+		this.controller.stageController.pushScene({name: "friends-map", transition: Mojo.Transition.crossFade,disableSceneScroller:true},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this);
+
+}
+FriendsListAssistant.prototype.hardRefresh = function(event) {
+	_globals.friendList=undefined;
+	this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},this.auth,_globals.userData,this.username,this.password,this.uid,this.lat,this.long,this);
+}
 
 FriendsListAssistant.prototype.listWasTapped = function(event) {
 	
 	//see if there's a link in the shout
-	var shout=event.item.shout;
+	var shout=event.item.shout || "";
 	var urlmatch=/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+	
+	
 
-	
-	
 	if(shout.match(urlmatch)) {
 		var url=RegExp['$&'];
 					this.controller.popupSubmenu({
@@ -556,7 +604,6 @@ FriendsListAssistant.prototype.popupChoose = function(event) {
 	            	}else{
 	            		this.controller.get("fmenu-caption").update("Search");
 	            	}
-	            	//this.controller.get("fmenu-caption").innerHTML=(this.controller.get("drawerId").mojo.getOpenState())? "Friends":"Search";
 					//get the scroller for your scene
 					var scroller = this.controller.getSceneScroller();
 					//call the widget method for scrolling to the top
@@ -614,20 +661,17 @@ FriendsListAssistant.prototype.getFeed = function(event) {
 	if(this.feedList==undefined) {
 		_globals.reloadFriends=false;
 		_globals.friendList=undefined;
-	Mojo.Log.error("getting feed");
-	//var what=(how=="twitter")? {}: {q: this.textModel.value};
 	var url = 'http://api.foursquare.com/v1/checkins.json';
 	auth = _globals.auth;
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
-	   requestHeaders: {Authorization: auth}, //Not doing a search with auth due to malformed JSON results from it
+	   requestHeaders: {Authorization: auth},
 	   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
 	   onSuccess: this.feedSuccess.bind(this),
 	   onFailure: this.getFriendsFailed.bind(this)
 	 });
 	}else{
-		Mojo.Log.error("friends exist!");
 		if(this.showList){
 			var l=_globals.friendList;
 			this.controller.get("fmenu-caption").update("List");
@@ -650,40 +694,36 @@ FriendsListAssistant.prototype.getFeed = function(event) {
 		this.controller.get("spinnerId").mojo.stop();
 		this.controller.get("spinnerId").hide();
 		this.controller.get('resultListBox').style.display = 'block';
-		//Mojo.Controller.getAppController().showBanner("No pending requests", {source: 'notification'});
 	}
 	
 }
 
 FriendsListAssistant.prototype.feedSuccess = function(response) {
-	//var mybutton = this.controller.get('go_button');
-	//mybutton.mojo.deactivate();
-Mojo.Log.error(response.responseText);
 	if (response.responseJSON == undefined) {
 		this.controller.get('message').innerHTML = 'No Results Found';
 		Mojo.Log.error("undefined feed stuffs");
 	}
 	else {
-		Mojo.Log.error("trying the feed...");
-		//this.controller.get("spinnerId").mojo.stop();
-		//this.controller.get("spinnerId").hide();
-		//this.controller.get('resultListBox').style.display = 'block';
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.feedList = [];
 		this.looping=false;
 		if(response.responseJSON.checkins != undefined && response.responseJSON.checkins != null && response.responseJSON.checkins.length>0) {
-			Mojo.Log.error("about to go to loop: total="+response.responseJSON.checkins.length);
 			for(var f=0;f<response.responseJSON.checkins.length;f++) {
-				Mojo.Log.error("in loop on #"+f);
 				this.feedList.push(response.responseJSON.checkins[f]);
 				this.feedList[f].id=response.responseJSON.checkins[f].user.id;
+				this.feedList[f].idx=f;
 				this.feedList[f].firstname=response.responseJSON.checkins[f].user.firstname;
 				this.feedList[f].lastname=response.responseJSON.checkins[f].user.lastname;
 				this.feedList[f].photo=response.responseJSON.checkins[f].user.photo;
-				this.feedList[f].checkin=(response.responseJSON.checkins[f].venue != undefined)? "@ "+response.responseJSON.checkins[f].venue.name: "";
+				this.feedList[f].checkin=(response.responseJSON.checkins[f].venue != undefined)? response.responseJSON.checkins[f].venue.name: "";
+				this.feedList[f].at=(response.responseJSON.checkins[f].venue != undefined)? "@ ": "";
 				this.feedList[f].geolat=(response.responseJSON.checkins[f].venue != undefined)? response.responseJSON.checkins[f].venue.geolat: "";
 				this.feedList[f].geolong=(response.responseJSON.checkins[f].venue != undefined)? response.responseJSON.checkins[f].venue.geolong: "";
 				this.feedList[f].shout=(response.responseJSON.checkins[f].shout != undefined)? "\n"+response.responseJSON.checkins[f].shout: "";
+				var urlmatch=/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+				this.feedList[f].shout=this.feedList[f].shout.replace(urlmatch,'<a href="$1" class="listlink">$1</a>');
+				
+				this.feedList[f].mayorcrown=(response.responseJSON.checkins[f].ismayor=="true")? '<img src="images/crown_smallgrey.png"/> ': "";
 				
 				//handle time
 				if(response.responseJSON.checkins[f].created != undefined) {
@@ -697,14 +737,26 @@ Mojo.Log.error(response.responseText);
 				
 				
 			}
-			Mojo.Log.error("finished loop");
 			_globals.feedList=this.feedList;
-			Mojo.Log.error("set global");
 			this.resultsModel.items =this.feedList; //update list with basic user info
-			Mojo.Log.error("set resultsmodel");
 			this.controller.modelChanged(this.resultsModel);
-			Mojo.Log.error("modelchanged");
 			this.controller.get('resultListBox').style.display = 'block';
+			
+			
+			var userlinks=zBar.getElementsByClassName(".userLink",this.controller.get("resultListBox"));
+			for(var e=0;e<userlinks.length;e++) {
+				var eid=userlinks[e].id;
+				Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo);
+				Mojo.Event.listen(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo.bind(this));
+			}
+			var venuelinks=zBar.getElementsByClassName(".venueLink",this.controller.get("resultListBox"));
+			for(var e=0;e<venuelinks.length;e++) {
+				var eid=venuelinks[e].id;
+				Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.showVenueInfo);
+				Mojo.Event.listen(this.controller.get(eid),Mojo.Event.tap,this.showVenueInfo.bind(this));
+				Mojo.Log.error("#########added event to "+eid)
+			}
+
 		}else{
 			this.controller.get("search-msg").innerHTML="No recent check-ins";
 			this.controller.get('resultListBox').style.display = 'none';
@@ -715,8 +767,6 @@ Mojo.Log.error(response.responseText);
 		mybutton.mojo.deactivate();
 		mybutton = this.controller.get('go_twitter_button');
 		mybutton.mojo.deactivate();
-		//mybutton = this.controller.get('go_pending_button');
-		//mybutton.mojo.deactivate();
 		this.controller.get("spinnerId").mojo.stop();
 		this.controller.get("spinnerId").hide();
 		this.controller.get('resultListBox').style.display = 'block';
@@ -726,7 +776,17 @@ Mojo.Log.error(response.responseText);
 
 }
 
+FriendsListAssistant.prototype.showUserInfo = function(event) {
+	var uid=event.target.readAttribute("data");
+	this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade, disableSceneScroller: false},this.auth,uid,null,true);
+}
 
+FriendsListAssistant.prototype.showVenueInfo = function(event){
+	var vid=event.target.readAttribute("data");
+	Mojo.Log.error("venue clicked: "+vid);
+	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.feedList[vid].venue,_globals.username,_globals.password,_globals.uid,true);
+
+}
 
 FriendsListAssistant.prototype.showMenu = function(event){
 					this.controller.popupSubmenu({
@@ -762,28 +822,17 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 					break;
 				case "do-Venues":
                 	var thisauth=auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
-					//this.prevScene.cmmodel.items[0].toggleCmd="do-Nothing";
-				    //this.prevScene.controller.modelChanged(this.prevScene.cmmodel);
-
-					//this.controller.stageController.popScene("friends-list");
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid);
 					break;
 				case "do-Friends":
-                	//var thisauth=auth;
-					//this.controller.stageController.pushScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid);
 					break;
                 case "do-Badges":
                 	var thisauth=auth;
 					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
                 case "do-Shout":
-                //	var checkinDialog = this.controller.showDialog({
-				//		template: 'listtemplates/do-shout',
-				//		assistant: new DoShoutDialogAssistant(this,auth)
-				//	});
                 	var thisauth=auth;
 					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
-
                 	break;
                 case "do-Tips":
                 	var thisauth=auth;
@@ -815,12 +864,14 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
         }
     }
 
+FriendsListAssistant.prototype.doShout = function(event) {
+	this.controller.stageController.pushScene({name: "shout", transition: Mojo.Transition.zoomFade},_globals.auth,"",this);
+}
 
 FriendsListAssistant.prototype.activate = function(event) {
-	/* put in event handlers here that should only be in effect when this scene is active. For
-	   example, key handlers that are observing the document */
-	 //  	   this.cmmodel.items[0].toggleCmd="do-Nothing";
-	   //this.controller.modelChanged(this.cmmodel);
+    this.controller.get("sendField").mojo.blur();
+	this.controller.window.setTimeout(function(){_globals.GPS.stop();}.bind(this),5000);
+
 	if(_globals.friendList!=undefined) {
 		this.controller.get("spinnerId").mojo.stop();
 		this.controller.get("spinnerId").hide();
@@ -832,7 +883,6 @@ FriendsListAssistant.prototype.activate = function(event) {
 		this.controller.get("drawerId").mojo.setOpenState(true);
 		this.controller.modelChanged(this.drawerModel);
 	}
-	//if(this.show)
 	
 	if(_globals.reloadFriends) {
                 	this.controller.get("spinnerId").mojo.start();
@@ -846,11 +896,7 @@ FriendsListAssistant.prototype.activate = function(event) {
 
 
 FriendsListAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
 }
 
 FriendsListAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
 }

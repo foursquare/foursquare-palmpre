@@ -1,39 +1,20 @@
 function NearbyTipsAssistant(a) {
-	/* this is the creator function for your scene assistant object. It will be passed all the 
-	   additional parameters (after the scene name) that were passed to pushScene. The reference
-	   to the scene controller (this.controller) has not be established yet, so any initialization
-	   that needs the scene controller should be done in the setup function below. */
 	   this.auth=a;
 }
 
 NearbyTipsAssistant.prototype.setup = function() {
 	this.resultsModel = {items: [], listTitle: $L('Results')};
     
-	// Set up the attributes & model for the List widget:
 	this.controller.setupWidget('results-tips-list', 
 					      {itemTemplate:'listtemplates/tipsItems',dividerTemplate: 'listtemplates/dividertemplate',dividerFunction: this.groupTips},
 					      this.resultsModel);
 
-    Mojo.Log.error("#########setup list");
-
 	Mojo.Event.listen(this.controller.get('results-tips-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 
-
-        
-    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
-        this.cmattributes = {
-           spacerHeight: 0,
-           menuClass: 'no-fade'
-        },
-      _globals.cmmodel);*/
 	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
     
-    
-    Mojo.Log.error("#########setup menu");
-
-
     this.controller.setupWidget("spinnerId",
          this.attributes = {
              spinnerSize: 'large'
@@ -41,16 +22,21 @@ NearbyTipsAssistant.prototype.setup = function() {
          this.model = {
              spinning: true 
          });
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    	this.attributes = {
+	        spacerHeight: 0,
+        	menuClass: 'fsq-fade'
+    	},
+	    _globals.cmmodel
+	);
 
 
     
-    Mojo.Log.error("#########setup tips");
     _globals.ammodel.items[0].disabled=false;
-this.controller.modelChanged(_globals.ammodel);
+	this.controller.modelChanged(_globals.ammodel);
 
     this.controller.get("message").hide();
-   // this.requestList=[];
-    	       this.getTips();
+    this.getTips();
 
 }
 
@@ -58,19 +44,16 @@ NearbyTipsAssistant.prototype.getTips = function() {
 	if(_globals.tipsList==undefined || _globals.reloadTips==true) {
 		_globals.reloadTips=false;
 		_globals.tipsList=undefined;
-	Mojo.Log.error("lat="+_globals.lat+", long="+_globals.long);
 		var url = 'http://api.foursquare.com/v1/tips.json';
-		Mojo.Log.error("###http://api.foursquare.com/v1/tips.json?geolat="+_globals.lat+"&geolong="+_globals.long);
 		var request = new Ajax.Request(url, {
 		   method: 'get',
 		   evalJSON: 'force',
-		   requestHeaders: {Authorization: _globals.auth}, //Not doing a search with auth due to malformed JSON results from it
+		   requestHeaders: {Authorization: _globals.auth}, 
 		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
 		   onSuccess: this.getTipsSuccess.bind(this),
 		   onFailure: this.getTipsFailed.bind(this)
 		 });
 	}else{
-		Mojo.Log.error("tips exist!");
 		this.resultsModel.items=_globals.tipsList;
 		this.controller.modelChanged(this.resultsModel);
 		this.lat=_globals.lat;
@@ -79,7 +62,8 @@ NearbyTipsAssistant.prototype.getTips = function() {
 }
 
 NearbyTipsAssistant.prototype.groupTips = function(data){
-	return data.grouping;
+	var g=(data.grouping=="Me")? "My To-Dos": data.grouping;
+	return g;
 }
 NearbyTipsAssistant.prototype.listWasTapped = function(event){
     this.controller.popupSubmenu({
@@ -95,9 +79,7 @@ NearbyTipsAssistant.prototype.listWasTapped = function(event){
                            			this.markTip(event.item.id,"done");
                            			break;
                            }
-                        }.bind(this)/*,
-                        placeNear:event.target,*/
-
+                        }.bind(this)
     });
 }
 NearbyTipsAssistant.prototype.markTip = function(tip,how){
@@ -105,14 +87,13 @@ NearbyTipsAssistant.prototype.markTip = function(tip,how){
 		var request = new Ajax.Request(url, {
 		   method: 'post',
 		   evalJSON: 'force',
-		   requestHeaders: {Authorization: _globals.auth}, //Not doing a search with auth due to malformed JSON results from it
+		   requestHeaders: {Authorization: _globals.auth},
 		   parameters: {tid: tip},
 		   onSuccess: this.markTipSuccess.bind(this),
 		   onFailure: this.markTipFailed.bind(this)
 		 });
 }
 NearbyTipsAssistant.prototype.markTipSuccess = function(response){
-	Mojo.Log.error(response.responseText);
 	if(response.responseJSON.tip!=undefined){
 		Mojo.Controller.getAppController().showBanner("Tip was marked!", {source: 'notification'});
 	}else{
@@ -130,9 +111,7 @@ NearbyTipsAssistant.prototype.getTipsFailed = function(response){
 }
 
 
-NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
-	Mojo.Log.error("****yay tips="+response.responseText);
-	
+NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {	
 	/*these results are a little wonky
 	if there are many groups available, the object looks like:
 		{"groups":[{"type":"Nearby"...
@@ -149,12 +128,6 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 	
 	if (response.responseJSON == undefined) {
 		Mojo.Log.error("###tips are effed!");
-		/*		Mojo.Log.error("****no tips");
-		this.controller.get("spinnerId").mojo.stop();
-		this.controller.get("spinnerId").hide();
-
-		this.controller.get('message').innerHTML = 'There was an error parsing the results from Foursquare. Give it another shot later on.';
-		this.controller.get('message').show();*/
 		var t=response.responseText;
 		t=t.replace('"group":null,"type":"Nearby",',"");
 		var j = eval("(" + t + ")");
@@ -165,15 +138,12 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 	
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.tipsList = [];
-					Mojo.Log.error("****handling tips");
 
 		if(j.groups[0] != undefined) { //actually got some tips
-			Mojo.Log.error("****in tips group loop");
 			for(var g=0;g<j.groups.length;g++) {
 				var tarray=j.groups[g].tips;
 				var grouping=j.groups[g].type;
 				for(var t=0;t<tarray.length;t++) {
-			Mojo.Log.error("****in tips loop");
 					this.tipsList.push(tarray[t]);
 					var dist=this.tipsList[this.tipsList.length-1].distance;
 					if(_globals.units=="si") {					
@@ -211,28 +181,19 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
             switch (event.command) {
             	case "do-Venues":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,_globals.username,_globals.password,_globals.uid);
-					//this.prevScene.cmmodel.items[0].toggleCmd="do-Nothing";
-				    //this.prevScene.controller.modelChanged(this.prevScene.cmmodel);
-
-					//this.controller.stageController.popScene("friends-list");
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid);
 					break;
 				case "do-Friends":
                 	var thisauth=auth;
-					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},this.auth,userData,_globals.username,_globals.password,_globals.uid);
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},this.auth,_globals.userData,_globals.username,_globals.password,_globals.uid);
 					break;
                 case "do-Badges":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
                 case "do-Shout":
-                //	var checkinDialog = this.controller.showDialog({
-				//		template: 'listtemplates/do-shout',
-				//		assistant: new DoShoutDialogAssistant(this,auth)
-				//	});
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
-
                 	break;
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;
@@ -279,11 +240,7 @@ NearbyTipsAssistant.prototype.activate = function(event) {
 
 
 NearbyTipsAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
 }
 
 NearbyTipsAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
 }

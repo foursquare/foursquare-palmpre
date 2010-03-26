@@ -4,11 +4,8 @@ function CheckinResultAssistant( checkinJSON,i) {
 }
 
 CheckinResultAssistant.prototype.setup = function() {
-	/* this function is for setup tasks that have to happen when the scene is first created */
-	zBar.hideToolbar();
-	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
+//	zBar.hideToolbar();
 	
-	/* setup widgets here */
   this.controller.setupWidget("okButtonCheckin",
     this.attributes = {},
     this.OKButtonModel = {
@@ -18,7 +15,6 @@ CheckinResultAssistant.prototype.setup = function() {
   );
 	Mojo.Event.listen(this.controller.get('okButtonCheckin'), Mojo.Event.tap, this.okTappedCheckin.bindAsEventListener(this));
 	
-	/* add event handlers to listen to events from widgets */
 	this.initData(this.json);
 	
 }
@@ -69,19 +65,6 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 	//the response also already has some language for this information ("Congrats! You're still the mayor!") so
 	//I don't see the need to handle the different mayorships. maybe in the future if we make the check-in result super bad-ass.
 	if(checkinJSON.checkin.mayor != undefined) {
-		/*var type=checkinJSON.checkin.mayor.type;
-		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - got a mayor");
-		if(type=="nochange") { //same ol' mayor
-			Mojo.Log.error("^^^^^^^^^^^^checkin dialog - same mayor");
-
-			if(checkinJSON.checkin.mayor.user== undefined) {  //we're the mayor still
-				this.controller.get('checkin-mayorship').innerHTML = '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';
-		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - same mayor");
-			}
-		}else{ //we're the new mayor!
-			this.controller.get('checkin-mayorship').innerHTML = '<div class="palm-row single"><div class="checkin-badge"><span>'+checkinJSON.checkin.mayor.message+'</span></div></div>';	
-		Mojo.Log.error("^^^^^^^^^^^^checkin dialog - new mayor");
-		}*/
 		this.controller.get('checkin-mayorship').innerHTML = '<div class="palm-row single"><span>'+checkinJSON.checkin.mayor.message+'</span></div>';
 
 	}else{
@@ -117,8 +100,6 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 	}
 
 	
-	//make sure the next stays in the white box!
-	//this.controller.get('scores-box').innerHTML+='<br class="breaker-small"/>';
 
 	
 
@@ -131,20 +112,14 @@ CheckinResultAssistant.prototype.okTappedCheckin = function() {
 
 
 CheckinResultAssistant.prototype.activate = function(event) {
-	/* put in event handlers here that should only be in effect when this scene is active. For
-	   example, key handlers that are observing the document */
 	   if(this.noscores) {this.controller.get("checkin-scores").hide();}
 	   if(this.nomayor) {this.controller.get("mayor-group").hide();}
 }
 
 
 CheckinResultAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
 }
 
 CheckinResultAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
-	   zBar.showToolbar();
+	 //  zBar.showToolbar();
 }

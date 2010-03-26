@@ -4,7 +4,18 @@
 	</div>
 </div>-->
 <div id="main" class="no-palm-hasheader centered">
-	<div class="palm-header-nope center-nope thin-header" id="list-header" style="height: 45px;position: fixed;top:0px;left:0px;width: 322px;z-index:999;">
+	<div class="thin-header-redux">
+		<div class="letterpress">
+<!--			<div class="white-text">Places</div>
+			<div class="dark-shadow">Places</div>-->
+		<div class="thin-blue-header">FRIENDS' CHECK-INS</div>
+		<div class="shout-button" id="friend-shout"></div>
+		<div class="map-button" id="friend-map"></div>
+		<div id="sendField" x-mojo-element="TextField" style="position: fixed; top:80px; left: 0px;display:none;z-index:999999;width: 320px;font-size: 16px;"></div>
+		</div>
+	</div>
+
+	<div class="palm-header-nope center-nope thin-header" id="list-header" style="height: 45px;position: fixed;top:0px;left:0px;width: 322px;z-index:999;display: none;">
 		<div class="lefter" style="width:194px;text-indent: 0px;font-size: 43px;text-align:left;">Friends</div>
 		<div class="righter" style="text-align: left; padding-top: 8px; padding-right: 50px; width: 68px;height: 43px;right:79px;" id="fmenu"><span class="header-button"><span id="fmenu-caption">Feed</span> &#9654;</span></div>
 	</div>
@@ -17,7 +28,7 @@
    		<div class="palm-row single">
 			<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
 				<div class="title">
-      				<div id="sendField" x-mojo-element="TextField" ></div>
+      		<!--		<div id="sendField" x-mojo-element="TextField" ></div>-->
 				</div>
 			</div>
 		</div>
@@ -52,10 +63,12 @@
 
 <div id="search-msg"></div>
 
-<div class="palm-group-nope unlabeled-nope" id='resultListBox' style='display:none;'>
+<div class="palm-group-nope unlabeled-nope" id='resultListBox' style='display:none;padding-top:50px;'>
 	<!--<div class="palm-group-title" x-mojo-loc=''>Search Results</div>-->
 	<div id="results-friends-list" x-mojo-element="List" ></div>
 </div>
+<div id="mainfeed" class="small-text blue-box" style="display:none;">Return to Feed</div>
+
 <!--<div id="go_pending_button" x-mojo-element="Button"></div>-->
 
 <br/><br/><br/><br/><br/><br/>

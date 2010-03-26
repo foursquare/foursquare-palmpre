@@ -11,9 +11,6 @@ function AddVenueAssistant(a,ed,v) {
 }
 AddVenueAssistant.prototype.setup = function(widget) {
   this.widget = widget;
-  //Mojo.Log.error("################checkin: "+this.data);
-  //this.initData(this.data);
-  Mojo.Log.error("setup starting");
 
   // Setup button and event handler
     this.controller.setupWidget("setCategory",
@@ -53,28 +50,24 @@ AddVenueAssistant.prototype.setup = function(widget) {
 	this.controller.setupWidget('venue-phone', this.phoneAttributes = {hintText:'Phone',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.phoneModel = {value:'', disabled:false});
 	this.controller.setupWidget('venue-twitter', this.twitterAttributes = {hintText:'Twitter Username',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.twitterModel = {value:'', disabled:false});
 
-Mojo.Log.error("setup textbxes");
-this.catsmainAttributes={choices:[{label:'',value:'-1'}]};
-this.catsmainModel={value:'-1'};
-for (var c=0;c<_globals.categories.length;c++) {
-	this.catsmainAttributes.choices.push({label:_globals.categories[c].nodename,value:c});
-}
 
-//this.controller.setupWidget("venue-cat-main",
-//	this.catsmainAttributes,this.catsmainModel
-//);
+	this.catsmainAttributes={choices:[{label:'',value:'-1'}]};
+	this.catsmainModel={value:'-1'};
+	for (var c=0;c<_globals.categories.length;c++) {
+		this.catsmainAttributes.choices.push({label:_globals.categories[c].nodename,value:c});
+	}
 
-this.catssub1Attributes={choices:[]};
-this.catssub1Model={value:''};
-this.controller.setupWidget("venue-cat-sub1",
-	this.catssub1Attributes,this.catssub1Model
-);
+	/*this.catssub1Attributes={choices:[]};
+	this.catssub1Model={value:''};
+	this.controller.setupWidget("venue-cat-sub1",
+		this.catssub1Attributes,this.catssub1Model
+	);
 
-this.catssub2Attributes={choices:[]};
-this.catssub2Model={value:''};
-this.controller.setupWidget("venue-cat-sub2",
-	this.catssub2Attributes,this.catssub2Model
-);
+	this.catssub2Attributes={choices:[]};
+	this.catssub2Model={value:''};
+	this.controller.setupWidget("venue-cat-sub2",
+		this.catssub2Attributes,this.catssub2Model
+	);*/
 
     this.controller.setupWidget("venue-state",
         this.stateattributes = {
@@ -139,14 +132,9 @@ this.controller.setupWidget("venue-cat-sub2",
         }
     );
 
-//	Mojo.Event.listen(this.controller.get("venue-cat-main"),Mojo.Event.propertyChange,this.loadSubCat.bindAsEventListener(this));
 	Mojo.Event.listen(this.controller.get("venue-cat-sub1"),Mojo.Event.propertyChange,this.loadSubSubCat.bindAsEventListener(this));
 
-
-Mojo.Log.error("setuplist");
-//	this.init();
-
-zBar.hideToolbar();
+	//zBar.hideToolbar();
 }
 
 AddVenueAssistant.prototype.activate = function() {
@@ -203,28 +191,29 @@ AddVenueAssistant.prototype.gotLocation = function(event) {
 	//we're worried about the middle line, so we get to do some fun parsing.
 	//no, seriously, parsing's the most fun part of programming.
 	//i wish this whole app was just parsing text. boresquare, some would call it.
-	Mojo.Log.error("addy="+event.address);
-	var addylines=event.address.split(";");
-	if(addylines.length>1) {
-		var loca=addylines[1].split(", ");
-		var city=trim(loca[0]);
-		var country=trim(addylines[2]);
-		if(country!="USA"){this.controller.get("venue-state").hide();}
+	if (event.address){
+		var addylines=event.address.split(";");
+		if(addylines.length>1) {
+			var loca=addylines[1].split(", ");
+			var city=trim(loca[0]);
+			var country=trim(addylines[2]);
+			if(country!="USA"){this.controller.get("venue-state").hide();}
 		
-		var statezip=loca[1].split(" ");
-		var state=trim(statezip[0]);
-		var zip=trim(statezip[1]);
-		if(zip.indexOf("A")){zip=zip.replace("A","");}
+			var statezip=loca[1].split(" ");
+			var state=trim(statezip[0]);
+			var zip=trim(statezip[1]);
+			if(zip.indexOf("A")){zip=zip.replace("A","");}
+	
+			this.cityModel.value=city;
+			this.controller.modelChanged(this.cityModel);
 
-		this.cityModel.value=city;
-		this.controller.modelChanged(this.cityModel);
-
-		this.zipModel.value=zip;
-		this.controller.modelChanged(this.zipModel);
+			this.zipModel.value=zip;
+			this.controller.modelChanged(this.zipModel);
 		
-		this.statemodel.value=state;
-		this.controller.modelChanged(this.statemodel);
+			this.statemodel.value=state;
+			this.controller.modelChanged(this.statemodel);
 
+		}
 	}
 }
 AddVenueAssistant.prototype.failedLocation = function(event) {
@@ -233,14 +222,11 @@ AddVenueAssistant.prototype.failedLocation = function(event) {
 }
 
 AddVenueAssistant.prototype.okTapped = function() {
-Mojo.Log.error("### we got not auth!");
-	if (this.auth) {
-		Mojo.Log.error("############trying to add venue");
   		this.cookieData=new Mojo.Model.Cookie("credentials");
 		var credentials=this.cookieData.get();
 
 		if(!this.editing) {
-			pcat=this.categoryId;
+			pcat=_globals.selectedCat;
 			var url = 'http://api.foursquare.com/v1/addvenue.json';
 			var params={
 				name: this.nameModel.value,
@@ -282,17 +268,10 @@ Mojo.Log.error("### we got not auth!");
 			onSuccess: this.venueSuccess.bind(this),
 			onFailure: this.venueFailed.bind(this)
 		});
-	} else {
-		//this.controller.get('message').innerHTML = 'Not Logged In';
-	}
-	
-
-//	this.widget.mojo.close();
 }
 
 AddVenueAssistant.prototype.venueSuccess = function(response) {
 	Mojo.Controller.getAppController().showBanner("Venue saved to Foursquare!", {source: 'notification'});
-	Mojo.Log.error(response.responseText);
 	this.controller.get("okButton").mojo.deactivate();
 	
 	if(response.responseJSON.venue != undefined) {
@@ -310,19 +289,7 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 
 
 AddVenueAssistant.prototype.promptCheckin = function(vid,vname) {
-/*	this.controller.showAlertDialog({
-		onChoose: function(value) {
-			if (value) {
-				Mojo.Log.error("#######click yeah");
-				this.checkIn(this.venue.id, this.venue.name,'','','0');
-			}
-		},
-		title:"Foursquare Check In",
-		message:"Go ahead and check-in here?",
-		cancelable:true,
-		choices:[ {label:'Yeah!', value:true, type:'affirmative'}, {label:'Eh, nevermind.', value:false, type:'negative'} ]
-	});*/
-		checkinDialog = this.controller.showDialog({
+	checkinDialog = this.controller.showDialog({
 		template: 'listtemplates/do-checkin',
 		assistant: new DoCheckinDialogAssistant(this,vid,vname)
 	});
@@ -330,8 +297,6 @@ AddVenueAssistant.prototype.promptCheckin = function(vid,vname) {
 }
 
 AddVenueAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
-	Mojo.Log.error("###check in please??");
-	if (auth) {
 		var url = 'http://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
@@ -349,22 +314,12 @@ AddVenueAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 			onSuccess: this.checkInSuccess.bind(this),
 			onFailure: this.checkInFailed.bind(this)
 		});
-	} else {
-		//this.controller.get('message').innerHTML = 'Not Logged In';
-	}
 }
 
 AddVenueAssistant.prototype.checkInSuccess = function(response) {
 	Mojo.Log.error(response.responseText);
 	
 	var json=response.responseJSON;
-		Mojo.Log.error("^^^^^^^^^^^^^^^^made it here...");
-	//checkinDialog.mojo.close();
-	//checkinDialog=null;
-	//var dialog = this.controller.showDialog({
-	//	template: 'listtemplates/checkin-info',
-	//	assistant: new CheckInDialogAssistant(this, json,this.uid)
-	//});
 	this.controller.stageController.popScene("add-venue");
 	this.controller.stageController.pushScene({name: "checkin-result", transition: Mojo.Transition.crossFade},json,this.uid);
 
@@ -386,7 +341,7 @@ AddVenueAssistant.prototype.cancelTapped = function() {
 }
 
 AddVenueAssistant.prototype.cleanup = function(event) {
-	zBar.showToolbar();
+	//zBar.showToolbar();
 }
 
 AddVenueAssistant.prototype.loadSubCat = function(event) {
@@ -410,7 +365,6 @@ AddVenueAssistant.prototype.loadSubSubCat = function(event) {
 		}
 	}
 	var subcats=_globals.categories[this.catsmainModel.value].categories[eff].categories;
-Mojo.Log.error(Object.toJSON(subcats));
 
 
 
@@ -430,6 +384,11 @@ Mojo.Log.error(Object.toJSON(subcats));
 
 AddVenueAssistant.prototype.categoryTapped = function(event){
 	//generate items list
+	Mojo.Log.error("catlength="+_globals.categories.length);
+	this.controller.stageController.pushScene("categories",this);
+	
+	
+	/*
 	var items=[];
 	for(var i =0; i<_globals.categories.length; i++){
 		var a={};
@@ -475,5 +434,5 @@ AddVenueAssistant.prototype.categoryTapped = function(event){
        	placeNear:this.controller.get(event.target),
 		items: items
 	});
-
+*/
 }

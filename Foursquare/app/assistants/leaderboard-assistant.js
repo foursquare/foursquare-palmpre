@@ -1,62 +1,36 @@
 function LeaderboardAssistant() {
-	/* this is the creator function for your scene assistant object. It will be passed all the 
-	   additional parameters (after the scene name) that were passed to pushScene. The reference
-	   to the scene controller (this.controller) has not be established yet, so any initialization
-	   that needs the scene controller should be done in the setup function below. */
 }
 
 LeaderboardAssistant.prototype.setup = function() {
-	/* this function is for setup tasks that have to happen when the scene is first created */
-		
-	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
-	
-	/* setup widgets here */
-	/*    this.controller.setupWidget("WebId",
-        this.attributes = {
-            url:    'http://foursquare.com/mobile/leaderboard',
-            minFontSize:18
-            },
-        this.model = {
-            }
-    );*/
-    	this.controller.setupWidget(Mojo.Menu.appMenu,
+   	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    	this.attributes = {
+	        spacerHeight: 0,
+        	menuClass: 'fsq-fade'
+    	},
+	    _globals.cmmodel
+	);
 
-   /* this.controller.setupWidget(Mojo.Menu.commandMenu,
-        this.cmattributes = {
-           spacerHeight: 0,
-           menuClass: 'no-fade'
+//	Mojo.Event.listen(this.controller.get('fmenu'),Mojo.Event.tap, this.showMenu.bind(this));
+
+    this.controller.setupWidget("WebId",
+        this.attributes = {
+            url:    'http://foursquare.com/iphone/me?uid='+_globals.uid+'&view=all&geolat='+_globals.lat+'geolong='+_globals.long+'&scope=friends',
+            minFontSize:18
         },
-      _globals.cmmodel);*/
-
-	Mojo.Event.listen(this.controller.get('fmenu'),Mojo.Event.tap, this.showMenu.bind(this));
-
-   /* this.controller.setupWidget(Mojo.Menu.viewMenu,
-        this.menuAttributes = {
-           spacerHeight: 0,
-           menuClass: 'blue-view-nope'
-        },
-        this.menuModel = {
-            visible: true,
-            items: [ {
-                items: [
-                { iconPath: 'images/friends_button_single.png', command: 'lb-friends', label: "  "},
-                { label: "Leaderboard", width: 200},
-                { iconPath: 'images/venue_button_single.png', command: 'lb-all', label: "  "}]
-            }]
-        });*/
-
-	/* add event handlers to listen to events from widgets */
-	
-			Mojo.Log.error("trying to get addy...lat="+_globals.lat+", long="+_globals.long);
+        this.model = {
+        }
+    ); 
+    
 		//try and get the reverse location...
-			this.controller.serviceRequest('palm://com.palm.location', {
+	/*this.controller.serviceRequest('palm://com.palm.location', {
 			method: "getReverseLocation",
 			parameters: {latitude: _globals.lat, longitude:_globals.long},
 			onSuccess: this.gotLocation.bind(this),
 			onFailure: this.failedLocation.bind(this)
-		});
+	});*/
 
 }
 
@@ -75,7 +49,6 @@ LeaderboardAssistant.prototype.gotLocation = function(event) {
 	//we're worried about the middle line, so we get to do some fun parsing.
 	//no, seriously, parsing's the most fun part of programming.
 	//i wish this whole app was just parsing text. boresquare, some would call it.
-	Mojo.Log.error("addy="+event.address);
 	var addylines=event.address.split(";");
 	if(addylines.length>1) {
 		var loca=addylines[1].split(", ");
@@ -169,11 +142,11 @@ LeaderboardAssistant.prototype.handleCommand = function(event) {
             switch (event.command) {
 				case "do-Venues":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,_globals.username,_globals.password,_globals.uid);
+					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid);
 					break;
 				case "do-Friends":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
 					break;
                 case "do-Badges":
                 	var thisauth=_globals.auth;
@@ -256,11 +229,7 @@ LeaderboardAssistant.prototype.showMenu = function(event){
 
 
 LeaderboardAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
 }
 
 LeaderboardAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
 }

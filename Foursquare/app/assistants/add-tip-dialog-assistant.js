@@ -6,21 +6,19 @@ function AddTipDialogAssistant(sceneAssistant,a,vid,t) {
 }
 AddTipDialogAssistant.prototype.setup = function(widget) {
   this.widget = widget;
-  //Mojo.Log.error("################checkin: "+this.data);
-  //this.initData(this.data);
   
   // Setup button and event handler
-  this.sceneAssistant.controller.setupWidget("okButton",
+  this.sceneAssistant.controller.setupWidget("tipokButton",
     this.attributes = {type : Mojo.Widget.activityButton},
     this.OKButtonModel = {
       buttonLabel: "Add",
       disabled: false
     }
   );
-  Mojo.Event.listen(this.sceneAssistant.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
+  Mojo.Event.listen(this.sceneAssistant.controller.get('tipokButton'), Mojo.Event.tap, this.tipokTapped.bindAsEventListener(this));
 
   this.sceneAssistant.controller.setupWidget("cancelButton",
-    this.attributes = {},
+    this.cancelattributes = {},
     this.CancelButtonModel = {
       buttonLabel: "Nevermind",
       disabled: false
@@ -29,10 +27,9 @@ AddTipDialogAssistant.prototype.setup = function(widget) {
   Mojo.Event.listen(this.sceneAssistant.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
   
   
-	this.sceneAssistant.controller.setupWidget('newtip', this.tipAttributes = {hintText:'Enter '+this.type+' here...',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
+	this.sceneAssistant.controller.setupWidget('newtip', this.tipAttributes = {hintText:'Enter '+this.type+' here...',multiline:true,focus:true}, 		this.tipModel = {value:'', disabled:false});
 
 	this.sceneAssistant.controller.get("addtip-title").innerHTML="Add a "+this.type;
-//	this.init();
 }
 
 AddTipDialogAssistant.prototype.activate = function() {
@@ -40,8 +37,8 @@ AddTipDialogAssistant.prototype.activate = function() {
 }
 
 
-AddTipDialogAssistant.prototype.okTapped = function() {
-	if (_globals.auth) {
+AddTipDialogAssistant.prototype.tipokTapped = function() {
+Mojo.Log.error("oktapped");
 		var url = 'http://api.foursquare.com/v1/addtip.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
@@ -57,12 +54,6 @@ AddTipDialogAssistant.prototype.okTapped = function() {
 			onSuccess: this.tipSuccess.bind(this),
 			onFailure: this.tipFailed.bind(this)
 		});
-	} else {
-		//this.sceneAssistant.controller.get('message').innerHTML = 'Not Logged In';
-	}
-	
-
-//	this.widget.mojo.close();
 }
 
 AddTipDialogAssistant.prototype.tipSuccess = function() {

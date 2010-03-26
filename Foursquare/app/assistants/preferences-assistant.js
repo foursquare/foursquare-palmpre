@@ -1,30 +1,22 @@
 function PreferencesAssistant() {
-	/* this is the creator function for your scene assistant object. It will be passed all the 
-	   additional parameters (after the scene name) that were passed to pushScene. The reference
-	   to the scene controller (this.controller) has not be established yet, so any initialization
-	   that needs the scene controller should be done in the setup function below. */
 }
 
 PreferencesAssistant.prototype.setup = function() {
-	/* this function is for setup tasks that have to happen when the scene is first created */
-	zBar.hideToolbar();		
-	/* use Mojo.View.render to render view templates and add them to the scene, if needed. */
-	
-	/* setup widgets here */
+//	zBar.hideToolbar();		
 
 	this.controller.setupWidget('goLogin', this.accattributes = {}, this.loginBtnModel = {label:'Set up account...', disabled:false});
 	this.controller.setupWidget('goFlickr', this.flickrattributes = {}, this.flickrBtnModel = {label:'Set Up Flickr Account', disabled:false});
 	this.controller.setupWidget("sliderGPS",
-       this.slideattributes = {
-           minValue: -1000,
-           maxValue: 0,
-           round: true
-     },
+    	this.slideattributes = {
+        	minValue: -1000,
+			maxValue: 0,
+        	round: true
+	    },
  
-       this.slidemodel = {
-           value: 0,
-           disabled: false
-     });
+		this.slidemodel = {
+        	value: 0,
+	        disabled: false
+    	});
 
     this.controller.setupWidget("numVenuesPicker",
           this.numattributes = {
@@ -41,7 +33,7 @@ PreferencesAssistant.prototype.setup = function() {
           
     this.cookieData=new Mojo.Model.Cookie("notifications");
 	var credentials=this.cookieData.get();
-	var notifs=(credentials.notifs=="1")? '1': '0';
+	var notifs=(credentials)? credentials.notifs: '0';
 
           
     this.controller.setupWidget("chkNotifications",
@@ -72,7 +64,6 @@ PreferencesAssistant.prototype.setup = function() {
         }
     );
          
-	/* add event handlers to listen to events from widgets */
 	Mojo.Event.listen(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTapped.bind(this));
 	Mojo.Event.listen(this.controller.get("goFlickr"), Mojo.Event.tap, this.onFlickrTapped.bind(this));
 	Mojo.Event.listen(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSlider.bind(this));
@@ -101,8 +92,6 @@ PreferencesAssistant.prototype.setup = function() {
 }
 
 PreferencesAssistant.prototype.activate = function(event) {
-	/* put in event handlers here that should only be in effect when this scene is active. For
-	   example, key handlers that are observing the document */
 
 }
 PreferencesAssistant.prototype.handleSlider = function(event) {
@@ -146,7 +135,6 @@ PreferencesAssistant.prototype.handleNumPicker = function(event) {
 	if(event.type===Mojo.Event.propertyChange || event=="setup-routine") {
 		var v=this.nummodel.value;
 		
-		Mojo.Log.error("###saving venueCount: "+v);
 		
 		this.cookieData=new Mojo.Model.Cookie("venuecount");
 		this.cookieData.put(
@@ -191,12 +179,8 @@ PreferencesAssistant.prototype.onFlickrTapped = function() {
 }
 
 PreferencesAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
 }
 
 PreferencesAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
-	   zBar.showToolbar();
+	//   zBar.showToolbar();
 }

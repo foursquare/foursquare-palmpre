@@ -5,9 +5,6 @@ function DoCheckinDialogAssistant(sceneAssistant,vid,n) {
 }
 DoCheckinDialogAssistant.prototype.setup = function(widget) {
   this.widget = widget;
-  //Mojo.Log.error("################checkin: "+this.data);
-  //this.initData(this.data);
-  // Setup button and event handler
   this.sceneAssistant.controller.setupWidget("okButton",
     this.attributes = {type : Mojo.Widget.activityButton},
     this.OKButtonModel = {
@@ -70,7 +67,6 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
   
 	this.sceneAssistant.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
 
-//	this.init();
 }
 
 DoCheckinDialogAssistant.prototype.activate = function() {
@@ -79,30 +75,7 @@ DoCheckinDialogAssistant.prototype.activate = function() {
 
 
 DoCheckinDialogAssistant.prototype.okTapped = function() {
-/*	if (this.auth) {
-		var url = 'http://api.foursquare.com/v1/addtip.json';
-		var request = new Ajax.Request(url, {
-			method: 'post',
-			evalJSON: 'true',
-			requestHeaders: {
-				Authorization: this.auth
-			},
-			parameters: {
-				vid: this.vid,
-				shout: this.tipModel.value,
-				type: "tip"
-			},
-			onSuccess: this.tipSuccess.bind(this),
-			onFailure: this.tipFailed.bind(this)
-		});
-	} else {
-		//$('message').innerHTML = 'Not Logged In';
-	}
-*/	
-
-//	this.widget.mojo.close();
 	this.sceneAssistant.checkIn(this.vid,this.vname,this.tipModel.value,this.sfmodel.value,this.twmodel.value,this.fbmodel.value);
-	//this.widget.mojo.close();
 }
 
 DoCheckinDialogAssistant.prototype.tipSuccess = function() {

@@ -13,10 +13,14 @@
         "scenes": "nearby-venues",
         "source": "app/assistants/nearby-venues-assistant.js"
     },
+    {"source": "app/lib/gps.js"},
+    {"source": "app/lib/zBar.js"},
+    {"source": "app/lib/encoding.js"},
     {"source": "app/assistants/check-in-dialog-assistant.js"},
     {"source": "app/assistants/add-tip-dialog-assistant.js"},
     {"source": "app/assistants/do-checkin-dialog-assistant.js"},
     {"source": "app/assistants/do-shout-dialog-assistant.js"},
+    {"source": "app/assistants/friend-search-dialog-assistant.js"},
     {"source": "app/assistants/add-venue-dialog-assistant.js"},
     {
         "scenes": "venuedetail",
@@ -73,5 +77,13 @@
     {
         "scenes": "flickr-upload",
         "source": "app/assistants/flickr-upload-assistant.js"
+    },
+    {
+        "scenes": "categories",
+        "source": "app/assistants/categories-assistant.js"
+    },
+    {
+        "scenes": "dashboard",
+        "source": "app/assistants/dashboard-assistant.js"
     }
 ]
