@@ -20,14 +20,14 @@ ShoutAssistant.prototype.setup = function() {
   	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 	var pings=(credentials.ping=="on")? '0': '1';
-	var stt=(credentials.savetotwitter==true)? '1': '0';
-	var stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
+	this.stt=(credentials.savetotwitter==true)? '1': '0';
+	this.stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
   
 	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
 
-    this.controller.setupWidget("chkTwitter",
+   /* this.controller.setupWidget("chkTwitter",
          this.twattributes = {
              trueValue: '1',
              falseValue: '0', 
@@ -48,7 +48,7 @@ ShoutAssistant.prototype.setup = function() {
          this.fbmodel = {
              value: stf,
              disabled: false
-         });
+         });*/
   		
   		
 	this.lhc=new Mojo.Model.Cookie("photohost");
@@ -76,6 +76,45 @@ ShoutAssistant.prototype.setup = function() {
 	_globals.ammodel.items[0].disabled=true;
 	this.controller.modelChanged(_globals.ammodel);
 	this.controller.get("photohostList").hide();
+
+
+	if(Mojo.Environment.DeviceInfo.touchableRows < 8)
+	{
+	   this.controller.get("docheckingroup").style.minHeight="247px;";
+	}
+	else{
+	   this.controller.get("docheckingroup").style.minHeight="327px"; //372
+	}
+	if(this.stf=="1"){
+		this.controller.get('share-facebook').addClassName("pressed");
+	}
+
+	Mojo.Event.listen(this.controller.get('share-facebook'), Mojo.Event.tap, function(){
+	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+		if(this.stf=="1"){
+			this.stf="0";
+			this.controller.get('share-facebook').removeClassName("pressed");
+		}else{
+			this.stf="1";
+			this.controller.get('share-facebook').addClassName("pressed");
+		}
+	}.bindAsEventListener(this));
+
+	if(this.stt=="1"){
+		this.controller.get('share-twitter').addClassName("pressed");
+	}
+
+	Mojo.Event.listen(this.controller.get('share-twitter'), Mojo.Event.tap, function(){
+	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+		if(this.stt=="1"){
+			this.stt="0";
+			this.controller.get('share-twitter').removeClassName("pressed");
+		}else{
+			this.stt="1";
+			this.controller.get('share-twitter').addClassName("pressed");		
+		}
+	}.bindAsEventListener(this));
+
 }
 
 ShoutAssistant.prototype.activate = function(event) {
@@ -338,8 +377,8 @@ ShoutAssistant.prototype.doShout = function(extra) {
 			},
 			parameters: {
 				shout: this.tipModel.value+" "+extra,
-				twitter: this.twmodel.value,
-				facebook: this.fbmodel.value
+				twitter: this.stt,
+				facebook: this.stf
 			},
 			onSuccess: this.checkInSuccess.bind(this),
 			onFailure: this.checkInFailed.bind(this)

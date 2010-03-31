@@ -3,7 +3,7 @@ function AboutAssistant() {
 
 AboutAssistant.prototype.setup = function() {
 	this.controller.get("about-header").innerHTML="About Foursquare v"+Mojo.appInfo.version;
-	zBar.hideToolbar();
+	//zBar.hideToolbar();
 
 }
 AboutAssistant.prototype.getUA = function(event) {
@@ -28,5 +28,5 @@ AboutAssistant.prototype.deactivate = function(event) {
 AboutAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
-	   zBar.showToolbar();
+	  // zBar.showToolbar();
 }

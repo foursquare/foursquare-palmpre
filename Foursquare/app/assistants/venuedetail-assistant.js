@@ -183,7 +183,7 @@ VenuedetailAssistant.prototype.setup = function() {
 	
 	
 	this.flickrUpload='<span id="flickrUploader" class="vtip-black" style="white-space:nowrap;">Upload</span>';
-	this.setupCheckin();
+	//this.setupCheckin();
 }
 
 var auth;
@@ -514,13 +514,16 @@ var checkinDialog;
 
 
 VenuedetailAssistant.prototype.promptCheckin = function(event) {
-	this.controller.get("overlay-title").innerHTML="Check-in";
+/*	this.controller.get("overlay-title").innerHTML="Check-in";
 	this.controller.get("overlay-content").innerHTML="";
 	this.controller.get("docheckin-fields").show();
+	this.controller.get("results-meta-list").hide();
 	this.controller.get("meta-overlay").show();
 	this.controller.get("overlaySpinner").mojo.stop();
 	this.controller.get("overlaySpinner").hide();
-	window.setTimeout('this.controller.get("shout").mojo.focus();',300);
+	window.setTimeout('this.controller.get("shout").mojo.focus();',300);*/
+	
+	this.controller.stageController.pushScene({name: "checkin", transition: Mojo.Transition.zoomFade},this.venue);
 
 }
 

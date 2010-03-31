@@ -66,6 +66,9 @@ Mojo.Log.error("doing got location");
 				Mojo.Log.error("okay on first try");
 				_globals.GPS.stop();
 				_globals.gpsokay=true;
+				var la=_globals.GPS.get().latitude;
+				var lo=_globals.GPS.get().longitude;
+				Mojo.Log.error("lat=%i, long=%i",la,lo);
 				Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
 			}
 			if((acc<_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==false) {

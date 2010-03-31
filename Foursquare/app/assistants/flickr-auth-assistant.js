@@ -3,7 +3,7 @@ function FlickrAuthAssistant(ps) {
 }
 
 FlickrAuthAssistant.prototype.setup = function() {
-		zBar.hideToolbar();
+	//	zBar.hideToolbar();
 	
 		    this.controller.setupWidget("flickrWeb",
         this.webattributes = {
@@ -124,5 +124,5 @@ FlickrAuthAssistant.prototype.cleanup = function(event) {
 	 	});
 
 	   
-	   zBar.showToolbar();
+	  // zBar.showToolbar();
 }

@@ -11,42 +11,41 @@
 		</div>
 	</div>
 
-	<br class="breaker-small"/><br/><br/>
-	<div class="palm-group-nope" id='docheckingroup'>
-		<div class="palm-list">
-	   		<div class="palm-row single">
-				<div class="palm-row-wrapper textfield-group" style="position:relative;" x-mojo-focus-highlight="true">
-					<div class="title">
-	      				<div x-mojo-element="TextField" id="shout" style="width: 83%;"></div>
-		      			<span class="clear-button" id="attach" style="position: absolute; right: 0px; top: -12px;"><div class="attach-button" id="attachicon"></div></span>
-						<div id="img-preview" style="display: none;padding:0;margin:0;">
-							<img src="" width="100" id="img">
-							<div id="remove-button"></div>
-						</div>
+	<br class="breaker-small"/>
+	<div class="fsq-spacer">&nbsp;</div>
+	
+
+	<div class="grey-bg" id='docheckingroup'>
+   		<div class="palm-row first">
+			<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+				<div class="title" style="position:relative;background:#fff;">
+      				<div x-mojo-element="TextField" id="shout" style="width:83%;"></div>
+	      			<span class="clear-button label" id="attach" style="position: absolute; right: 0px; top: 2px;"><div class="attach-button" id="attachicon"></div></span>
+					<div id="img-preview" style="display: none;padding:0;margin:0;">
+						<img src="" width="100" id="img">
+						<div id="remove-button"></div>
 					</div>
 				</div>
-			</div>
-	<div class="palm-row single">
-		<div class="palm-row-wrapper">
-			<div class="title left">
-				<div class="palm-group unlabeled" id="listborder" style="display:none;">
-					<div class="palm-list">
-						<div class="palm-row-single" x-mojo-tap-highlight="momentary">
-							<div class="palm-row-wrapper">
-								<div x-mojo-element="ListSelector" id="photohostList" class="listselectorClass"  name="listselectorName"></div>				
-							</div>
-						</div>
-					</div>
-				</div>
-				<div x-mojo-element="CheckBox" id="chkTwitter" class="checkboxClass left" name="checkboxName"></div> <div class="left chkLabel">Ping Twitter</div><br class="breaker"/>
-				<div x-mojo-element="CheckBox" id="chkFacebook" class="checkboxClass left" name="checkboxName"></div> <div class="left chkLabel">Ping Facebook</div><br class="breaker"/>
 			</div>
 		</div>
-	</div>
+		<div class="palm-row single" x-mojo-tap-highlight="momentary" id="photorow">
+			<div class="palm-row-wrapper" style="text-align: left;">
+				<div x-mojo-element="ListSelector" id="photohostList" class="listselectorClass"  name="listselectorName"></div>		
+			</div>
+		</div>
+		<div class="darkerbg" style="color:#fff;padding-bottom: 3px;margin-bottom: 7px;margin-top: 15px;">
+			<div class="left chkLabel" style="float: left; width: 150px;">Share with...</div>
+			<div class="right" style="float: right; width: 100px;">
+				<div id="share-facebook" class="share-button fbook"></div>
+				<div id="share-twitter" class="share-button twit"></div>
+				<br class="breaker-small"/>
+			</div>
+			<br class="breaker-small"/>
 		</div>
 
-	</div>
-	
-	<div x-mojo-element="Button" class="palmbutton primary" id="okButtonShout"></div>
-	<br/><br/>
+		<div x-mojo-element="Button" class="fsq-button palmbutton primary" id="okButtonShout"></div>
+
+
+	</div>		
+
 </div>

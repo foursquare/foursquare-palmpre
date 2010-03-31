@@ -562,6 +562,21 @@ a.vtag,a.vtip-black {
 	color: #fff;
 	text-shadow:  1px 1px 0 #1c1c1c;
 }
+.grey-bg{
+	background: url(../images/grey-bg.png) top left;
+	-webkit-border-image: url(../images/inner-shadow.png) 24 24 24 24 stretch stretch;
+	border-width: 20px 20px 20px 20px;
+	color: #fff;
+	text-shadow:  1px 1px 0 #1c1c1c;
+}
+
+.fsq-spacer{
+	height: 59px;
+}
+#checkin-info {
+	font-size: smaller;
+	margin-bottom: 4px;
+}
 .aTip {
 	padding-left: 5px;
 }
@@ -961,6 +976,28 @@ a.vtag,a.vtip-black {
 }
 
 
+.share-button {
+	width: 35px;
+	height: 35px;
+	display: block;
+	float: right;
+	background-position: left top;
+	background-repeat: no-repeat;
+}
+.share-button.fbook {
+	background-image: url(../images/share-fbook.png);
+}
+.share-button.fbook.pressed {
+	background-position: left -35px;
+}
+
+.share-button.twit {
+	background-image: url(../images/share-twit.png);
+	margin-right: 10px;
+}
+.share-button.twit.pressed {
+	background-position: left -35px;
+}
 
 body.zblack #zBar {
 	height: 47px;

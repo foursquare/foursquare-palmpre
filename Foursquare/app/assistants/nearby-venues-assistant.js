@@ -267,24 +267,31 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 		//check their prefs. if the results are good enough, carry on
 		//otherwise, repoll the gps
 		this.controller.get('getting-gps-alert').hide();
+		Mojo.Log.error("1");
 		this.controller.get('message').innerHTML = 'Found Location...';
+		Mojo.Log.error("2");
 		//we got the location so now query it against 4square for a venue list
 		this.lat=event.latitude;
 		this.long=event.longitude;
 		this.hacc=event.horizAccuracy;
 		this.vacc=event.vertAccuracy;
 		this.altitude=event.altitude;
+		Mojo.Log.error("3");
 		_globals.lat=this.lat;
 		_globals.long=this.long;
 		_globals.hacc=this.hacc;
 		_globals.vacc=this.vacc;
 		_globals.altitude=this.altitude;
 		_globals.gps=event;
+		Mojo.Log.error("4");
 		_globals.GPS.stop();            
+		Mojo.Log.error("5");
 		_globals.accuracy="&plusmn;"+roundNumber(this.hacc,2)+"m";
+		Mojo.Log.error("6");
 		this.controller.get("accuracy").innerHTML="Accuracy: "+_globals.accuracy;
 
 		this.getVenues(event.latitude, event.longitude,event.horizAccuracy,event.vertAccuracy,event.altitude);
+		Mojo.Log.error("7");
 	} else {
 		this.controller.get('getting-gps-alert').hide();
 		this.controller.get('message').innerHTML = "gps error: " + event.errorCode;
@@ -340,15 +347,21 @@ NearbyVenuesAssistant.prototype.failedLocation = function(event) {
 }
 
 NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,vacc,alt) {
+		Mojo.Log.error("getvenues");
+
 	this.controller.get('message').innerHTML += '<br/>Searching Venues...';
-			this.controller.serviceRequest('palm://com.palm.location', {
+		Mojo.Log.error("msg");
+		Mojo.Log.error("lat=%i, long=%i",_globals.lat,_globals.long);
+
+	this.controller.serviceRequest('palm://com.palm.location', {
 			method: "getReverseLocation",
 			parameters: {latitude: _globals.lat, longitude:_globals.long},
 			onSuccess: function(address){
+				Mojo.Log.error("reversing loc");
 				_globals.nearness="Near "+address.substreet+" "+address.street+" "+address.city+", "+address.state;
 				this.controller.get("accuracy").innerHTML=_globals.nearness+" ("+_globals.accuracy+")";
 			}.bind(this),
-			onFailure: function(){}.bind(this)
+			onFailure: function(){		Mojo.Log.error("reverse loc failed");}.bind(this)
 		});
 
 	var query = this.textModel.value;
@@ -394,14 +407,21 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 	mybutton.mojo.deactivate();
 	
 	this.controller.get('message').innerHTML = '';
+		Mojo.Log.error(response.responseText);
 	
-	if (response.responseJSON == undefined) {
+	if (response.responseJSON == undefined || (response.responseText=='{"venues":null}')) {
 		this.controller.get('message').innerHTML = 'No Results Found';
+		Mojo.Log.error("no results");
+		this.controller.get("spinnerId").mojo.stop();
+		this.controller.get("spinnerId").hide();
+		this.controller.get("resultListBox").style.display = 'block';
+		this.controller.get("noresults").show();
 	}
 	else {
 		this.controller.get("spinnerId").mojo.stop();
 		this.controller.get("spinnerId").hide();
 		this.controller.get("resultListBox").style.display = 'block';
+		this.controller.get("noresults").hide();
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.venueList = [];
 
@@ -802,6 +822,19 @@ NearbyVenuesAssistant.prototype.activate = function(event) {
                 	_globals.nearbyVenues=undefined;
 					this.onGetNearbyVenues();
 	   }
+
+
+	//display first run message
+	this.cookie=new Mojo.Model.Cookie("firstrun");
+	var cdata=this.cookie.get();
+	var ver=(cdata)? cdata.version: "";
+	if(ver!=Mojo.appInfo.version){
+		var dialog = this.controller.showDialog({
+			template: 'listtemplates/whatsnew',
+			assistant: new WhatsNewDialogAssistant(this)
+		});
+
+	}
 	   
 }
 
