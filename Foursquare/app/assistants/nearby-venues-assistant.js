@@ -42,7 +42,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
 
 	//Create the attributes for the textfield
 	this.textFieldAtt = {
-			hintText: 'Search Places',
+			hintText: '',
 			textFieldName:	'name', 
 			multiline:		false,
 			disabledProperty: 'disabled',
@@ -118,6 +118,8 @@ NearbyVenuesAssistant.prototype.setup = function() {
     //this.doc.addEventListener(Mojo.Event.keypress, this.onKeyPressHandler.bind(this), true);
 	Mojo.Event.listen(this.controller.get('vmenu'),Mojo.Event.tap, this.showMenu.bind(this));
 	Mojo.Event.listen(this.controller.get('gotloc'),"handleit", this.gotLocation.bind(this));
+	Mojo.Event.listen(this.controller.get('gotloc'),"showrefresh", this.showRefresh.bind(this));
+	Mojo.Event.listen(this.controller.get('gotloc'),"gaveup", this.hideRetryBanner.bind(this));
 	Mojo.Event.listen(this.controller.get('gotlocagain'),"handleit", this.gotLocationAgain.bind(this));
 	Mojo.Event.listen(this.controller.get('retryloc'),"handleit", this.loadVenues.bind(this));
 
@@ -155,10 +157,12 @@ NearbyVenuesAssistant.prototype.setup = function() {
 
 	_globals.onVenues=true;
 	if(!_globals.reloadVenues && _globals.nearbyVenues==undefined){
+		Mojo.Log.error("venues: loading venues");
 		//_globals.GPS.stop(); //we just needed it until now
-		_globals.gotLocation(_globals.GPS.get());
-		_globals.GPS.stop();
+		this.gotLocation(_globals.gps);
+		//_globals.GPS.stop();
 	}else{
+		Mojo.Log.error("venues: not loading venues");
 		if(_globals.nearbyVenues==undefined && _globals.reloadVenues){
 			this.onGetNearbyVenues();
 		}else{
@@ -172,8 +176,18 @@ NearbyVenuesAssistant.prototype.setup = function() {
     
     _globals.ammodel.items[0].disabled=false;
 	this.controller.modelChanged(_globals.ammodel);
-	this.controller.get("gps_banner").hide();
-	this.controller.get("smallSpinner").hide();
+	
+	//are we still trying to get better gps accuracy in the bg?
+	if(_globals.retryingGPS==true){
+		Mojo.Log.error("venues: retrying gps true");
+		this.controller.get("gps_banner").show();
+		this.controller.get("smallSpinner").show();
+		this.controller.get("banner_text").update("Getting better accuracy... ("+roundNumber(_globals.hacc,2)+"m)");
+	}else{
+		Mojo.Log.error("venues: not retrying gps");
+		this.controller.get("gps_banner").hide();
+		this.controller.get("smallSpinner").hide();
+	}
 	this.controller.get("refresh-venues").hide();
 	//this.controller.get("debuginfo").show();
     this.controller.get("message").hide();
@@ -195,7 +209,18 @@ function make_base_auth(user, pass) {
   var hash = Base64.encode(tok);
   return "Basic " + hash;
 }
+NearbyVenuesAssistant.prototype.showRefresh = function(event) {
+	this.controller.get("smallSpinner").hide();
+	this.controller.get("banner_text").update("Better accuracy! ("+roundNumber(_globals.hacc,2)+"m)");
+	this.controller.get("refresh-venues").show();
+}
 
+NearbyVenuesAssistant.prototype.hideRetryBanner = function(event) {
+	this.controller.get("smallSpinner").hide();
+	this.controller.get("banner_text").update("");
+	this.controller.get("refresh-venues").hide();
+	this.controller.get("gps_banner").hide();
+}
 
 
 NearbyVenuesAssistant.prototype.onGetNearbyVenuesSearch = function(event) {
@@ -257,12 +282,12 @@ NearbyVenuesAssistant.prototype.refreshVenues = function(event) {
 		this.controller.get("spinnerId").show();
 		this.controller.get("resultListBox").style.display = 'none';
 
-		this.getVenues(this.lat, this.long,this.hacc,this.vacc,this.altitude);
+		this.getVenues(_globals.lat, _globals.long,_globals.hacc,_globals.vacc,_globals.altitude);
 }
 
 NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 	Mojo.Log.error("doing gotlocation");
-	event=_globals.GPS.get();
+	event=_globals.gps;
 	if(event.errorCode == 0) {
 		//check their prefs. if the results are good enough, carry on
 		//otherwise, repoll the gps
@@ -284,7 +309,7 @@ NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 		_globals.altitude=this.altitude;
 		_globals.gps=event;
 		Mojo.Log.error("4");
-		_globals.GPS.stop();            
+		//_globals.GPS.stop();            
 		Mojo.Log.error("5");
 		_globals.accuracy="&plusmn;"+roundNumber(this.hacc,2)+"m";
 		Mojo.Log.error("6");

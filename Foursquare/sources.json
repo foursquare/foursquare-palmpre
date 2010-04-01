@@ -90,5 +90,9 @@
     {
         "scenes": "checkin",
         "source": "app/assistants/checkin-assistant.js"
+    },
+    {
+        "scenes": "photos",
+        "source": "app/assistants/photos-assistant.js"
     }
 ]

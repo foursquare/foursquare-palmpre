@@ -343,7 +343,7 @@ body {
 }
 
 .black-text {
-	color: #000;
+	color: #000 !important;
 }
 /*a {
 	color: #6e1965 !important;
@@ -704,11 +704,11 @@ a.vtag,a.vtip-black {
 	color: #fff !important;
 }
 #gps_banner, .blue-box {
-	background: url(../images/dark-zags.png) no-repeat left top;
+	background: url(../images/dark-zags.png) no-repeat left bottom;
 	color: #fff;
 	font-size: 15px;
 	padding: 4px;
-	height: 23px;
+	height: 20px;
 	width: 320px;
 }
 #smallSpinner {

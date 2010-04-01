@@ -21,6 +21,7 @@ function MainAssistant(expressLogin,credentials,fp) {
 }
 
 MainAssistant.prototype.setup = function() {
+	_globals.mainLoaded=true;
 	if (this.expressLogin) {
 		Mojo.Log.error("expresslogin");
 		this.controller.get("loginfields").style.visibility="hidden";
@@ -112,12 +113,14 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 		this.controller.stageController.popScene('preferences');
 		this.controller.stageController.popScene('main');
 	}else{
-		if(this.gotGPS){
+		if(_globals.gotGPS){
 			_globals.firstLoad=true;
 			this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
 		}else{
+			Mojo.Log.error("waiting on GPS");
 			this.gpscheck=this.controller.window.setInterval(function(){
-				if(this.gotGPS){
+				if(_globals.gotGPS){
+					Mojo.Log.error("got gps finally!");
 					_globals.firstLoad=true;
 					this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
 				}

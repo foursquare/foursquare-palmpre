@@ -688,7 +688,7 @@ VenuedetailAssistant.prototype.parkingFailed = function(response) {
 
 
 VenuedetailAssistant.prototype.showFlickr = function(event) {
-	this.controller.get("meta-overlay").show();
+	/*this.controller.get("meta-overlay").show();
 	this.controller.get("overlaySpinner").mojo.start();
 	this.controller.get("overlaySpinner").show();
 	this.controller.get("overlay-content").innerHTML="";
@@ -700,7 +700,10 @@ VenuedetailAssistant.prototype.showFlickr = function(event) {
 			evalJSON: 'true',
 			onSuccess: this.flickrSuccess.bind(this),
 			onFailure: this.flickrFailed.bind(this)
-	});
+	});*/
+	this.controller.stageController.pushScene({name: "photos", transition: Mojo.Transition.zoomFade},this.venue);
+
+	
 }
 
 VenuedetailAssistant.prototype.flickrFailed = function(response) {

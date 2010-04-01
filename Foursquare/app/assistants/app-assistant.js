@@ -28,82 +28,61 @@ _globals.cmmodel = {
             }]
     };
 _globals.main=_globals.main || {};
+
+//function for callback on gps return
 _globals.gotLocation = function(event) {
-Mojo.Log.error("doing got location");
-		_globals.main.lat=event.latitude;
-		_globals.main.long=event.longitude;
-		_globals.main.hacc=event.horizAccuracy;
-		_globals.main.vacc=event.vertAccuracy;
-		_globals.main.altitude=event.altitude;
-		
-		_globals.lat=_globals.main.lat;
-		_globals.long=_globals.main.long;
-		_globals.hacc=_globals.main.hacc;
-		_globals.vacc=_globals.main.vacc;
-		_globals.altitude=_globals.main.altitude;
+	Mojo.Log.error("appassistant: doing got location");
+	
+	if(_globals.mainLoaded){ //only continue if the main scene is loaded
+		//set globals values
+		_globals.lat=event.latitude;
+		_globals.long=event.longitude;
+		_globals.hacc=event.horizAccuracy;
+		_globals.vacc=event.vertAccuracy;
+		_globals.altitude=event.altitude;
 		_globals.gps=event;
-		_globals.main.gotGPS=true;
-		Mojo.Log.error("li="+_globals.main.loggedIn+", ov="+_globals.onVenues);
-		if(_globals.main.loggedIn && !_globals.onVenues){
-			Mojo.Log.error("swapping scene");
-			_globals.firstLoad=true;
-			var appController = Mojo.Controller.getAppController();
-	  	  	var cardStageController = appController.getStageController("mainStage");
-			cardStageController.swapScene('nearby-venues',auth,userData,_globals.main.username,_globals.main.password,_globals.uid);
-		}
 		
-		if(_globals.onVenues){
-			Mojo.Log.error("onvenues");
-			var appController = Mojo.Controller.getAppController();
-	  	  	var cardStageController = appController.getStageController("mainStage");
-	  	  	cardStageController.delegateToSceneAssistant(NearbyVenuesAssistant.gotLocation,event);
-			var stage = Mojo.Controller.getAppController().getStageProxy("mainStage");
+		//hang on to stage instance
+		var appController = Mojo.Controller.getAppController();
+  	  	var cardStageController = appController.getStageController("mainStage");
+				
+		//get accuracy
+		var acc=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy): 0;
+		Mojo.Log.error("acc="+acc);
 		
-			
-			var acc=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy): 0;
-			Mojo.Log.error("acc="+acc);
-			if((acc>_globals.GPS.get().horizAccuracy || acc==0) && _globals.retryingGPS==false){
-				Mojo.Log.error("okay on first try");
+		//check radius
+		if(_globals.retryingGPS==false){
+			if(acc>=_globals.hacc || acc==0){ 									//if requested radius is larger than 
+				Mojo.Log.error("got it on first try");
+				_globals.GPS.stop();											//actual or user doesn't care, AND first check, continue
+				_globals.gotGPS=true;
+			}else{																//if user cares and radius is larger than requested
+				Mojo.Log.error("bad radius; retrying");
+				_globals.retryingGPS=true;										//AND first check, restart GPS and let main push
+				//_globals.GPS.restart();											//venues and alert user of crappy accuracy
+				_globals.gotGPS=true;
+			}
+		}else{ //if _globals.retryingGPS==true...
+			if(acc>=_globals.hacc && _globals.onVenues==true){
+				Mojo.Log.error("got it second try");
 				_globals.GPS.stop();
-				_globals.gpsokay=true;
-				var la=_globals.GPS.get().latitude;
-				var lo=_globals.GPS.get().longitude;
-				Mojo.Log.error("lat=%i, long=%i",la,lo);
-				Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
+				_globals.retryingGPS=false;
+				Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"showrefresh");
 			}
-			if((acc<_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==false) {
-					Mojo.Log.error("bad radius; retrying");
-					/*cardStageController.document.getElementById("gps_banner").show();
-					cardStageController.document.getElementById("smallSpinner").hide();
-					cardStageController.document.getElementById("banner_text").innerHTML="Getting better accuracy... ";
-					cardStageController.document.getElementById("refresh-venues").show();
-					cardStageController.document.getElementById("accuracy").innerHTML="Accuracy: &plusmn;"+roundNumber(this.hacc,2)+"m";
-					Mojo.Event.send(cardStageController.document.getElementById("retryloc"),"handleit");*/
-
-
+			if(acc<_globals.hacc && _globals.onVenues==true){
+				Mojo.Log.error("still bad radius");
+				var now=(new Date().getTime());
+				var diff=(now-_globals.gpsStart)/1000; //in seconds
+				if(dff>=10){
+					Mojo.Log.error("giving up");
 					_globals.GPS.stop();
-					_globals.retryingGPS=true;
-					_globals.GPS.restart();
+					_globals.retryingGPS=false;
+					Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"gaveup");				
+				}
 			}
-					
-			if((acc>_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==true){
-						Mojo.Log.error("got it on second try");
-						_globals.GPS.stop();
-						_globals.gpsokay=true;
-						Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
-			}
-					
-			if((acc<_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==true && _globals.gpsokay==false){
-						Mojo.Log.error("giving up");
-						_globals.GPS.stop();
-						_globals.gpsokay=true;
-						_globals.retryingGPS=false;
-						Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
-			}
-			
 		}
-
-
+		
+	}
 }
 
 _globals.gotLocation2 = function(event) {
@@ -290,6 +269,8 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 		 });
 		_globals.GPS = new Location(_globals.gotLocation);
 		_globals.GPS.start();
+		var now=(new Date().getTime());
+		_globals.gpsStart=now;
 
         if (cardStageController) {
             // If it exists, just bring it to the front by focusing its window.

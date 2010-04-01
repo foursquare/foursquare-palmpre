@@ -69,6 +69,7 @@ Location.prototype.start = function() {
 };
 
 Location.prototype.restart = function() {
+	this.GPS.stop();
 	this.lat=undefined;
 	this.long=undefined;
 	this.radius=undefined;
