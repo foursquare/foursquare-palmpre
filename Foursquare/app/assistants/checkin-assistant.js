@@ -1,0 +1,522 @@
+function CheckinAssistant(v) {
+	this.venue=v;
+	
+}
+
+CheckinAssistant.prototype.setup = function() {
+  	this.cookieData=new Mojo.Model.Cookie("credentials");
+	var credentials=this.cookieData.get();
+	var pings=(credentials.ping=="on")? '1': '0';
+	this.stt=(credentials.savetotwitter==true)? '1': '0';
+	this.stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
+
+	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+
+	this.lhc=new Mojo.Model.Cookie("photohost");
+	var lh=this.lhc.get();
+	_globals.lasthost=(lh)? lh.photohost: "pikchur";
+
+	this.controller.setupWidget("okButton",
+		this.attributes = {type : Mojo.Widget.activityButton},
+		this.OKButtonModel = {
+			buttonLabel: "Check-in",
+			disabled: false
+		}
+	);
+
+    this.controller.setupWidget("chkShowFriends",
+         this.sfattributes = {
+             trueValue: '1',
+             trueLabel: 'Yes',
+             falseValue: '0',
+             falseLabel: 'No'
+         },
+         this.sfmodel = {
+             value: pings,
+             disabled: false
+         });
+	this.controller.setupWidget('shout', 
+		this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true,focusMode:Mojo.Widget.focusSelectMode}, 
+		this.tipModel = {value:'', disabled:false}
+	);
+    this.controller.setupWidget("photohostList",
+    	this.phAttributes = {
+        	choices: [
+                {label: "Flickr", value: "flickr"},
+                {label: "TweetPhoto", value: "tweetphoto"},
+                {label: "Pikchur", value: "pikchur"},
+                {label: "FSPic", value: "fspic"}
+
+            ]},
+    	this.phModel = {
+            value: _globals.lasthost,
+            disabled: false
+        }
+    ); 
+
+	if(Mojo.Environment.DeviceInfo.touchableRows < 8)
+	{
+	   this.controller.get("checkin-widgets").style.minHeight="247px;";
+	}
+	else{
+	   this.controller.get("checkin-widgets").style.minHeight="327px"; //372
+	}
+	
+	if(this.stf=="1"){
+		this.controller.get('share-facebook').addClassName("pressed");
+	}
+
+	Mojo.Event.listen(this.controller.get('share-facebook'), Mojo.Event.tap, function(){
+	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+		if(this.stf=="1"){
+			this.stf="0";
+			this.controller.get('share-facebook').removeClassName("pressed");
+		}else{
+			this.stf="1";
+			this.controller.get('share-facebook').addClassName("pressed");
+		}
+	}.bindAsEventListener(this));
+
+	if(this.stt=="1"){
+		this.controller.get('share-twitter').addClassName("pressed");
+	}
+
+	Mojo.Event.listen(this.controller.get('share-twitter'), Mojo.Event.tap, function(){
+	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+		if(this.stt=="1"){
+			this.stt="0";
+			this.controller.get('share-twitter').removeClassName("pressed");
+		}else{
+			this.stt="1";
+			this.controller.get('share-twitter').addClassName("pressed");		
+		}
+	}.bindAsEventListener(this));
+
+	this.controller.get("checkin-info").update("<b>"+this.venue.name+"</b><br/>"+this.venue.address);
+	this.controller.get("photorow").hide();
+	Mojo.Event.listen(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost);
+	Mojo.Event.listen(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
+	Mojo.Event.listen(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
+	Mojo.Event.listen(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
+	Mojo.Event.listen(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
+	Mojo.Event.listen(this.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
+
+};
+
+CheckinAssistant.prototype.okTapped = function() {
+		//before doing the actual shout, see if we have a photo. if so, handle that
+		if(this.hasPhoto){
+			Mojo.Controller.getAppController().showBanner("Uploading photo...", {source: 'notification'});
+			switch(this.phModel.value){
+				case "flickr":
+					var ptitle=this.tipModel.value;
+					var pdesc=this.tipModel.value;
+					var ptags="foursquare:venue="+this.venue.id+", "+this.venue.name;
+					var format="xml";
+					var nojsoncallback="1";
+					var api_key=_globals.flickr_key;
+					var auth_token=_globals.flickr_token;
+					var presig=_globals.flickr_secret+"api_key"+api_key+"auth_token"+auth_token+"description"+pdesc+"format"+format+"nojsoncallback"+nojsoncallback+"tags"+ptags+"title"+ptitle;
+					var api_sig=hex_md5(presig);
+	
+					var params={
+						"title":ptitle,
+						"description":pdesc,
+						"tags":ptags
+					};
+	
+					var params=[];
+					params.push({"key":"api_key","data":api_key,"contentType":"text/plain"});
+					params.push({"key":"auth_token","data":auth_token,"contentType":"text/plain"});
+					params.push({"key":"api_sig","data":api_sig,"contentType":"text/plain"});
+					params.push({"key":"description","data":pdesc,"contentType":"text/plain"});
+					params.push({"key":"format","data":format,"contentType":"text/plain"});
+					params.push({"key":"nojsoncallback","data":nojsoncallback,"contentType":"text/plain"});
+					params.push({"key":"tags","data":ptags,"contentType":"text/plain"});
+					params.push({"key":"title","data":ptitle,"contentType":"text/plain"});
+	
+	
+
+				    var appController = Mojo.Controller.getAppController();
+			  	  	var cardStageController = appController.getStageController("mainStage");
+					var controller = cardStageController.activeScene();
+			        // Queue the upload request with the download manager service.
+			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+			            method: 'upload',
+			            parameters: {
+            			    'url': "http://api.flickr.com/services/upload/",
+			                'fileLabel': 'photo',
+            			    'fileName': this.fileName,
+			                'postParameters': params,
+            			    'subscribe': true
+			            },
+			            onSuccess: function (resp){
+						 	//gonna old school parse the xml since it's in plain etxt and not an object...
+						 	var xml=resp.responseString;
+						 	if(xml) {
+							 	if(xml.indexOf('stat="ok"')>-1) {
+							 		var ps=xml.indexOf("<photoid>")+9;
+							 		var pe=xml.indexOf("</photoid>");
+							 		var len=pe-ps;
+							 		var photoid=parseInt(xml.substring(ps,pe));
+							 		var epid=this.base58_encode(photoid);
+						 			var extra="http://flic.kr/p/"+epid;
+						 			
+									this.checkIn(this.venue.id,this.venue.name,this.tipModel.value+" "+extra,this.sfmodel.value,this.stt,this.stf);
+						 		}
+						 	}
+						 	
+					  	}.bind(this),
+			            onFailure: function (e){
+	  						Mojo.Log.error('Failure : ' + Object.toJSON(resp));
+					 	}.bind(this)
+			        });
+	 
+					break;
+				case "pikchur":
+					var eauth=_globals.auth.replace("Basic ","");
+					var plaintext=Base64.decode(eauth);
+					var creds=plaintext.split(":");
+					var un=creds[0];
+					var pw=creds[1];
+					var params=[];
+					params.push({"key":"api_key","data":"QTG1n51CVNEJNDkkiMQIXQ","contentType":"text/plain"});
+					params.push({"key":"encodedAuth","data":eauth,"contentType":"text/plain"});
+					params.push({"key":"message","data":this.tipModel.value,"contentType":"text/plain"});
+					params.push({"key":"geolat","data":_globals.lat,"contentType":"text/plain"});
+					params.push({"key":"geolon","data":_globals.long,"contentType":"text/plain"});
+					params.push({"key":"venue_id","data":this.venue.id,"contentType":"text/plain"});
+					params.push({"key":"service","data":"foursquare","contentType":"text/plain"});
+					params.push({"key":"source","data":"Njk1","contentType":"text/plain"});
+				
+				    var appController = Mojo.Controller.getAppController();
+			  	  	var cardStageController = appController.getStageController("mainStage");
+					var controller = cardStageController.activeScene();
+			        // Queue the upload request with the download manager service.
+			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+            			method: 'upload',
+			            parameters: {
+            			    'url': "http://api.pikchur.com/geosocial/upload/json",
+			                'fileLabel': 'media',
+            			    'fileName': this.fileName,
+			                'postParameters': params,
+            			    'subscribe': true
+			            },
+            			onSuccess: function (resp,j){
+						 	var r=resp.responseString;
+						 	if(r != undefined) {
+								Mojo.Log.error("r="+r);
+						 		var json=eval("("+r+")");
+						 		var url=json.post.url;
+								this.checkIn(this.venue.id,this.venue.name,this.tipModel.value+" "+url,this.sfmodel.value,this.stt,this.stf);
+								//this.checkInSuccess(r);
+						 	}
+					  	}.bind(this),
+			            onFailure: function (e){
+	  						Mojo.Log.error('Failure : ' + Object.toJSON(e));
+					 	}.bind(this)
+			        });
+
+					break;
+				case "tweetphoto":
+					var eauth=_globals.auth.replace("Basic ","");
+					var plaintext=Base64.decode(eauth);
+					var creds=plaintext.split(":");
+					var un=creds[0];
+					var pw=creds[1];
+
+					var params=[];
+					params.push({"key":"api_key","data":"78c45db0-e4eb-467c-9215-695072bcf85a","contentType":"text/plain"});
+					params.push({"key":"tpservice","data":"Foursquare","contentType":"text/plain"});
+					params.push({"key":"message","data":this.tipModel.value,"contentType":"text/plain"});
+					params.push({"key":"latitude","data":_globals.lat,"contentType":"text/plain"});
+					params.push({"key":"longitude","data":_globals.long,"contentType":"text/plain"});
+					params.push({"key":"vid","data":this.venue.id,"contentType":"text/plain"});
+					params.push({"key":"response_format","data":"JSON","contentType":"text/plain"});
+					params.push({"key":"username","data":un,"contentType":"text/plain"});
+					params.push({"key":"password","data":pw,"contentType":"text/plain"});
+
+				    var appController = Mojo.Controller.getAppController();
+			  	  	var cardStageController = appController.getStageController("mainStage");
+					var controller = cardStageController.activeScene();
+			        // Queue the upload request with the download manager service.
+			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+            			method: 'upload',
+			            parameters: {
+            			    'url': "http://tweetphotoapi.com/api/upload.aspx",
+			                'fileLabel': 'media',
+            			    'fileName': this.fileName,
+			                'postParameters': params,
+            			    'subscribe': true
+			            },
+            			onSuccess: function (resp,j){
+						 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
+						 	var r=resp.responseString;
+						 	if(r != undefined && r != "") {
+						 		var json=eval("("+r+")");
+						 		var url=json.MediaUrl;
+						 		Mojo.Log.error("longurl="+url);
+						 		//shorten with is.gd
+						 		var url = 'http://is.gd/api.php?longurl='+url;
+								var request = new Ajax.Request(url, {
+								   method: 'get',
+								   evalJSON: 'false',
+								   onSuccess: function(r){
+								   		var url=r.responseText;
+								   		Mojo.Log.error("url="+url);
+								   		this.checkIn(this.venue.id,this.venue.name,this.tipModel.value+" "+url,this.sfmodel.value,this.stt,this.stf);
+
+								   }.bind(this),
+								   onFailure: function (e){
+	  									Mojo.Log.error('Failure : ' + Object.toJSON(e));
+					 				}.bind(this)
+								 });
+
+
+						 	}
+					  	}.bind(this),
+			            onFailure: function (e){
+	  						Mojo.Log.error('Failure : ' + Object.toJSON(e));
+					 	}.bind(this)
+			        });
+
+					break;
+				case "fspic":
+					var eauth=_globals.auth.replace("Basic ","");
+					var plaintext=Base64.decode(eauth);
+					var creds=plaintext.split(":");
+					var un=creds[0];
+					var pw=creds[1];
+
+					var params=[];
+					params.push({"key":"api_key","data":"q9hpcah58aaqtd7pp40orr21rga1wi","contentType":"text/plain"});
+					params.push({"key":"shout_text","data":this.tipModel.value,"contentType":"text/plain"});
+					params.push({"key":"phone_or_email","data":un,"contentType":"text/plain"});
+					params.push({"key":"password","data":pw,"contentType":"text/plain"});
+					params.push({"key":"vid","data":this.venue.id,"contentType":"text/plain"});
+
+				    var appController = Mojo.Controller.getAppController();
+			  	  	var cardStageController = appController.getStageController("mainStage");
+					var controller = cardStageController.activeScene();
+			        // Queue the upload request with the download manager service.
+			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
+            			method: 'upload',
+			            parameters: {
+            			    'url': "http://fspic.com/api/uploadPhoto",
+			                'fileLabel': 'photo',
+            			    'fileName': this.fileName,
+			                'postParameters': params,
+            			    'subscribe': true
+			            },
+            			onSuccess: function (resp,j){
+						 	var xml=resp.responseString;
+						 	if(xml) {
+							 	if(xml.indexOf('status="ok"')>-1) {
+							 		var ps=xml.indexOf("<url>")+5;
+							 		var pe=xml.indexOf("</url>");
+							 		var len=pe-ps;
+							 		var url=xml.substring(ps,pe);
+						 			
+									this.checkIn(this.venue.id,this.venue.name,this.tipModel.value+" "+url,this.sfmodel.value,this.stt,this.stf);
+						 		}
+						 	}
+					  	}.bind(this),
+			            onFailure: function (e){
+	  						Mojo.Log.error('Failure : ' + Object.toJSON(e));
+					 	}.bind(this)
+			        });
+
+					break;
+			}
+		}else{
+			this.checkIn(this.venue.id,this.venue.name,this.tipModel.value,this.sfmodel.value,this.stt,this.stf);
+		}	
+}
+
+CheckinAssistant.prototype.attachImage = function(event) {
+	Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image'],'defaultKind':'image','onSelect':function(fn){
+		this.fileName=fn.fullPath;
+		this.hasPhoto=true;
+		this.controller.get("img").src=this.fileName;
+		this.controller.get("img-preview").show();
+		this.controller.get("photorow").show();
+		this.controller.get("listborder").show();
+		this.controller.get("shout").mojo.focus();
+	}.bind(this)},this.controller.stageController);
+}
+
+CheckinAssistant.prototype.removeImage = function(event) {
+	this.controller.get("img").src="";
+	this.hasPhoto=false;
+	this.fileName="";
+	this.controller.get("img-preview").hide();
+	this.controller.get("shout").mojo.focus();
+	this.controller.get("photorow").hide();
+	this.controller.get("listborder").hide();
+
+}
+
+CheckinAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
+	if (_globals.auth) {
+		sf=(sf==0)? 1: 0;
+		var url = 'http://api.foursquare.com/v1/checkin.json';
+		var request = new Ajax.Request(url, {
+			method: 'post',
+			evalJSON: 'true',
+			requestHeaders: {
+				Authorization: _globals.auth
+			},
+			parameters: {
+				vid: id,
+				shout: s,
+				private: sf,
+				twitter: t,
+				facebook: fb
+			},
+			onSuccess: this.checkInSuccess.bind(this),
+			onFailure: this.checkInFailed.bind(this)
+		});
+	} else {
+	}
+}
+CheckinAssistant.prototype.checkInSuccess = function(response) {
+	var json=response.responseJSON;
+	//this.controller.get("docheckin-fields").hide();
+	//this.controller.get("overlay-content").innerHTML="";
+	//this.controller.get("meta-overlay").hide();
+	
+	this.controller.stageController.swapScene({name: "checkin-result", transition: Mojo.Transition.crossFade},json,this.uid);
+
+}
+
+CheckinAssistant.prototype.checkInFailed = function(response) {
+	Mojo.Log.error('Check In Failed: ' + repsonse.responseText);
+	Mojo.Controller.getAppController().showBanner("Error checking in!", {source: 'notification'});
+}
+
+
+CheckinAssistant.prototype.base58_encode = function(num) {
+	if(typeof num!=='number') {
+		num=parseInt(num);
+	}
+	
+	var encoded='';
+	var alphabet='123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+	var div=num;
+	var mod;
+	while(num>=58){
+		div=num/58;
+		mod=num-(58*Math.floor(div));
+		encoded=''+alphabet.substr(mod,1)+encoded;
+		num=Math.floor(div);
+	}
+	
+	return(div)?''+alphabet.substr(div,1)+encoded:encoded;
+}
+
+CheckinAssistant.prototype.escape_and_sign= function(params, post) {
+	//from: http://github.com/lmorchard/flickr-uploadr-webos/blob/master/src/javascripts/FlickrUploadr/API.js
+	params.api_key = _globals.flickr_key;
+	var sig = [];
+	var esc_params = {api_key: '', api_sig: ''};
+	for (var p in params) {
+		if ('object' === typeof params[p]) {
+			esc_params[p] = params[p];
+		} else {
+			sig.push(p);
+			esc_params[p] = this.escape_utf8('' + params[p], !post).replace(/(^\s+|\s+$)/g, '');
+		}
+	}
+	sig.sort();
+	var calc = [];
+	var ii = sig.length;
+	for (var i = 0; i < ii; ++i) {
+		calc.push(sig[i] + (post ? esc_params[sig[i]] : this.escape_utf8('' +params[sig[i]], false)));
+    }
+ 
+    var clear = _globals.flickr_secret + calc.join('');
+    esc_params.api_sig = hex_md5(clear);
+	return esc_params;
+}
+
+CheckinAssistant.prototype.escape_utf8= function(data, url) {
+	//from: http://github.com/lmorchard/flickr-uploadr-webos/blob/master/src/javascripts/FlickrUploadr/API.js
+        if (null === url) {
+            url = false;
+        }
+        if ('' === data || null === data || undefined === data) {
+            return '';
+        }
+            
+        var chars = '0123456789abcdef';
+        data = data.toString();
+        var buffer = [];
+        var ii = data.length;
+        for (var i = 0; i < ii; ++i) {
+            var c = data.charCodeAt(i);
+            var bs = [];
+            if (c > 0x10000) {
+                bs[0] = 0xf0 | ((c & 0x1c0000) >>> 18);
+                bs[1] = 0x80 | ((c & 0x3f000) >>> 12);
+                bs[2] = 0x80 | ((c & 0xfc0) >>> 6);
+                bs[3] = 0x80 | (c & 0x3f);
+            } else if (c > 0x800) {
+                bs[0] = 0xe0 | ((c & 0xf000) >>> 12);
+                bs[1] = 0x80 | ((c & 0xfc0) >>> 6);
+                bs[2] = 0x80 | (c & 0x3f);
+            } else if (c > 0x80) {
+                bs[0] = 0xc0 | ((c & 0x7c0) >>> 6);
+                bs[1] = 0x80 | (c & 0x3f);
+            } else {
+                bs[0] = c;
+            }
+            var j = 0, jj = bs.length;
+            if (1 < jj) {
+                if (url) {
+                    for (j = 0; j < jj; ++j) {
+                        var b = bs[j];
+                        buffer.push('%' + chars.charAt((b & 0xf0) >>> 4) +
+                            chars.charAt(b & 0x0f));
+                    }
+                } else {
+                    for (j = 0; j < jj; ++j) {
+                        buffer.push(String.fromCharCode(bs[j]));
+                    }
+                }
+            } else {
+                if (url) {
+                    buffer.push(encodeURIComponent(String.fromCharCode(bs[0])));
+                } else {
+                    buffer.push(String.fromCharCode(bs[0]));
+                }
+            }
+        }
+        return buffer.join('');
+}
+
+
+
+CheckinAssistant.prototype.handlePhotohost = function(event) {
+		var ph=this.phModel.value;
+		this.cookieData=new Mojo.Model.Cookie("photohost");
+		this.cookieData.put(
+			{"photohost":ph}
+		)
+		_globals.lasthost=ph;
+
+};
+
+CheckinAssistant.prototype.activate = function(event) {
+	/* put in event handlers here that should only be in effect when this scene is active. For
+	   example, key handlers that are observing the document */
+};
+
+CheckinAssistant.prototype.deactivate = function(event) {
+	/* remove any event handlers you added in activate and do any other cleanup that should happen before
+	   this scene is popped or another scene is pushed on top */
+};
+
+CheckinAssistant.prototype.cleanup = function(event) {
+	/* this function should do any cleanup needed before the scene is destroyed as 
+	   a result of being popped off the scene stack */
+};

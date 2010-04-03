@@ -3,6 +3,7 @@ function FlickrUploadAssistant(ps,vid,vn,sc,img) {
 	   this.fileName="";
 	   this.vid=vid;
 	   this.venueName=vn;
+	   Mojo.Log.error("vname="+this.venueName);
 	   this.stage=sc;
 	   this.imagepath=img;
 }
@@ -93,12 +94,14 @@ FlickrUploadAssistant.prototype.fspicUpload = function() {
             			onSuccess: function (resp,j){
 						 	if(resp.responseString){
 							 	this.controller.get("uploadButton").mojo.deactivate();
+								Mojo.Controller.getAppController().showBanner("Successfully uploaded photo!", {source: 'notification'});
 							 	this.controller.stageController.popScene("flickr-upload");
 							}
 					  	}.bind(this),
 			            onFailure: function (resp){
 						 	Mojo.Log.error('Fail : ' + Object.toJSON(resp));
 						 	this.controller.get("uploadButton").mojo.deactivate();
+							Mojo.Controller.getAppController().showBanner("Error uploading photo!", {source: 'notification'});
 						 	this.controller.stageController.popScene("flickr-upload");
 					 	}.bind(this)
 			        });
@@ -144,12 +147,14 @@ FlickrUploadAssistant.prototype.pikchurUpload = function() {
 						 	if(resp.responseString){
 							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
 							 	this.controller.get("uploadButton").mojo.deactivate();
+								Mojo.Controller.getAppController().showBanner("Successfully uploaded photo!", {source: 'notification'});
 							 	this.controller.stageController.popScene("flickr-upload");
 							}
 					  	}.bind(this),
 			            onFailure: function (resp){
 						 	Mojo.Log.error('Fail : ' + Object.toJSON(resp));
 						 	this.controller.get("uploadButton").mojo.deactivate();
+							Mojo.Controller.getAppController().showBanner("Error uploading photo!", {source: 'notification'});
 						 	this.controller.stageController.popScene("flickr-upload");
 					 	}.bind(this)
 			        });
@@ -192,12 +197,14 @@ FlickrUploadAssistant.prototype.tweetphotoUpload = function() {
 						 	if(resp.responseString){
 							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
 							 	this.controller.get("uploadButton").mojo.deactivate();
+								Mojo.Controller.getAppController().showBanner("Successfully uploaded photo!", {source: 'notification'});
 							 	this.controller.stageController.popScene("flickr-upload");
 							}
 					  	}.bind(this),
 			            onFailure: function (resp){
 						 	Mojo.Log.error('Fail : ' + Object.toJSON(resp));
 						 	this.controller.get("uploadButton").mojo.deactivate();
+							Mojo.Controller.getAppController().showBanner("Error uploading photo!", {source: 'notification'});
 						 	this.controller.stageController.popScene("flickr-upload");
 					 	}.bind(this)
 			        });
@@ -209,18 +216,19 @@ FlickrUploadAssistant.prototype.tweetphotoUpload = function() {
 FlickrUploadAssistant.prototype.flickrUpload = function() {
 	var ptitle=this.titleModel.value;
 	var pdesc=this.descriptionModel.value;
-	var ptags=this.tagsModel.value + " foursquare:venue="+this.vid;
+	var ptags=this.venueName+" "+this.tagsModel.value + " foursquare:venue="+this.vid;
 	var format="json";
 	var nojsoncallback="1";
 	var api_key=_globals.flickr_key;
 	var auth_token=_globals.flickr_token;
 	var presig=_globals.flickr_secret+"api_key"+api_key+"auth_token"+auth_token+"description"+pdesc+"format"+format+"nojsoncallback"+nojsoncallback+"tags"+ptags+"title"+ptitle;
+	Mojo.Log.error(presig);
 	var api_sig=hex_md5(presig);
 	
 	var params={
 		"title":ptitle,
 		"description":pdesc,
-		"tags":this.venueName+","+ptags
+		"tags":ptags
 	};
 	//added the venue's name as a tag to fix a bug with flickr where
 	//machine tags won't work unless at least 1 normal tag is added also
@@ -254,11 +262,13 @@ FlickrUploadAssistant.prototype.flickrUpload = function() {
 						 	if(resp.responseString){
 							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
 							 	this.controller.get("uploadButton").mojo.deactivate();
+								Mojo.Controller.getAppController().showBanner("Successfully uploaded photo!", {source: 'notification'});
 							 	this.controller.stageController.popScene("flickr-upload");
 							}
 	  	}.bind(this),
             onFailure: function (e){
 	  				Mojo.Log.error('Failure : ' + Object.toJSON(resp));
+					Mojo.Controller.getAppController().showBanner("Error uploading photo!", {source: 'notification'});
 			 	this.controller.stageController.popScene("flickr-upload");
 	  				
 	 	}.bind(this)

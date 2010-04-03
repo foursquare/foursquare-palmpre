@@ -94,5 +94,9 @@
     {
         "scenes": "photos",
         "source": "app/assistants/photos-assistant.js"
+    },
+    {
+        "scenes": "meta-list",
+        "source": "app/assistants/meta-list-assistant.js"
     }
 ]

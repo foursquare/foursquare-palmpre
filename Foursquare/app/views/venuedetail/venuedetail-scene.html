@@ -11,11 +11,12 @@
 		  	<div id="dropshadow">&nbsp;</div>-->
 		</div>
 	</div>
-	<div id="tabs" style="padding:0; margin:-12px auto -13px auto; width: 100%;">
+	<div id="tabs" style="padding:0; margin:-12px auto -13px auto; width: 100%;"><!-- z-index: 999;background: url(images/fsq-menu-gradient-top.png) left -10px;position:absolute;top:127px;left:0px;height: 84px;-->
 		<div x-mojo-element="RadioButton" id="tabButtons" class="radiobuttonClass" 
  name="radiobuttonName" style="padding: 0px;width:100%;"></div>
 	</div>
    <div x-mojo-element="Scroller" id="detailScroller" class="scrollerClass" name="scrollerName">
+	<!--<div style="height: 55px;">&nbsp;</div>-->
 	<div id="details-group">
 		<div id="snapMap">
 			<!--<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="mapDivider">
@@ -33,14 +34,14 @@
 				<!--<a href="" id="venuemaplink"><img id="venueMap" src="" border="0" width="320" height="175" /></a>-->
 				<img id="venueMap" src="" border="0" width="320" height="125" />
 			</div>
-			<br/>
+		<!--	<br/>
 			<div class="fsq-divider">Meta</div>
 			<div id="meta-buttons">
 				<img id="flickr-button" src="images/camera.png" width="42" border="0"/>
 				<img id="banks-button" src="images/banks.png" width="42" border="0" style="margin-left: 3px;"/>
 				<img id="parking-button" src="images/parking.png" width="42" border="0" style="margin-left: 3px;"/>
 				<span id="yelpbutton"></span>
-			</div>
+			</div>-->
 		</div>
 		<div id="snapSpecials" class="breaker">
 			<!--<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="specialsDivider">
@@ -89,14 +90,15 @@
 			    <td class="right"></td>
 			  </tr>
 			</table>-->
-			<br/>
+			<!--<br/>
 			<div class="fsq-divider">
 				Venue Info
-			</div>
+			</div>-->
 			<div id="venueInfoContainer" x-mojo-element="Drawer">
-				<div id="venueInfo"></div>
+				<!--<div id="venueInfo"></div>
 				<div x-mojo-element="Button" id="buttonMarkClosed" class="buttonClass addtipok" name="buttonName"></div>
-				<div x-mojo-element="Button" id="buttonProposeEdit" class="buttonClass addtipcancel" name="buttonName"></div>
+				<div x-mojo-element="Button" id="buttonProposeEdit" class="buttonClass addtipcancel" name="buttonName"></div>-->
+				<div id="infoList" x-mojo-element="List" ></div>  	
 			</div>
 		</div>
 		<div style="height: 150px"></div><br/><br/>

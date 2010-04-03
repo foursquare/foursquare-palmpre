@@ -159,24 +159,32 @@ VenuedetailAssistant.prototype.setup = function() {
             disabled: false
         }
     );
-	
+		this.infoModel = {items: [], listTitle: $L('Info')};
+    
+	// Set up the attributes & model for the List widget:
+	this.controller.setupWidget('infoList', 
+					      {itemTemplate:'listtemplates/infoItems'},
+					      this.infoModel);
+
+
 	Mojo.Event.listen(this.controller.get("checkinButton"),Mojo.Event.tap,this.promptCheckin.bind(this));
 	Mojo.Event.listen(this.controller.get("buttonAddTip"),Mojo.Event.tap, this.handleAddTip.bind(this));
 	Mojo.Event.listen(this.controller.get("buttonAddTodo"),Mojo.Event.tap, this.handleAddTodo.bind(this));
-	Mojo.Event.listen(this.controller.get("buttonMarkClosed"),Mojo.Event.tap, this.handleMarkClosed.bind(this));
-	Mojo.Event.listen(this.controller.get("buttonProposeEdit"),Mojo.Event.tap, this.handleProposeEdit.bind(this));
+//	Mojo.Event.listen(this.controller.get("buttonMarkClosed"),Mojo.Event.tap, this.handleMarkClosed.bind(this));
+//	Mojo.Event.listen(this.controller.get("buttonProposeEdit"),Mojo.Event.tap, this.handleProposeEdit.bind(this));
 //	Mojo.Event.listen(this.controller.get("mayorDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 //	Mojo.Event.listen(this.controller.get("tipsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 //	Mojo.Event.listen(this.controller.get("specialsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 //	Mojo.Event.listen(this.controller.get("tagsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 //	Mojo.Event.listen(this.controller.get("infoDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
 	//Mojo.Event.listen(this.controller.get("mapDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-	Mojo.Event.listen(this.controller.get("flickr-button"),Mojo.Event.tap, this.showFlickr.bind(this));
-	Mojo.Event.listen(this.controller.get("banks-button"),Mojo.Event.tap, this.showBanks.bind(this));
-	Mojo.Event.listen(this.controller.get("parking-button"),Mojo.Event.tap, this.showParking.bind(this));
+	//Mojo.Event.listen(this.controller.get("flickr-button"),Mojo.Event.tap, this.showFlickr.bind(this));
+	//Mojo.Event.listen(this.controller.get("banks-button"),Mojo.Event.tap, this.showBanks.bind(this));
+	//Mojo.Event.listen(this.controller.get("parking-button"),Mojo.Event.tap, this.showParking.bind(this));
  	Mojo.Event.listen(this.controller.get("venueMap"),Mojo.Event.tap, this.showGoogleMaps.bind(this));
 	Mojo.Event.listen(this.controller.get("overlay-closer"),Mojo.Event.tap, function(){this.controller.get("docheckin-fields").hide();this.controller.get("overlay-content").innerHTML="";this.controller.get("meta-overlay").hide();}.bind(this));
 	Mojo.Event.listen(this.controller.get("tabButtons"), Mojo.Event.propertyChange, this.swapTabs.bind(this));
+	Mojo.Event.listen(this.controller.get('infoList'),Mojo.Event.listTap, this.infoTapped.bindAsEventListener(this));
 
 	this.controller.get("meta-overlay").hide();
 	this.controller.get("results-meta-list").hide();
@@ -184,6 +192,8 @@ VenuedetailAssistant.prototype.setup = function() {
 	
 	this.flickrUpload='<span id="flickrUploader" class="vtip-black" style="white-space:nowrap;">Upload</span>';
 	//this.setupCheckin();
+	
+	this.info=[];
 }
 
 var auth;
@@ -256,6 +266,33 @@ VenuedetailAssistant.prototype.relativeTime = function(offset){
     else return 'over ' + (distanceInMinutes / 525600).round() + ' years';
   }
 
+VenuedetailAssistant.prototype.infoTapped = function(event) {
+	switch(event.item.action){
+		case "url":
+			this.controller.serviceRequest('palm://com.palm.applicationManager', {
+				 method: 'open',
+				 parameters: {
+					 target: event.item.url
+				 }
+			});
+			break;
+		case "markclosed":
+			this.handleMarkClosed();
+			break;
+		case "suggestedit":
+			this.handleProposeEdit();
+			break;
+		case "photos":
+			this.showFlickr();
+			break;
+		case "banks":
+			this.showBanks();
+			break;
+		case "parking":
+			this.showParking();
+			break;
+	}
+}
 
 
 
@@ -267,6 +304,12 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	
 	this.controller.get("checkinVenueAddress").innerHTML=(this.controller.get("checkinVenueAddress").innerHTML=="")? response.responseJSON.venue.address: this.controller.get("checkinVenueAddress").innerHTML;
 	
+	
+	this.vaddress=response.responseJSON.venue.address;
+	this.vcity=response.responseJSON.venue.city;
+	this.vstate=response.responseJSON.venue.state;
+	
+	Mojo.Log.error("vadd=%i, vcity=%i, vstate=%i",this.vaddress,this.vcity,this.vstate);
 	
 	if (response.responseJSON.venue.crossstreet && !this.venue.crossstreet) {
 	 this.controller.get("checkinVenueAddress").innerHTML += " ("+response.responseJSON.venue.crossstreet+")";
@@ -423,19 +466,73 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	var venuelinks=response.responseJSON.venue.links;
 		Mojo.Log.error("phone="+phone);
 
+
 	var vinfo='';
 	var s=(totalcheckins != 1)? "s" :"";
 	if (totalcheckins>0) {
 		vinfo='<span class="capitalize">'+response.responseJSON.venue.name+'</span> has been visited '+totalcheckins+' time'+s+' ';
 		vinfo+=(beenhere)? 'and you\'ve been here before': 'but you\'ve never been here';
 		vinfo+='.<br/>';
+		
+		var itm={};
+		itm.icon="images/marker_32.png";
+		itm.caption=totalcheckins+" Check-in"+s+" Here";
+		itm.action="";
+		this.info.push(itm);
+
+		var itm={};
+		itm.icon="images/beenhere_32.png";
+		itm.caption=(beenhere)? "You've been here":"You've never been here";
+		itm.action="";
+		this.info.push(itm);
+
 	}else{
 		vinfo='<span class="capitalize">'+response.responseJSON.venue.name+'</span> has never been visited! Be the first to check-in!<br/>';	
+
+		var itm={};
+		itm.icon="images/marker_32.png";
+		itm.caption="No one has checked-in here";
+		itm.action="";
+		this.info.push(itm);
 	}
+	
+	
+		var itm={};
+		itm.icon="images/flag_32.png";
+		itm.caption="Flag This Place as 'Closed'";
+		itm.action="flagclosed";
+		this.info.push(itm);
+
+		var itm={};
+		itm.icon="images/edit_32.png";
+		itm.caption="Suggest an Edit";
+		itm.action="suggestedit";
+		this.info.push(itm);
+
+
 	vinfo+=(twitter != undefined)? '<img src="images/bird.png" width="20" height="20" /> <a href="http://twitter.com/'+twitter+'">@'+twitter+'</a><br/>': '';
+
+	if(twitter != undefined){
+		var itm={};
+		itm.icon="images/twitter_32.png";
+		itm.caption="Twitter ("+twitter+")";
+		itm.action="url";
+		itm.url='http://twitter.com/'+twitter;
+		this.info.push(itm);
+	}
+
 	vinfo+=(phone != undefined)? '<img src="images/phone.png" width="20" height="20" /> <a href="tel://'+phone+'">'+phone+'</a><br/>': '';
-	Mojo.Log.error("vnfo="+vinfo);
-	this.controller.get("venueInfo").innerHTML=vinfo;
+	if(phone != undefined){
+		var itm={};
+		itm.icon="images/call_32.png";
+		itm.caption="Call ("+phone+")";
+		itm.action="url";
+		itm.url='tel://'+phone;
+		this.info.push(itm);
+	}
+
+	//Mojo.Log.error("vnfo="+vinfo);
+	//this.controller.get("venueInfo").innerHTML=vinfo;
 	
 	//tags
 	if(tags != undefined) {
@@ -455,7 +552,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 
 	
 	
-	//links
+/*	//links
 	if(venuelinks != undefined) {
 		var vlinks='';
 		for(var l=0;l<venuelinks.length;l++) {
@@ -464,13 +561,35 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			}
 		}
 		this.controller.get("yelpbutton").innerHTML=vlinks;
-	}
+	}*/
+	
+		var itm={};
+		itm.icon="images/photos_32.png";
+		itm.caption="Photos";
+		itm.action="photos";
+		this.info.push(itm);
+
+		var itm={};
+		itm.icon="images/banks_32.png";
+		itm.caption="Nearby Banks and ATMs";
+		itm.action="banks";
+		this.info.push(itm);
+
+		var itm={};
+		itm.icon="images/parking_32.png";
+		itm.caption="Nearby Parking";
+		itm.action="parking";
+		this.info.push(itm);
+
 	
 	
 	this.controller.get("venueScrim").hide();
 	this.controller.get("venueSpinner").mojo.stop();
 	this.controller.get("venueSpinner").hide();
-	
+	this.infoModel.items=this.info;
+	this.controller.modelChanged(this.infoModel);
+
+
 	
 	
 	//attach events to any new user links
@@ -570,7 +689,7 @@ VenuedetailAssistant.prototype.markClosed = function() {
 }
 
 VenuedetailAssistant.prototype.showBanks = function(event) {
-	this.controller.get("meta-overlay").show();
+/*	this.controller.get("meta-overlay").show();
 	this.controller.get("overlaySpinner").mojo.start();
 	this.controller.get("overlaySpinner").show();
 	this.controller.get("overlay-content").innerHTML="";
@@ -582,7 +701,8 @@ VenuedetailAssistant.prototype.showBanks = function(event) {
 			evalJSON: 'true',
 			onSuccess: this.banksSuccess.bind(this),
 			onFailure: this.banksFailed.bind(this)
-	});
+	});*/
+	this.controller.stageController.pushScene("meta-list","banks",this.vgeolat,this.vgeolong,this.vaddress,this.vcity,this.vstate);
 }
 
 VenuedetailAssistant.prototype.banksSuccess = function(response) {
@@ -629,7 +749,7 @@ VenuedetailAssistant.prototype.banksFailed = function(response) {
 }
 
 VenuedetailAssistant.prototype.showParking = function(event) {
-	this.controller.get("meta-overlay").show();
+/*	this.controller.get("meta-overlay").show();
 	this.controller.get("overlaySpinner").mojo.start();
 	this.controller.get("overlaySpinner").show();
 	this.controller.get("overlay-content").innerHTML="";
@@ -641,7 +761,9 @@ VenuedetailAssistant.prototype.showParking = function(event) {
 			evalJSON: 'true',
 			onSuccess: this.parkingSuccess.bind(this),
 			onFailure: this.parkingFailed.bind(this)
-	});
+	});*/
+	this.controller.stageController.pushScene("meta-list","parking",this.vgeolat,this.vgeolong,this.vaddress,this.vcity,this.vstate);
+
 }
 
 VenuedetailAssistant.prototype.parkingSuccess = function(response) {

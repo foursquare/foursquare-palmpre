@@ -286,7 +286,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 				var credentials=this.cookieData.get();
 	
 	
-				if (credentials /*&& 1==2*//*uncomment the comment before this to force the login dialog*/){
+				if (credentials/* && 1==2*//*uncomment the comment before this to force the login dialog*/){
 					this.username=credentials.username;
 					_globals.auth=credentials.auth;
 					this.gpsdata=new Mojo.Model.Cookie("gpsdata");

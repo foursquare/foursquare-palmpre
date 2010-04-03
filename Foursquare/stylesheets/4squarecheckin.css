@@ -694,14 +694,15 @@ a.vtag,a.vtip-black {
    margin-bottom: -15px;
 }
 #results-meta-list {
-	width: 257px;
+
 }
 #results-meta-list .venue-info-wrap {
-	width: 200px;
+
 }
 #overlay-content {
-	margin-top: 4px;
-	color: #fff !important;
+	color: #000 !important;
+	width: 320px;
+	margin: 4px;
 }
 #gps_banner, .blue-box {
 	background: url(../images/dark-zags.png) no-repeat left bottom;
@@ -716,6 +717,15 @@ a.vtag,a.vtip-black {
 }
 #refresh-venues {
 
+}
+
+.fsq-fade-bottom {
+	background: #0f0 url(../images/fsq-menu-gradient.png) left top;
+	height: 54px;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	z-index: 999;
 }
 
 .small-bot-margin {

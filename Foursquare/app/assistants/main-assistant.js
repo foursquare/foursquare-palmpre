@@ -35,8 +35,10 @@ MainAssistant.prototype.setup = function() {
 	this.controller.setupWidget('password', this.attributes = {hintText:'Password'}, this.passwordModel = {value:'', disabled:false});
 	
 	this.controller.setupWidget('goLogin', this.attributes = {}, this.loginBtnModel = {label:'Log In', disabled:false});
+	this.controller.setupWidget('goSignup', this.attributes = {}, this.signupBtnModel = {label:'Need an account? Sign up!', disabled:false});
 	
 	Mojo.Event.listen(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTapped.bind(this));
+	Mojo.Event.listen(this.controller.get("goSignup"), Mojo.Event.tap, this.onSignupTapped.bind(this));
     this.controller.document.addEventListener("keyup", this.keyDownHandler.bind(this), true);
 }
 
@@ -48,6 +50,17 @@ MainAssistant.prototype.onLoginTapped = function(event){
 	
 	this.login(this.usernameModel.value, this.passwordModel.value)
 }
+
+MainAssistant.prototype.onSignupTapped = function(event){
+			this.controller.serviceRequest('palm://com.palm.applicationManager', {
+				 method: 'open',
+				 parameters: {
+					 target: "http://foursquare.com/mobile/signup"
+				 }
+			});
+
+}
+
 
 var auth;
 
