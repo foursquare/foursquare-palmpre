@@ -618,18 +618,19 @@ a.vtag,a.vtip-black {
 	font-size: 18px;
 }
 #checkin-scores {
-	margin: 7px;
-	padding: 5px;
+	margin: 0px;
+	padding: 2px;
+	margin-bottom: 5px;
 }
 .checkin-special {
-	-webkit-border-image: url(../images/specialbg.png) 6 7 8 7 stretch stretch;
-	border-width: 4px 5px 5px 5px;
+	-webkit-border-image: url(../images/specialbg-blue.png) 5 5 5 5 repeat repeat;
+	border-width: 5px;
 	padding-top: 7px;
-	color: #d7d6d7;
+	color: #fff;
 	text-shadow:  1px 1px 0 #1c1c1c;
 	padding-left: 5px;
-	margin: 7px;
-	padding: 5px;
+	margin: 0px;
+	padding: 2px;
 	font-size: 16px;
 
 }
@@ -641,10 +642,9 @@ a.vtag,a.vtip-black {
 	line-height: 22px;
 }
 #mayor-group {
-	font-size: 16px;
-	margin: 7px;
-	padding: 5px;
-	font-weight: bold;
+	font-size: 14px;
+	margin: 0px;
+	padding: 2px;
 }
 #mayor-group .palm-row.single {
 	min-height: 25px !important;
@@ -939,6 +939,11 @@ a.vtag,a.vtip-black {
 	border: 5px;
 	color: #84e2f5;
 }
+.white-round {
+	-webkit-border-image: url(../images/white-round-bg.png) 5 5 5 5 repeat repeat !important;
+	border: 5px;
+	color: #1e1e1e;
+}
 .smallest {
 	font-size: 11px;
 }
@@ -1180,4 +1185,8 @@ body.zblueb .thin-header {
 .fsq-button .palm-button-wrapper .activity-spinner {
   position: absolute;
   right: 5px;
+}
+
+.textfield-group {
+	color: #000 !important;
 }

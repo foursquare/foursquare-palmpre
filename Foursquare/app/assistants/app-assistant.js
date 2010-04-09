@@ -202,6 +202,11 @@ AppAssistant.prototype.setup = function() {
 
     // Set up first timeout alarm
   //  this.setWakeup();
+  
+  _globals.GPS = new Location(_globals.gotLocation);
+		_globals.GPS.start();
+		var now=(new Date().getTime());
+		_globals.gpsStart=now;
 };
 
 
@@ -267,10 +272,11 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 		   onSuccess: _globals.categorySuccess.bind(this),
 		   onFailure: _globals.categoryFailed.bind(this)
 		 });
+		/*taking this out while dash notifs aren't enabled
 		_globals.GPS = new Location(_globals.gotLocation);
 		_globals.GPS.start();
 		var now=(new Date().getTime());
-		_globals.gpsStart=now;
+		_globals.gpsStart=now;*/
 
         if (cardStageController) {
             // If it exists, just bring it to the front by focusing its window.
@@ -288,6 +294,8 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 	
 				if (credentials/* && 1==2*//*uncomment the comment before this to force the login dialog*/){
 					this.username=credentials.username;
+					_globals.swf=credentials.swf || "1";
+					Mojo.Log.error("swf="+_globals.swf);
 					_globals.auth=credentials.auth;
 					this.gpsdata=new Mojo.Model.Cookie("gpsdata");
 					var gps=this.gpsdata.get();

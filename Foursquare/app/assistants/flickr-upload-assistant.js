@@ -94,8 +94,18 @@ FlickrUploadAssistant.prototype.fspicUpload = function() {
             			onSuccess: function (resp,j){
 						 	if(resp.responseString){
 							 	this.controller.get("uploadButton").mojo.deactivate();
-								Mojo.Controller.getAppController().showBanner("Successfully uploaded photo!", {source: 'notification'});
-							 	this.controller.stageController.popScene("flickr-upload");
+								//Mojo.Controller.getAppController().showBanner("Successfully uploaded photo!", {source: 'notification'});
+							 	this.controller.showAlertDialog({
+								     onChoose: function(value) {this.controller.stageController.popScene("flickr-upload");},
+								     title: $L("Photo successfully uploaded!"),
+								     message: $L("It can sometimes take a few hours for your new photo to show up here."),
+								     choices:[
+								          {label:$L('OK'), value:"OK", type:'affirmative'}
+   
+								     ]
+							     });
+							 	
+							 	
 							}
 					  	}.bind(this),
 			            onFailure: function (resp){
@@ -147,8 +157,15 @@ FlickrUploadAssistant.prototype.pikchurUpload = function() {
 						 	if(resp.responseString){
 							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
 							 	this.controller.get("uploadButton").mojo.deactivate();
-								Mojo.Controller.getAppController().showBanner("Successfully uploaded photo!", {source: 'notification'});
-							 	this.controller.stageController.popScene("flickr-upload");
+							 	this.controller.showAlertDialog({
+								     onChoose: function(value) {this.controller.stageController.popScene("flickr-upload");},
+								     title: $L("Photo successfully uploaded!"),
+								     message: $L("It can sometimes take a few hours for your new photo to show up here."),
+								     choices:[
+								          {label:$L('OK'), value:"OK", type:'affirmative'}
+   
+								     ]
+							     });
 							}
 					  	}.bind(this),
 			            onFailure: function (resp){
@@ -197,8 +214,16 @@ FlickrUploadAssistant.prototype.tweetphotoUpload = function() {
 						 	if(resp.responseString){
 							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
 							 	this.controller.get("uploadButton").mojo.deactivate();
-								Mojo.Controller.getAppController().showBanner("Successfully uploaded photo!", {source: 'notification'});
-							 	this.controller.stageController.popScene("flickr-upload");
+							 	this.controller.showAlertDialog({
+								     onChoose: function(value) {this.controller.stageController.popScene("flickr-upload");},
+								     title: $L("Photo successfully uploaded!"),
+								     message: $L("It can sometimes take a few hours for your new photo to show up here."),
+								     choices:[
+								          {label:$L('OK'), value:"OK", type:'affirmative'}
+   
+								     ]
+							     });
+							 	
 							}
 					  	}.bind(this),
 			            onFailure: function (resp){
@@ -262,8 +287,16 @@ FlickrUploadAssistant.prototype.flickrUpload = function() {
 						 	if(resp.responseString){
 							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
 							 	this.controller.get("uploadButton").mojo.deactivate();
-								Mojo.Controller.getAppController().showBanner("Successfully uploaded photo!", {source: 'notification'});
-							 	this.controller.stageController.popScene("flickr-upload");
+							 	this.controller.showAlertDialog({
+								     onChoose: function(value) {this.controller.stageController.popScene("flickr-upload");},
+								     title: $L("Photo successfully uploaded!"),
+								     message: $L("It can sometimes take a few hours for your new photo to show up here."),
+								     choices:[
+								          {label:$L('OK'), value:"OK", type:'affirmative'}
+   
+								     ]
+							     });
+							 	
 							}
 	  	}.bind(this),
             onFailure: function (e){

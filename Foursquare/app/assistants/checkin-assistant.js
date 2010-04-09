@@ -6,7 +6,8 @@ function CheckinAssistant(v) {
 CheckinAssistant.prototype.setup = function() {
   	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
-	var pings=(credentials.ping=="on")? '1': '0';
+	//var pings=(credentials.swf=="on")? '1': '0';
+	var pings=_globals.swf;
 	this.stt=(credentials.savetotwitter==true)? '1': '0';
 	this.stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
 
@@ -358,7 +359,21 @@ CheckinAssistant.prototype.removeImage = function(event) {
 
 CheckinAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 	if (_globals.auth) {
+		_globals.swf=sf;
+		this.cookieData=new Mojo.Model.Cookie("credentials");
+		this.cookieData.put({
+			username: _globals.username,
+			password: "",
+			auth: _globals.auth,
+			uid: _globals.uid,
+			savetotwitter: t,
+			savetofacebook: fb,
+			swf: _globals.swf,
+			cityid: 0,
+			city: ""
+		});
 		sf=(sf==0)? 1: 0;
+
 		var url = 'http://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',

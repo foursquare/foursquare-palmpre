@@ -14,7 +14,14 @@ CheckinResultAssistant.prototype.setup = function() {
     }
   );
 	Mojo.Event.listen(this.controller.get('okButtonCheckin'), Mojo.Event.tap, this.okTappedCheckin.bindAsEventListener(this));
-	
+	if(Mojo.Environment.DeviceInfo.touchableRows < 8)
+	{
+	   this.controller.get("checkin-widgets").style.minHeight="247px;";
+	}
+	else{
+	   this.controller.get("checkin-widgets").style.minHeight="327px"; //372
+	}
+
 	this.initData(this.json);
 	
 }
@@ -40,7 +47,8 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 				var imgpath = scores[i].icon;
 				totalpoints+=parseInt(scores[i].points);
 				var msg = '+' + scores[i].points + ' ' +scores[i].message;
-				this.controller.get('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-score-item"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';
+				this.controller.get('scores-box').innerHTML += '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+imgpath+'" width="20" height="20" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 210px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+msg+'	</div><br class="breaker"/></div>';
+//'<div class="palm-row single"><div class="checkin-score-item"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';
 			}
 		}
 		var totalPts = (totalpoints != 1)? totalpoints+' pts': totalpoints+' pt';
@@ -56,7 +64,8 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			var badge_name=checkinJSON.checkin.badges[b].name;
 			var badge_icon=checkinJSON.checkin.badges[b].icon;
 			var badge_text=checkinJSON.checkin.badges[b].description;
-			this.controller.get('scores-box').innerHTML += '<div class="palm-row single"><div class="checkin-badge-item"><img align="absmiddle" src="'+badge_icon+'" width="32" height="32" /> <span>'+badge_name+': '+badge_text+'</span></div></div>';
+			this.controller.get('scores-box').innerHTML += 	'<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+badge_icon+'" width="32" height="32"  class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 195px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+badge_name+': '+badge_text+'	</div><br class="breaker"/></div>';
+//'<div class="palm-row single"><div class="checkin-badge-item"><img align="absmiddle" src="'+badge_icon+'" width="32" height="32" /> <span>'+badge_name+': '+badge_text+'</span></div></div>';
 		}
 	}
 
@@ -65,7 +74,9 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 	//the response also already has some language for this information ("Congrats! You're still the mayor!") so
 	//I don't see the need to handle the different mayorships. maybe in the future if we make the check-in result super bad-ass.
 	if(checkinJSON.checkin.mayor != undefined) {
-		this.controller.get('checkin-mayorship').innerHTML = '<div class="palm-row single"><span>'+checkinJSON.checkin.mayor.message+'</span></div>';
+		this.controller.get('checkin-mayorship').innerHTML = '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="images/crown_50x50.png" width="50" height="50"  class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 180px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+checkinJSON.checkin.mayor.message+'	</div><br class="breaker"/></div>';
+	//'<div class="palm-row single"><span>'+checkinJSON.checkin.mayor.message+'</span></div>';
+
 
 	}else{
 		this.nomayor=true;

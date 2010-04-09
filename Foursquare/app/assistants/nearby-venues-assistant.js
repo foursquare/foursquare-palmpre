@@ -164,6 +164,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	}else{
 		Mojo.Log.error("venues: not loading venues");
 		if(_globals.nearbyVenues==undefined && _globals.reloadVenues){
+			Mojo.Log.error("venues: doing venue refresh");
 			this.onGetNearbyVenues();
 		}else{
 			this.venueList=_globals.nearbyVenues;
@@ -173,7 +174,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
 		}
 	}
 
-    
+    _globals.firstLoad=false;
     _globals.ammodel.items[0].disabled=false;
 	this.controller.modelChanged(_globals.ammodel);
 	
@@ -239,7 +240,7 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 	if(_globals.nearbyVenues==undefined || _globals.reloadVenues==true) {
 		_globals.reloadVenues=false;
 		_globals.nearbyVenues=undefined;
-
+	Mojo.Log.error("reloading venues");
 		//hide the result list box and clear out it's model
 		this.controller.get("resultListBox").style.display = 'none';
 
@@ -249,6 +250,7 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 		//get the location. set the maximum age to 0 if we're reloading the list so we dont reuse the coords
 		var ma=(_globals.reloadVenues)? 0: 30;
 		  if(_globals.firstLoad==false){
+		  	Mojo.Log.error("getting new coords");
 			this.controller.get('getting-gps-alert').show();
 			this.controller.serviceRequest('palm://com.palm.location', {
 				method: "getCurrentPosition",
@@ -287,7 +289,7 @@ NearbyVenuesAssistant.prototype.refreshVenues = function(event) {
 
 NearbyVenuesAssistant.prototype.gotLocation = function(event) {
 	Mojo.Log.error("doing gotlocation");
-	event=_globals.gps;
+	event=event || _globals.gps;
 	if(event.errorCode == 0) {
 		//check their prefs. if the results are good enough, carry on
 		//otherwise, repoll the gps

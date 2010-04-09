@@ -271,18 +271,44 @@ AddVenueAssistant.prototype.okTapped = function() {
 }
 
 AddVenueAssistant.prototype.venueSuccess = function(response) {
-	Mojo.Controller.getAppController().showBanner("Venue saved to Foursquare!", {source: 'notification'});
 	this.controller.get("okButton").mojo.deactivate();
+	Mojo.Log.error(response.responseText);
 	
 	if(response.responseJSON.venue != undefined) {
+		Mojo.Controller.getAppController().showBanner("Venue saved to Foursquare!", {source: 'notification'});
 	
-	var vid=response.responseJSON.venue.id;
-	var vname=response.responseJSON.venue.name;
+		var vid=response.responseJSON.venue.id;
+		var vname=response.responseJSON.venue.name;
 	
-	this.controller.stageController.popScene("add-venue");
+		this.controller.stageController.popScene("add-venue");
 
-	this.controller.stageController.swapScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},response.responseJSON.venue,_globals.username,_globals.password,_globals.uid);
+		this.controller.stageController.swapScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},response.responseJSON.venue,_globals.username,_globals.password,_globals.uid);
 	
+	}
+	
+	if(response.responseJSON.error != undefined){
+		switch(response.responseJSON.error){
+			case "Possible Duplicate Venue":
+				this.controller.showAlertDialog({
+					onChoose: function(value) {},
+					title: $L("Uh-oh!"),
+					message: $L("This looks like it might be a duplicate venue."),
+					choices:[
+						{label:$L('OK'), value:"OK", type:'primary'}
+					]
+				});
+				break;
+			default:
+				this.controller.showAlertDialog({
+					onChoose: function(value) {},
+					title: $L("Uh-oh!"),
+					message: $L(response.responseJSON.error),
+					choices:[
+						{label:$L('OK'), value:"OK", type:'primary'}
+					]
+				});
+				break;
+		}
 	}
 	
 }
