@@ -428,6 +428,13 @@ a.vtag,a.vtip-black {
 	padding-bottom: 5px;
 	padding-left: 3px;
 }
+.venue-info-wrap.thin {
+	width: 170px;
+	padding-right: 5px;
+	float: left;
+	padding-bottom: 5px;
+	padding-left: 3px;
+}
 .venue-name {
 	color: #4d4d4d;
 	font-size: 16px;
@@ -783,6 +790,14 @@ a.vtag,a.vtip-black {
 	width: 27px;
 	height: 28px;
 	background: url(../images/refresh.png) no-repeat left top;
+}
+.refresh-button.nobg {
+	position: absolute;
+	right: 18px;
+	top: 2px;
+	width: 27px;
+	height: 28px;
+	background: none;
 }
 .refresh-button.pressed {
 	background: url(../images/refresh.png) no-repeat left -28px;
@@ -1189,4 +1204,14 @@ body.zblueb .thin-header {
 
 .textfield-group {
 	color: #000 !important;
+}
+
+.tooltip {
+	position: fixed;
+	bottom: 50px;
+	left: 5px;
+	width: 300px;
+	z-index: 999;
+	font-size: 13px;
+	color:  #fff !important;
 }

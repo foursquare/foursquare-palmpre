@@ -21,7 +21,7 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
 
     // Code from Google Sample
     var script = document.createElement("script");
-    script.src = "http://maps.google.com/maps/api/js?sensor=true&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=mapLoaded";
+    script.src = "http://maps.google.com/maps/api/js?sensor=true&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=mapLoaded&client=ms-mwm-palm";
     script.type = "text/javascript";
     document.getElementsByTagName("head")[0].appendChild(script);
 

@@ -200,6 +200,8 @@ NearbyVenuesAssistant.prototype.setup = function() {
    	}else{
 	   	//this.onGetNearbyVenues();
 	}
+	
+
 }
 
 

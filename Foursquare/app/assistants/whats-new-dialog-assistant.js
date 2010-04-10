@@ -29,3 +29,6 @@ WhatsNewDialogAssistant.prototype.tipokTapped = function() {
 	this.widget.mojo.close();
 }
 
+WhatsNewDialogAssistant.prototype.cleanup = function() {
+		Mojo.Controller.getAppController().showBanner("To search, just start typing!", {source: 'notification'});
+}

@@ -98,5 +98,8 @@
     {
         "scenes": "meta-list",
         "source": "app/assistants/meta-list-assistant.js"
+    },
+    {
+        "source": "app/assistants/dupe-venue-assistant.js"
     }
 ]

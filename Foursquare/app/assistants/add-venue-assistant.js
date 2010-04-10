@@ -132,7 +132,7 @@ AddVenueAssistant.prototype.setup = function(widget) {
         }
     );
 
-	Mojo.Event.listen(this.controller.get("venue-cat-sub1"),Mojo.Event.propertyChange,this.loadSubSubCat.bindAsEventListener(this));
+//	Mojo.Event.listen(this.controller.get("venue-cat-sub1"),Mojo.Event.propertyChange,this.loadSubSubCat.bindAsEventListener(this));
 
 	//zBar.hideToolbar();
 }
@@ -289,14 +289,20 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 	if(response.responseJSON.error != undefined){
 		switch(response.responseJSON.error){
 			case "Possible Duplicate Venue":
-				this.controller.showAlertDialog({
+				/*this.controller.showAlertDialog({
 					onChoose: function(value) {},
 					title: $L("Uh-oh!"),
 					message: $L("This looks like it might be a duplicate venue."),
 					choices:[
 						{label:$L('OK'), value:"OK", type:'primary'}
 					]
+				});*/
+				var vname=this.nameModel.value;
+				var dialog = this.controller.showDialog({
+					template: 'listtemplates/dupeVenue',
+					assistant: new DupeVenueAssistant(this,vname)
 				});
+
 				break;
 			default:
 				this.controller.showAlertDialog({

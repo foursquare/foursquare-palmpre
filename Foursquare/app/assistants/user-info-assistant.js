@@ -336,6 +336,7 @@ Mojo.Log.error("handled pings");
 		this.controller.modelChanged(this.mayorshipModel);
 	}else{
 		this.controller.get("mayorshipList").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' isn\'t the mayor of anything yet.</span></div></div>';
+		this.controller.get("mayorcount").innerHTML="0";	
 	}
 
 
@@ -352,15 +353,21 @@ Mojo.Log.error("handled pings");
 			if(id==1) {
 				o += '<tr>';
 			}
-			o += '<td align="center" width="25%" class="medium-text"><img src="'+j.user.badges[m].icon+'" width="48" height="48"/><br/>'+j.user.badges[m].name+'</td>';
+			o += '<td align="center" width="25%" class="medium-text"><img data="'+j.user.badges[m].description+'" id="badge-'+m+'" src="'+j.user.badges[m].icon+'" width="48" height="48"/><br/>'+j.user.badges[m].name+'</td>';
 			if(id==4) {
 				o += '</tr>';
 				id=0;
 			}
 		}
 		this.controller.get("badges-box").innerHTML=o+"</table>";
+		
+		//hook tooltip event to each badge
+		for(var b=0;b<j.user.badges.length;b++){
+			Mojo.Event.listen(this.controller.get('badge-'+b),Mojo.Event.tap, this.showBadgeTip.bind(this));
+		}
 	}else{
 		this.controller.get("badges-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' doesn\'t have any badges in '+credentials.city+' yet.</span></div></div>';
+		this.controller.get("badgecount").innerHTML="0";	
 	}
 
 
@@ -424,6 +431,34 @@ UserInfoAssistant.prototype.handleTabs = function(event) {
 }
 UserInfoAssistant.prototype.groupFriends = function(data){
 	return data.grouping;
+}
+
+function findPos(obj) {
+	var curleft = curtop = 0;
+	if (obj.offsetParent) {
+		curleft = obj.offsetLeft;
+		curtop = obj.offsetTop;
+		curwidth = obj.offsetWidth;
+		curheight = obj.offsetHeight;
+		while (obj = obj.offsetParent) {
+			curleft += obj.offsetLeft;
+			curtop += obj.offsetTop;
+		}
+	}
+	return {'left': curleft,'top':curtop,'width':curwidth,'height':curheight};
+}
+
+
+UserInfoAssistant.prototype.showBadgeTip = function(event){
+	if(this.tipto){
+		clearTimeout(this.tipto);
+	}
+	var descr=event.target.readAttribute("data");
+	var tip=this.controller.get("tooltip");
+	tip.update(descr);	
+	
+	tip.show();
+	this.tipto=setTimeout(function(){tip.hide();},3000);
 }
 
 UserInfoAssistant.prototype.showFriends = function(){
