@@ -11,6 +11,7 @@ function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps,q) {
 	   
 	   _globals.curmap=this;
 	   
+	   this.infowindows=[];
 }
 
 
@@ -21,7 +22,7 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
 
     // Code from Google Sample
     var script = document.createElement("script");
-    script.src = "http://maps.google.com/maps/api/js?sensor=true&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=mapLoaded&client=ms-mwm-palm";
+    script.src = "http://maps.google.com/maps/api/js?sensor=true&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=mapLoaded";
     script.type = "text/javascript";
     document.getElementsByTagName("head")[0].appendChild(script);
 
@@ -112,14 +113,10 @@ NearbyVenuesMapAssistant.prototype.setMarkers = function (map) {
     new google.maps.Point(0,0),
     new google.maps.Point(0, 27));
 
-	var image = new google.maps.MarkerImage('http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=+|56739e',
-    new google.maps.Size(20, 32),
+	var shadow = new google.maps.MarkerImage('images/shadow.png',
+    new google.maps.Size(51, 37),
     new google.maps.Point(0,0),
-    new google.maps.Point(0, 27));
-	var shadow = new google.maps.MarkerImage('http://chart.apis.google.com/chart?chst=d_map_pin_shadow',
-    new google.maps.Size(37, 32),
-    new google.maps.Point(0,0),
-    new google.maps.Point(0, 27));
+    new google.maps.Point(0, 37));
  
 	var cmarker = new google.maps.Marker({
   		position: new google.maps.LatLng(_globals.lat,_globals.long),
@@ -129,6 +126,15 @@ NearbyVenuesMapAssistant.prototype.setMarkers = function (map) {
   
 	for(var v=0;v<this.venues.length;v++) {
 		var point = new google.maps.LatLng(this.venues[v].geolat,this.venues[v].geolong);
+		if(this.venues[v].primarycategory==undefined){
+			this.venues[v].primarycategory={};
+			this.venues[v].primarycategory.iconurl="images/no-cat.png";
+		}
+		//'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=+|56739e'
+		var image = new google.maps.MarkerImage(this.venues[v].primarycategory.iconurl,
+	    new google.maps.Size(32, 32),
+    	new google.maps.Point(0,0),
+	    new google.maps.Point(0, 37));
 			
 			
 		var marker=new google.maps.Marker({
@@ -147,6 +153,12 @@ NearbyVenuesMapAssistant.prototype.setMarkers = function (map) {
 	}
 
 
+
+	Mojo.Event.listen(this.controller.get("map_canvas"),Mojo.Event.tap, function(){
+		for(var i=0; i<this.venues.length;i++){
+			this.infowindows[i].close();		
+		}
+	}.bindAsEventListener(this));
 			    
 	this.spinnerModel.spinning = false;
     this.controller.modelChanged(this.spinnerModel);
@@ -158,16 +170,17 @@ NearbyVenuesMapAssistant.prototype.setMarkers = function (map) {
 NearbyVenuesMapAssistant.prototype.attachBubble = function(marker,i) {
 
 
-	var infowindow = new google.maps.InfoWindow(
+	this.infowindows[i] = new google.maps.InfoWindow(
       { content: '<div id="iw-'+this.venues[i].id+'" style="height:260px;font-size:16px;"  data="'+i+'"><b>'+this.venues[i].name+"</b><br/>" +
            					this.venues[i].address+"<br/>"/*+
            					'<a href="javascript:;" id="venue-'+this.venues[i].id+'" class="venueLink" data="'+i+'">Venue Info</a></div><br/>'*/
       });
   
 	google.maps.event.addListener(marker, 'click', function() {
-    	infowindow.open(this.map,marker);
-	});
-	google.maps.event.addListener(infowindow,"domready",function(){	
+		
+    	this.infowindows[i].open(this.map,marker);
+	}.bind(this));
+	google.maps.event.addListener(this.infowindows[i],"domready",function(){	
 		Mojo.Event.listen(this.controller.get('iw-'+this.venues[i].id),Mojo.Event.tap, this.showVenueInfo.bind(this));
 	}.bind(this));
 

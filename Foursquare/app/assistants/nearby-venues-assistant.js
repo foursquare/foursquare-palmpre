@@ -536,7 +536,7 @@ NearbyVenuesAssistant.prototype.performSearch = function(query) {
 }
 NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
 	
-	this.controller.stageController.swapScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid,false,this);
+	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid,false,this);
 }
 
 NearbyVenuesAssistant.prototype.listHideItem = function(event) {

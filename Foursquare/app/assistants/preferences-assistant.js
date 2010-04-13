@@ -2,10 +2,9 @@ function PreferencesAssistant() {
 }
 
 PreferencesAssistant.prototype.setup = function() {
-//	zBar.hideToolbar();		
 
-	this.controller.setupWidget('goLogin', this.accattributes = {}, this.loginBtnModel = {label:'Set up account...', disabled:false});
-	this.controller.setupWidget('goFlickr', this.flickrattributes = {}, this.flickrBtnModel = {label:'Set Up Flickr Account', disabled:false});
+	//this.controller.setupWidget('goLogin', this.accattributes = {}, this.loginBtnModel = {label:'Set up account...', disabled:false});
+	//this.controller.setupWidget('goFlickr', this.flickrattributes = {}, this.flickrBtnModel = {label:'Set Up Flickr Account', disabled:false});
 	this.controller.setupWidget("sliderGPS",
     	this.slideattributes = {
         	minValue: -1000,
@@ -18,9 +17,9 @@ PreferencesAssistant.prototype.setup = function() {
 	        disabled: false
     	});
 
-    this.controller.setupWidget("numVenuesPicker",
+ /*   this.controller.setupWidget("numVenuesPicker",
           this.numattributes = {
-              label: 'Number',
+
               modelProperty: 'value',
               min: 10,
               max: 50
@@ -29,7 +28,7 @@ PreferencesAssistant.prototype.setup = function() {
           this.nummodel = {
               value: 15
           });
-          
+          */
           
     this.cookieData=new Mojo.Model.Cookie("notifications");
 	var credentials=this.cookieData.get();
@@ -54,8 +53,8 @@ PreferencesAssistant.prototype.setup = function() {
     this.controller.setupWidget("units",
         this.unitsattributes = {
             choices: [
-                {label: "SI", value: "si"},
-                {label: "Metric", value: "metric"}
+                {label: "SI (miles)", value: "si"},
+                {label: "Metric (meters)", value: "metric"}
                 ]},
 
         this.unitsmodel = {
@@ -63,9 +62,27 @@ PreferencesAssistant.prototype.setup = function() {
         disabled: false
         }
     );
+    this.controller.setupWidget("numVenuesPicker",
+        this.numattributes = {
+            choices: [
+                {label: "15", value: 15},
+                {label: "20", value: 20},
+                {label: "25", value: 25},
+                {label: "30", value: 30},
+                {label: "35", value: 35},
+                {label: "40", value: 40},
+                {label: "45", value: 45},
+                {label: "50", value: 50}
+                ]},
+
+        this.nummodel = {
+        value: 15,
+        disabled: false
+        }
+    );
          
-	Mojo.Event.listen(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTapped.bind(this));
-	Mojo.Event.listen(this.controller.get("goFlickr"), Mojo.Event.tap, this.onFlickrTapped.bind(this));
+	Mojo.Event.listen(this.controller.get("fsq-account-row"), Mojo.Event.tap, this.onLoginTapped.bind(this));
+	Mojo.Event.listen(this.controller.get("flickr-account-row"), Mojo.Event.tap, this.onFlickrTapped.bind(this));
 	Mojo.Event.listen(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSlider.bind(this));
 	Mojo.Event.listen(this.controller.get("numVenuesPicker"), Mojo.Event.propertyChange, this.handleNumPicker.bind(this));
 	Mojo.Event.listen(this.controller.get("units"), Mojo.Event.propertyChange, this.handleUnits.bind(this));
@@ -87,11 +104,15 @@ PreferencesAssistant.prototype.setup = function() {
 	this.handleUnits("setup-routine");
 
 	if(_globals.flickr_username != undefined){
-		this.controller.get("flickrInfo").innerHTML="Account: <b>"+_globals.flickr_username+"</b>";
+		this.controller.get("flickrInfo").innerHTML=""+_globals.flickr_username+"";
 	}
+	this.controller.get("fsq-account").innerHTML=_globals.username;
 }
 
 PreferencesAssistant.prototype.activate = function(event) {
+					var scroller = this.controller.getSceneScroller();
+					//call the widget method for scrolling to the top
+					scroller.mojo.scrollTo(this.controller.get('prefs-main'));
 
 }
 PreferencesAssistant.prototype.handleSlider = function(event) {

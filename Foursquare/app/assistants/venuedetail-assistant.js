@@ -1342,9 +1342,9 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
       				break;
             }
         }else if(event.type===Mojo.Event.back && this.fromuserinfo!=true && this.fromMap!=true) {
-			event.preventDefault();
+			/*event.preventDefault();
 	        var thisauth=_globals.auth;
-			this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid);
+			this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid);*/
         }else if(event.type===Mojo.Event.back && this.fromMap==true) {
 			event.preventDefault();
 	        var thisauth=_globals.auth;

@@ -117,6 +117,10 @@ UserInfoAssistant.prototype.setup = function() {
 
 	_globals.ammodel.items[0].disabled=true;
 	this.controller.modelChanged(_globals.ammodel);
+	
+	if (this.fromFriends){
+		this.controller.get("tooltip").style.bottom="10px";
+	}
 }
 
 var auth;

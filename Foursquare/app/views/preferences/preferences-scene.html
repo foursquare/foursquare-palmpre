@@ -1,51 +1,73 @@
 
 
 <div id="prefs-main" class="palm-hasheader">
-	<div class="palm-header center" id="list-header">
-		Preferences
-	</div>
-	<br/><br/>
-	<div class="palm-group">
-		<div class="palm-group-title" x-mojo-loc=''>Account</div>
-		<div x-mojo-element="Button" id="goLogin"></div>
-	</div>
-	<div class="palm-group" style="display:none;">
-		<div class="palm-group-title" x-mojo-loc=''>Notifications</div>
-		<div x-mojo-element="CheckBox" id="chkNotifications" class="checkboxClass left" name="checkboxName"></div> Enable
+	<div class="thin-header-redux" style="z-index: 99999">
+		<div class="letterpress">
+		<div class="thin-blue-header">PREFERENCES & ACCOUNTS</div>
+		</div>
 	</div>
 
-	<div class="palm-group" id="slidergroup">
-		<div class="palm-group-title" x-mojo-loc=''>GPS Accuracy</div>
-		<div x-mojo-element="Slider" id="sliderGPS" class="sliderClass" name="sliderName"></div>
-		<br/>
-		<div id="gps-description" class="med-text"></div>
-		<div id="gps-longdesc" class="small-text"></div>
-	</div>
+	<br class="breaker-small"/>
+	<br><br>
 
-	<div class="palm-group">
-		<div class="palm-group-title" x-mojo-loc=''>Units</div>
-		<div class="palm-list">
-	   		<div class="palm-row single">
-				<div class="palm-row-wrapper" x-mojo-focus-highlight="true">
-					<div class="title">
-						<div class="label">Measurement System</div>
-						<div x-mojo-element="ListSelector" id="units" class="listselectorClass" name="listselectorName"></div>
+	<div class="grey-bg">
+		<div class="palm-group">
+			<div class="palm-group-title" x-mojo-loc=''>Accounts</div>
+			<!--<div x-mojo-element="Button" id="goLogin" class="fsq-button" style="display: none;"></div>-->
+			<div class="palm-list">
+				<div class="palm-row first" id="fsq-account-row" x-mojo-tap-highlight='momentary'>
+					<div class="palm-row-wrapper" style="padding: 8px;">
+						<img src="images/foursquare_32.png" align="top"> <span style="display: inline-block;font-size: 16px;">foursquare<div id="fsq-account" style="font-size: 12px; color: #ccc; margin-top: -1px;"></div></span>
+					</div>
+				</div>
+				<div class="palm-row last" id="flickr-account-row" x-mojo-tap-highlight='momentary'>
+					<div class="palm-row-wrapper" style="padding: 8px;">
+						<img src="images/flickr_32.png" align="top"> <span style="display: inline-block;font-size: 16px;">flickr<div id="flickrInfo" style="font-size: 12px; color: #ccc; margin-top: -1px;"></div></span>
 					</div>
 				</div>
 			</div>
-		</div>		
-	</div>
+		</div>
+		<div class="palm-group" style="display:none;">
+			<div class="palm-group-title" x-mojo-loc=''>Notifications</div>
+			<div x-mojo-element="CheckBox" id="chkNotifications" class="checkboxClass left" name="checkboxName"></div> Enable
+		</div>
 
-	<div class="palm-group">
-		<div class="palm-group-title" x-mojo-loc=''>Number of Venues to Show</div>
-		<div x-mojo-element="IntegerPicker" id="numVenuesPicker" class="integerpickerClass" name="integerpickerName"></div>
-	</div>
+		<div class="palm-group" id="slidergroup">
+			<div class="palm-group-title" x-mojo-loc=''>GPS Accuracy</div>
+			<div x-mojo-element="Slider" id="sliderGPS" class="sliderClass" name="sliderName"></div>
+			<br/>
+			<div id="gps-description" class="med-text"></div>
+			<div id="gps-longdesc" class="small-text"></div>
+		</div>
 
-	<div class="palm-group">
-		<div class="palm-group-title" x-mojo-loc=''>Flickr Account</div>
-		<div x-mojo-element="Button" id="goFlickr"></div>
-		<div id="flickrInfo"></div>
+		<div class="palm-group">
+			<div class="palm-group-title" x-mojo-loc=''>Units</div>
+			<div class="palm-list">
+	   			<div class="palm-row single">
+					<div class="palm-row-wrapper" x-mojo-tap-highlight="true">
+						<div x-mojo-element="ListSelector" id="units" class="listselectorClass" name="listselectorName"></div>
+					</div>
+				</div>
+			</div>		
+		</div>
+
+		<div class="palm-group">
+			<div class="palm-group-title" x-mojo-loc=''>Number of Venues to Show</div>
+			<div class="palm-list">
+				<div class="palm-row single">
+					<div class="palm-row-wrapper" x-mojo-tap-highlight="true">
+						<div x-mojo-element="ListSelector" id="numVenuesPicker" class="listselectorClass" name="listselectorName"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	<!--	<div class="palm-group" style="display: none;">
+			<div class="palm-group-title" x-mojo-loc=''>Flickr Account</div>
+			<div x-mojo-element="Button" id="goFlickr" class="fsq-button"></div>
+			<div id="flickrInfo"></div>
+		</div>-->
+
 	</div>
 
 </div>
-

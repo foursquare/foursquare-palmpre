@@ -2,7 +2,7 @@ function AboutAssistant() {
 }
 
 AboutAssistant.prototype.setup = function() {
-	this.controller.get("about-header").innerHTML="About Foursquare v"+Mojo.appInfo.version;
+	this.controller.get("about-header").innerHTML="ABOUT FOURSQUARE v"+Mojo.appInfo.version;
 	//zBar.hideToolbar();
 
 }
