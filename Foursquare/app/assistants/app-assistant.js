@@ -166,6 +166,7 @@ _globals.categoryFailed = function(event) {
 
 _globals.categorySuccess = function(r) {
 	Mojo.Log.error("got categories");
+	Mojo.Log.error(Object.toJSON(r.responseJSON.categories));
 	if(r.responseJSON.categories){
 		_globals.categories=r.responseJSON.categories;
 	}

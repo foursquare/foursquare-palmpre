@@ -276,7 +276,7 @@ VenuedetailAssistant.prototype.infoTapped = function(event) {
 				 }
 			});
 			break;
-		case "markclosed":
+		case "flagclosed":
 			this.handleMarkClosed();
 			break;
 		case "suggestedit":

@@ -274,7 +274,7 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 	this.controller.get("okButton").mojo.deactivate();
 	Mojo.Log.error(response.responseText);
 	
-	if(response.responseJSON.venue != undefined) {
+	if(response.responseJSON.venue != undefined && !this.editing) {
 		Mojo.Controller.getAppController().showBanner("Venue saved to Foursquare!", {source: 'notification'});
 	
 		var vid=response.responseJSON.venue.id;
@@ -282,7 +282,7 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 	
 		this.controller.stageController.popScene("add-venue");
 
-		this.controller.stageController.swapScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},response.responseJSON.venue,_globals.username,_globals.password,_globals.uid);
+		this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},response.responseJSON.venue,_globals.username,_globals.password,_globals.uid);
 	
 	}
 	
@@ -316,6 +316,20 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 				break;
 		}
 	}
+	
+	if(this.editing && response.responseJSON.error == undefined){
+				this.controller.showAlertDialog({
+					onChoose: function(value) {		this.controller.stageController.popScene("add-venue");
+}.bind(this),
+					title: $L("Edit Received"),
+					message: $L("Venue edits are sent to a queue for Super Users to approve, so your proposed changes will not be immediately seen. If a Super User approves your proposal, the changes will be incorporated."),
+					choices:[
+						{label:$L('OK'), value:"OK", type:'primary'}
+					]
+				});
+
+	}
+	
 	
 }
 

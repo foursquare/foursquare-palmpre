@@ -27,7 +27,7 @@ CategoriesAssistant.prototype.setup = function() {
 			b.level=1;
 			
 			if(_globals.categories[i].categories[s].categories != undefined){
-				this.subsubitems[s]={items:[],listTitle:$L("SubSubcats")};
+				this.subsubitems[b.id]={items:[],listTitle:$L("SubSubcats")};
 				b.hasChildren=true;
 				for(var t=0; t<_globals.categories[i].categories[s].categories.length; t++){
 					var c={};
@@ -37,7 +37,7 @@ CategoriesAssistant.prototype.setup = function() {
 					c.level=2;
 					c.index=t;
 					c.hasChildren=false;
-					this.subsubitems[s].items.push(c);
+					this.subsubitems[b.id].items.push(c);
 				}		
 			}else{
 				b.hasChildren=false;
@@ -83,7 +83,7 @@ CategoriesAssistant.prototype.setup = function() {
 
 CategoriesAssistant.prototype.listWasTapped = function(event) {
 	var i=event.item.index;
-	Mojo.Log.error("i="+i+", level="+event.item.level+", label="+event.item.label);
+	Mojo.Log.error("i="+i+", level="+event.item.level+", label="+event.item.label+", id="+event.item.id);
 	if (event.item.level==0){	//tapped root, show sub items
 		this.catButtonModel.buttonLabel="Back to main categories...";
 		this.controller.modelChanged(this.catButtonModel);
@@ -113,7 +113,15 @@ CategoriesAssistant.prototype.listWasTapped = function(event) {
 		this.lastItems=this.categoriesModel.items;
 		this.lastLevel=event.item.level;
 
-		this.categoriesModel.items=this.subsubitems[i].items;
+		var idx=i;
+		for(var j=0;j<this.subitems.length;j++){
+			if(this.subitems[j].id==event.item.id){
+				idx=j;
+				break;
+			}
+		}
+
+		this.categoriesModel.items=this.subsubitems[event.item.id].items;
 		this.controller.modelChanged(this.categoriesModel);
 		this.controller.get("categories-list").mojo.noticeUpdatedItems(0,this.categoriesModel.items);
 		this.controller.getSceneScroller().mojo.revealTop(0);
