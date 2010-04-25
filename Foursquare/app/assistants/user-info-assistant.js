@@ -280,17 +280,17 @@ Mojo.Log.error("uid="+this.uid);
 	if(this.getpings != undefined){
 		if(this.getpings=="true"){
 			var itm={};
-			itm.icon="images/pings_on.png";
+			itm.icon="images/pings_32.png";
 			itm.caption="Receiving Pings";
 			itm.action="pings";
-			//this.info.push(itm);
+			this.info.push(itm);
 			this.pingIndex=this.info.length-1;
 		}else{
 			var itm={};
-			itm.icon="images/pings_off.png";
+			itm.icon="images/pings_32.png";
 			itm.caption="Not Receiving Pings";
 			itm.action="pings";
-			//this.info.push(itm);
+			this.info.push(itm);
 			this.pingIndex=this.info.length-1;
 		}
 	}
@@ -655,11 +655,11 @@ UserInfoAssistant.prototype.pingSuccess = function(response) {
 		//this.controller.get("friend_button").innerHTML='<img src="images/pending.png" width="100" height="35" id="pendingfriend" alt="Pending" />';
 		if(this.getpings=="true"){
 			this.infoModel.items[this.pingIndex].caption="Receiving Pings";
-			this.infoModel.items[this.pingIndex].icon="images/ping_on.png";
+			this.infoModel.items[this.pingIndex].icon="images/pings_32.png";
 			this.controller.modelChanged(this.infoModel);
 		}else{
 			this.infoModel.items[this.pingIndex].caption="Not Receiving Pings";
-			this.infoModel.items[this.pingIndex].icon="images/ping_off.png";
+			this.infoModel.items[this.pingIndex].icon="images/pings_32.png";
 			this.controller.modelChanged(this.infoModel);		
 		}
 	}else{

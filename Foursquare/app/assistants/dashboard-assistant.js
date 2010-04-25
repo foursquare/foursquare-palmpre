@@ -108,7 +108,10 @@ DashboardAssistant.prototype.stopShowStory = function() {
 };
  
 // Update dashboard scene contents - external method
-DashboardAssistant.prototype.updateDashboard = function(selectedFeedIndex) {
+DashboardAssistant.prototype.updateDashboard = function(newitems) {
+	if(newitems){
+		this.list=newitems;
+	}
 	var lname=(this.list[0].user.lastname)? this.list[0].user.lastname: "";
     this.title = this.list[0].user.firstname + " " + lname;
     if(this.list[0].venue != undefined){ //normal checkin

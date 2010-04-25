@@ -130,7 +130,7 @@ CategoriesAssistant.prototype.listWasTapped = function(event) {
 	if(event.item.level>0 && !event.item.hasChildren) { //tapped sub item with no children or child of sub item
 		this.prevScene.controller.get("selectedCat").update('<img src="'+event.item.icon+'" align="top"/> '+event.item.label);
 		_globals.selectedCat=event.item.id;
-		this.controller.stageController.popScene();
+		this.controller.stageController.popScene("categories");
 	}
 };
 

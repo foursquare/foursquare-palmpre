@@ -34,7 +34,28 @@ PreferencesAssistant.prototype.setup = function() {
 	var credentials=this.cookieData.get();
 	var notifs=(credentials)? credentials.notifs: '0';
 
+    this.cookieData=new Mojo.Model.Cookie("alert");
+	var credentials=this.cookieData.get();
+	var alerts=(credentials)? credentials: {type:"bounce",ringtone:"",file:""};
+
+	if(alerts.type=="ringtone"){
+		var dp=true;
+		this.controller.get("ringtone").innerHTML=alerts.ringtone;
+	}else{
+		var dp=false;
+		this.controller.get("alert-row").addClassName("last");
+	}
+    this.controller.setupWidget('ringtone-drawer', this.Attributes={unstyled:true}, this.drawerModel={open:dp});  
           
+    this.controller.setupWidget('alert-type', {label:'Alert', choices: [
+		{label:$L('None'), value:"off"}
+		,{label:$L('Vibrate Only'), value:"vibrate"}
+		,{label:$L('System Sound'), value:"system_sound"}
+		,{label:$L('Ringtone'), value:"ringtone"}
+		,{label:$L('Bounce'), value:"bounce"}
+		], modelProperty:'value'}, this.alertModel={value:alerts.type});
+    
+    
     this.controller.setupWidget("chkNotifications",
          this.notifsAttributes = {
              trueValue: '1',
@@ -82,10 +103,12 @@ PreferencesAssistant.prototype.setup = function() {
     );
          
 	Mojo.Event.listen(this.controller.get("fsq-account-row"), Mojo.Event.tap, this.onLoginTapped.bind(this));
+	Mojo.Event.listen(this.controller.get("ringtone-select"), Mojo.Event.tap, this.chooseRingtone.bind(this));
 	Mojo.Event.listen(this.controller.get("flickr-account-row"), Mojo.Event.tap, this.onFlickrTapped.bind(this));
 	Mojo.Event.listen(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSlider.bind(this));
 	Mojo.Event.listen(this.controller.get("numVenuesPicker"), Mojo.Event.propertyChange, this.handleNumPicker.bind(this));
 	Mojo.Event.listen(this.controller.get("units"), Mojo.Event.propertyChange, this.handleUnits.bind(this));
+	Mojo.Event.listen(this.controller.get("alert-type"), Mojo.Event.propertyChange, this.handleAlertType.bind(this));
 	Mojo.Event.listen(this.controller.get("chkNotifications"), Mojo.Event.propertyChange, this.handleNotifs.bind(this));
 
 	var slideval=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy)*-1: 0;
@@ -175,6 +198,27 @@ PreferencesAssistant.prototype.handleUnits = function(event) {
 		_globals.units=v;
 	}
 }
+PreferencesAssistant.prototype.handleAlertType = function(event) {
+	if(event.type===Mojo.Event.propertyChange || event=="setup-routine") {
+		var v=this.alertModel.value;
+				
+		this.cookieData=new Mojo.Model.Cookie("alert");
+		this.cookieData.put(
+			{"type":v,"ringtone":"","file":""}
+		)
+		_globals.alerttype=v;
+		
+		if(v=="ringtone"){
+			this.controller.get("ringtone-drawer").mojo.setOpenState(true);
+			this.controller.modelChanged(this.drawerModel);
+			this.controller.get("alert-row").removeClassName("last");
+		}else{
+			this.controller.get("ringtone-drawer").mojo.setOpenState(false);
+			this.controller.modelChanged(this.drawerModel);		
+			this.controller.get("alert-row").addClassName("last");
+		}
+	}
+}
 PreferencesAssistant.prototype.handleNotifs = function(event) {
 	if(event.type===Mojo.Event.propertyChange || event=="setup-routine") {
 		var v=this.notifsModel.value;
@@ -184,8 +228,66 @@ PreferencesAssistant.prototype.handleNotifs = function(event) {
 			{"notifs":v}
 		)
 		_globals.notifs=v;
+		
+		if(v=="1"){
+			this.wakeupRequest = new Mojo.Service.Request("palm://com.palm.power/timeout", {
+	            method: "set",
+	            parameters: {
+	                "key": "com.foursquare.foursquare.update",
+	                "in": "00:30:00",
+	                "wakeup": true,
+	                "uri": "palm://com.palm.applicationManager/open",
+	                "params": {
+	                    "id": "com.foursquare.foursquare",
+	                    "params": {"action": "feedUpdate"}
+	                }
+	            },
+	            onSuccess: function(response) {
+	                Mojo.Log.error("Alarm Set Success", response.returnValue);
+	                _globals.wakeupTaskId = Object.toJSON(response.taskId);
+	            },
+	            onFailure: function(response) {
+	                Mojo.Log.error("Alarm Set Failure",
+	                    response.returnValue, response.errorText);
+	            }
+	        });
+		}else{
+			this.wakeupRequest = new Mojo.Service.Request("palm://com.palm.power/timeout", {
+	            method: "clear",
+	            parameters: {
+	                "key": "com.foursquare.foursquare.update"
+	            },
+	            onSuccess: function(response) {
+	            },
+	            onFailure: function(response) {
+	            }
+	        });		
+		}
 	}
 }
+
+
+PreferencesAssistant.prototype.chooseRingtone = function(event) {
+	Mojo.FilePicker.pickFile({
+		actionType: "attach",
+        defaultKind: 'ringtone',
+		kinds: ["ringtone"],
+		filePath: "", 
+		actionName: $L("Okay"),
+	    onSelect: function(r){
+	    	this.controller.get("ringtone").update(r.name);
+	    	_globals.alerttype="ringtone";
+	    	_globals.alertfile=r.fullPath;
+			this.cookieData=new Mojo.Model.Cookie("alert");
+			this.cookieData.put(
+				{"type":"ringtone","ringtone":r.name,"file":r.fullPath}
+			)
+	    	
+	    }.bind(this)
+	},this.controller.stageController);
+
+}
+
 
 PreferencesAssistant.prototype.saveVenueCount = function(event) {
 

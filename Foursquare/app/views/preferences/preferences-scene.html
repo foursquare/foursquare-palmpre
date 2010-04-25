@@ -27,9 +27,29 @@
 				</div>
 			</div>
 		</div>
-		<div class="palm-group" style="display:none;">
+		<div class="palm-group">
 			<div class="palm-group-title" x-mojo-loc=''>Notifications</div>
-			<div x-mojo-element="CheckBox" id="chkNotifications" class="checkboxClass left" name="checkboxName"></div> Enable
+			<div class="palm-list">
+				<div class="palm-row first">
+					<div class="palm-row-wrapper">
+						<div class="label">Enable</div>
+						<div x-mojo-element="CheckBox" id="chkNotifications" class="checkboxClass left" name="checkboxName"></div>			
+					</div>
+				</div>
+				<div class="palm-row" id="alert-row" x-mojo-tap-highlight='momentary'>
+					<div class="palm-row-wrapper">
+						<div id="alert-type" x-mojo-element="ListSelector"></div>
+					</div>
+				</div>
+				<div id="ringtone-drawer" x-mojo-element="Drawer">
+					<div id="ringtone-select" class="palm-row last" x-mojo-tap-highlight="momentary">
+						<div class="palm-row-wrapper">
+							<div class="label" x-mojo-loc=''>Ringtone</div>
+		            		<div id='ringtone' class="title"></div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<div class="palm-group" id="slidergroup">

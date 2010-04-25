@@ -47,7 +47,7 @@ _globals.gotLocation = function(event) {
   	  	var cardStageController = appController.getStageController("mainStage");
 				
 		//get accuracy
-		var acc=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy): 0;
+		var acc=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy): 750;
 		Mojo.Log.error("acc="+acc);
 		
 		//check radius
@@ -202,7 +202,7 @@ AppAssistant.prototype.setup = function() {
 
 
     // Set up first timeout alarm
-  //  this.setWakeup();
+    this.setWakeup();
   
   _globals.GPS = new Location(_globals.gotLocation);
 		_globals.GPS.start();
@@ -339,94 +339,163 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
     }
     else {
         Mojo.Log.error("com.foursquare.foursquare -- Wakeup Call", launchParams.action);
-		_globals.GPS = new Location(_globals.gotLocation2);
-		_globals.GPS.start();
-        switch (launchParams.action) {
+		//_globals.GPS = new Location(_globals.gotLocation2);
+		//_globals.GPS.start();
+    switch (launchParams.action) {
                       
-    // UPDATE FEEDS
-    case "feedUpdate" :
-    	//turn off GPS:
-    	_globals.GPS.stop();
-        // Set next wakeup alarm
-       // this.setWakeup();
-        
-        this.cookieData=new Mojo.Model.Cookie("credentials");
-		var credentials=this.cookieData.get();
-		if(credentials){
-			_globals.auth=credentials.auth;
-			_globals.uid=credentials.uid;
-		}
-		var gpsdata=_globals.GPS.get();
-		_globals.lat=gpsdata.latitude;
-		_globals.long=gpsdata.longitude;
-		_globals.hacc=gpsdata.horizAccuracy;
-		_globals.vacc=gpsdata.vertAccuracy;
-		_globals.altitude=gpsdata.altitude;
-		Mojo.Log.error("lat="+_globals.lat);
-		_globals.userData={};
-		_globals.firstLoad=true;
-		_globals.gpsokay=true;
-		_globals.retryingGPS=false;
-					this.username=credentials.username;
-					_globals.auth=credentials.auth;
-					this.gpsdata=new Mojo.Model.Cookie("gpsdata");
-					var gps=this.gpsdata.get();
-					_globals.gpsAccuracy=(gps)? gps.gpsAccuracy*-1: 0;
-		
-					this.venuecount=new Mojo.Model.Cookie("venuecount");
-					var vc=this.venuecount.get();
-					_globals.venueCount=(vc)? vc.venueCount: 15;
-
-					this.units=new Mojo.Model.Cookie("units");
-					var un=this.units.get();
-					_globals.units=(un)? un.units: "si";
-
-					/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
-					var hv=this.hv.get();
-					_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];*/
-
-
-					this.flickr=new Mojo.Model.Cookie("flickr");
-					var flickrinfo=this.flickr.get();
-					_globals.flickr_token=(flickrinfo)? flickrinfo.token: undefined;
-					_globals.flickr_username=(flickrinfo)? flickrinfo.username: undefined;
-					_globals.flickr_fullname=(flickrinfo)? flickrinfo.fullname: undefined;
-					_globals.flickr_nsid=(flickrinfo)? flickrinfo.nsid: undefined;
-	_globals.cmmodel = {
-          visible: true,
-          items: [{
-          	items: [ 
-          		{},
-                 { iconPath: "images/venue_button.png", command: "do-Venues"},
-                 { iconPath: "images/friends_button.png", command: "do-Friends"},
-                 { iconPath: "images/todo_button.png", command: "do-Tips"},
-                 { iconPath: "images/user_info.png", command: "do-Badges"},
-                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'},
-                 {}
-                 ],
-            toggleCmd: "do-Friends",
-            checkEnabled: true
-            }]
-    };
-
-
-        // Update the feed list
-        Mojo.Log.error("Update FeedList");
-		var url = 'http://api.foursquare.com/v1/checkins.json';
-		auth = _globals.auth;
-		var request = new Ajax.Request(url, {
-		   method: 'get',
-		   evalJSON: 'force',
-		   requestHeaders: {Authorization: auth}, 
-		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
-		   onSuccess: this.feedSuccess.bind(this),
-		   onFailure: this.feedFailed.bind(this)
-		 });
-    break;
+	    // UPDATE FEEDS
+	    case "feedUpdate" :
+	    	//turn off GPS:
+	    	_globals.GPS.stop();
+	        // Set next wakeup alarm
+	        this.setWakeup();
+	        
+	        this.cookieData=new Mojo.Model.Cookie("credentials");
+			var credentials=this.cookieData.get();
+			if(credentials){
+				_globals.auth=credentials.auth;
+				_globals.uid=credentials.uid;
+			}
+			/*var gpsdata=_globals.GPS.get();
+			_globals.lat=gpsdata.latitude;
+			_globals.long=gpsdata.longitude;
+			_globals.hacc=gpsdata.horizAccuracy;
+			_globals.vacc=gpsdata.vertAccuracy;
+			_globals.altitude=gpsdata.altitude;
+			Mojo.Log.error("lat="+_globals.lat);
+			_globals.userData={};
+			_globals.firstLoad=true;
+			_globals.gpsokay=true;
+			_globals.retryingGPS=false;*/
+						this.username=credentials.username;
+						_globals.auth=credentials.auth;
+						
+						
+						/*this.gpsdata=new Mojo.Model.Cookie("gpsdata");
+						var gps=this.gpsdata.get();
+						_globals.gpsAccuracy=(gps)? gps.gpsAccuracy*-1: 0;
+			
+						this.venuecount=new Mojo.Model.Cookie("venuecount");
+						var vc=this.venuecount.get();
+						_globals.venueCount=(vc)? vc.venueCount: 15;
+	
+						this.units=new Mojo.Model.Cookie("units");
+						var un=this.units.get();
+						_globals.units=(un)? un.units: "si";*/
+	
+						/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
+						var hv=this.hv.get();
+						_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];*/
+	
+	
+						/*this.flickr=new Mojo.Model.Cookie("flickr");
+						var flickrinfo=this.flickr.get();
+						_globals.flickr_token=(flickrinfo)? flickrinfo.token: undefined;
+						_globals.flickr_username=(flickrinfo)? flickrinfo.username: undefined;
+						_globals.flickr_fullname=(flickrinfo)? flickrinfo.fullname: undefined;
+						_globals.flickr_nsid=(flickrinfo)? flickrinfo.nsid: undefined;
+		_globals.cmmodel = {
+	          visible: true,
+	          items: [{
+	          	items: [ 
+	          		{},
+	                 { iconPath: "images/venue_button.png", command: "do-Venues"},
+	                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+	                 { iconPath: "images/todo_button.png", command: "do-Tips"},
+	                 { iconPath: "images/user_info.png", command: "do-Badges"},
+	                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'},
+	                 {}
+	                 ],
+	            toggleCmd: "do-Friends",
+	            checkEnabled: true
+	            }]
+	    };*/
+	
+	
+	        // Update the feed list
+	        Mojo.Log.error("Update FeedList");
+			var url = 'http://api.foursquare.com/v1/checkins.json';
+			auth = _globals.auth;
+			var request = new Ajax.Request(url, {
+			   method: 'get',
+			   evalJSON: 'force',
+			   requestHeaders: {Authorization: auth}, 
+			   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
+			   onSuccess: this.feedSuccess.bind(this),
+			   onFailure: this.feedFailed.bind(this)
+			 });
+	    	break;
         
         // NOTIFICATION
         case "notification" :
-             Mojo.Log.error("com.foursquare.foursquare -- Notification Tap");
+            Mojo.Log.error("com.foursquare.foursquare -- Notification Tap");
+			_globals.GPS = new Location(_globals.gotLocation);
+			_globals.GPS.start();
+			var now=(new Date().getTime());
+			_globals.gpsStart=now;
+			_globals.nearbyVenues=undefined;
+			_globals.reloadVenues=true;
+			_globals.userData={};
+			_globals.firstLoad=false; //////////////
+			_globals.gpsokay=true;
+			_globals.retryingGPS=false;
+	        this.cookieData=new Mojo.Model.Cookie("credentials");
+			var credentials=this.cookieData.get();
+			if(credentials){
+				_globals.auth=credentials.auth;
+				_globals.uid=credentials.uid;
+			}
+			this.username=credentials.username;
+			_globals.auth=credentials.auth;
+			
+			
+			this.gpsdata=new Mojo.Model.Cookie("gpsdata");
+			var gps=this.gpsdata.get();
+			_globals.gpsAccuracy=(gps)? gps.gpsAccuracy*-1: 750;
+
+			this.venuecount=new Mojo.Model.Cookie("venuecount");
+			var vc=this.venuecount.get();
+			_globals.venueCount=(vc)? vc.venueCount: 15;
+
+			this.units=new Mojo.Model.Cookie("units");
+			var un=this.units.get();
+			_globals.units=(un)? un.units: "si";
+
+			/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
+			var hv=this.hv.get();
+			_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];*/
+			 var url = "http://api.foursquare.com/v1/categories.json";
+			 var request = new Ajax.Request(url, {
+			   method: 'get',
+			   evalJSON: 'force',
+			   onSuccess: _globals.categorySuccess.bind(this),
+			   onFailure: _globals.categoryFailed.bind(this)
+			 });
+
+
+			this.flickr=new Mojo.Model.Cookie("flickr");
+			var flickrinfo=this.flickr.get();
+			_globals.flickr_token=(flickrinfo)? flickrinfo.token: undefined;
+			_globals.flickr_username=(flickrinfo)? flickrinfo.username: undefined;
+			_globals.flickr_fullname=(flickrinfo)? flickrinfo.fullname: undefined;
+			_globals.flickr_nsid=(flickrinfo)? flickrinfo.nsid: undefined;
+			_globals.cmmodel = {
+		          visible: true,
+		          items: [{
+		          	items: [ 
+		          		{},
+		                 { iconPath: "images/venue_button.png", command: "do-Venues"},
+		                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+		                 { iconPath: "images/todo_button.png", command: "do-Tips"},
+		                 { iconPath: "images/user_info.png", command: "do-Badges"},
+		                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'},
+		                 {}
+		                 ],
+		            toggleCmd: "do-Friends",
+		            checkEnabled: true
+		            }]
+		    };
+				
             //_globals.cmmodel.items.toggleCmd="do-Friends";
             if (cardStageController) {
                 
@@ -449,8 +518,19 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
                 var stageArguments2 = {name: "mainStage", lightweight: true};
                 this.controller.createStageWithCallback(stageArguments2, pushMainScene2.bind(this), "card");
             }
-        break;
+        	break;
         
+        
+        
+        case "user":
+        
+        	break;
+        case "venue":
+        
+        	break;
+        case "leaderboard":
+        
+        	break;
         }
     }
 };
@@ -491,7 +571,7 @@ Mojo.Log.error("got feed");
 		
 			var f=[];
 		}
-		Mojo.Log.error("f="+f);
+		Mojo.Log.error("f="+Object.toJSON(f));
 		this.doFeedData(f,this.r);
 	}.bind(this),function(d){
 		//no feed found
@@ -512,7 +592,7 @@ AppAssistant.prototype.doFeedData = function(data,r){
 	
 	oldfeed=[];*/
 	
-	var oldfeed=data || [];
+	var oldfeed=(data)? data: [];
 	
 	//setup array to hold actually new checkins
 	var newitems=[];
@@ -527,16 +607,28 @@ AppAssistant.prototype.doFeedData = function(data,r){
 				var inarray=false;
 				for(var of=0;of<oldfeed.length;of++){
 					if(oldfeed[of].id==newfeed[f].id){
+						Mojo.Log.error("checkin for %i is old (ping=%i)",newfeed[f].user.firstname,newfeed[f].ping);
+						Mojo.Log.error("old id=%i, new id=%i",oldfeed[of].id,newfeed[f].id);
+
 						inarray=true;
 						break;
-					}					
+					}else{
+					}			
 				}
-				if(!inarray){newitems.push(newfeed[f]);} //if the checkin is really new, add it to the newitems array
+				if(!inarray && newfeed[f].ping){
+					newitems.push(newfeed[f]);
+					inarray=false;
+					Mojo.Log.error("checkin for %i is new (ping=%i)",newfeed[f].user.firstname,newfeed[f].ping);
+					//Mojo.Log.error("old id=%i, new id=%i",oldfeed[of].id,newfeed[f].id);					
+				} //if the checkin is really new, add it to the newitems array
+				else{
+				}
 			}
 		}else{
 			newitems=newfeed;
 		}
 		Mojo.Log.error("added new items to newer array");
+		Mojo.Log.error("newitems="+Object.toJSON(newitems));
 
 		//store the new feed in a cookie
 		/*this.cookieData=new Mojo.Model.Cookie("feed");
@@ -552,17 +644,57 @@ AppAssistant.prototype.doFeedData = function(data,r){
 AppAssistant.prototype.doDashboard = function(){
 	Mojo.Log.error("dodashboard");
 	var newitems=this.newitems;
-	if(newitems.length>0){
-	
-		var appController = Mojo.Controller.getAppController();
+	Mojo.Log.error("copied newitems");
+	if(newitems && newitems.length>0){
+		Mojo.Log.error("in dashboard if");
+		try{
+			var appController = Mojo.Controller.getAppController();
+			Mojo.Log.error("got appcontroller");
+		}catch(e){
+			Mojo.Log.error(Object.toJSON(e));
+		}
         var stageController = appController.getStageController("mainStage");
+        Mojo.Log.error("gotmainstage");
         var dashboardStageController = appController.getStageProxy("fsqDash");
+        
 
 		Mojo.Log.error("got controllers");
+		
+		
+		//handle sound settings
+	    this.cookieData=new Mojo.Model.Cookie("alert");
+		var credentials=this.cookieData.get();
+		var alerts=(credentials)? credentials: {type:"bounce",ringtone:"",file:""};
+		
+		var sound={};
+		Mojo.Log.error("alert type="+alerts.type);
+		switch(alerts.type){
+			case "system_sound":
+				sound.soundClass="notifications";
+				break;
+			case "ringtone":
+				sound.soundClass="notifications";
+				sound.soundFile=alerts.file;
+				sound.soundDuration=5000;
+				break;
+			case "vibrate":
+				sound.soundClass="vibrate";				
+				break;
+			case "bounce":
+				sound.soundClass="notifications";
+				sound.soundFile="bounce.mp3";
+				Mojo.Log.error("path="+sound.soundFile);
+				sound.soundDuration=1500;
+				break;
+		}
+		
 		if(stageController){
 			if(!stageController.isActiveAndHasScenes()){
 				Mojo.Log.error("no active scenes");
-				appController.showBanner(newitems.length+" New Check-ins", {action: "notification"});
+				var s=(newitems.length==1)? "":"s";
+				sound.messageText=newitems.length+" New Check-in"+s;
+
+				appController.showBanner(sound, {action: "notification"});
 				if(!dashboardStageController) {
             		Mojo.Log.error("New Dashboard Stage");
                 	var pushDashboard = function(stageController){
@@ -571,12 +703,15 @@ AppAssistant.prototype.doDashboard = function(){
                 	appController.createStageWithCallback({name: "fsqDash", lightweight: true}, pushDashboard, "dashboard");
             	}else {
                 	Mojo.Log.error("Existing Dashboard Stage");
-                	dashboardStageController.delegateToSceneAssistant("updateDashboard");
+                	dashboardStageController.delegateToSceneAssistant("updateDashboard",newitems);
             	}
             }
 		}else{
 				Mojo.Log.error("no mainstage");
-				appController.showBanner(newitems.length+" New Check-ins", {action: "notification"});
+				var s=(newitems.length==1)? "":"s";
+				sound.messageText=newitems.length+" New Check-in"+s;
+
+				appController.showBanner(sound, {action: "notification"});
 				if(!dashboardStageController) {
             		Mojo.Log.error("New Dashboard Stage");
                 	var pushDashboard = function(stageController){
@@ -585,11 +720,14 @@ AppAssistant.prototype.doDashboard = function(){
                 	appController.createStageWithCallback({name: "fsqDash", lightweight: true}, pushDashboard, "dashboard");
             	}else {
                 	Mojo.Log.error("Existing Dashboard Stage");
-                	dashboardStageController.delegateToSceneAssistant("updateDashboard");
+                	dashboardStageController.delegateToSceneAssistant("updateDashboard",newitems);
             	}
 		
 		}
 		Mojo.Log.error("done feed stuff");
+	}
+	else{
+		Mojo.Log.error("done feed stuff with no new ones");
 	}
 }
 

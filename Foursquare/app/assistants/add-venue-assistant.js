@@ -8,18 +8,19 @@ function AddVenueAssistant(a,ed,v) {
   }else{
   	this.bl="Add";
   }
+  this.refresh=true;
 }
 AddVenueAssistant.prototype.setup = function(widget) {
   this.widget = widget;
 
   // Setup button and event handler
-    this.controller.setupWidget("setCategory",
+ /*   this.controller.setupWidget("setCategory",
     this.attributes = {},
     this.catButtonModel = {
       buttonLabel: "Choose Category...",
       disabled: false
     }
-  );
+  );*/
   Mojo.Event.listen(this.controller.get('setCategory'), Mojo.Event.tap, this.categoryTapped.bindAsEventListener(this));
 
   this.controller.setupWidget("okButton",
@@ -48,7 +49,7 @@ AddVenueAssistant.prototype.setup = function(widget) {
 	this.controller.setupWidget('venue-city', this.cityAttributes = {hintText:'City',multiline:false,focus:false}, this.cityModel = {value:'', disabled:false});
 	this.controller.setupWidget('venue-zip', this.zipAttributes = {hintText:'Zip',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.zipModel = {value:'', disabled:false});
 	this.controller.setupWidget('venue-phone', this.phoneAttributes = {hintText:'Phone',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.phoneModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-twitter', this.twitterAttributes = {hintText:'Twitter Username',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.twitterModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-twitter', this.twitterAttributes = {hintText:'Twitter Username',multiline:false,focus:false}, this.twitterModel = {value:'', disabled:false});
 
 
 	this.catsmainAttributes={choices:[{label:'',value:'-1'}]};
@@ -141,7 +142,7 @@ AddVenueAssistant.prototype.activate = function() {
 	this.controller.get('venue-name').mojo.focus();
 	
 	//if we're proposing an edit to a venue, populate the fields
-	if(this.editing) {
+	if(this.editing && this.refresh) {
 		this.nameModel.value=this.venue.name;
 		this.controller.modelChanged(this.nameModel);
 
@@ -167,7 +168,7 @@ AddVenueAssistant.prototype.activate = function() {
 		this.controller.modelChanged(this.statemodel);
 		
 		this.controller.get("addvenue-header").innerHTML="Edit Venue";
-		
+		this.refresh=false;
 	}else{
 		Mojo.Log.error("trying to get addy...lat="+_globals.lat+", long="+_globals.long);
 		//try and get the reverse location...
@@ -430,6 +431,7 @@ AddVenueAssistant.prototype.loadSubSubCat = function(event) {
 
 AddVenueAssistant.prototype.categoryTapped = function(event){
 	//generate items list
+	this.refresh=false;
 	Mojo.Log.error("catlength="+_globals.categories.length);
 	this.controller.stageController.pushScene("categories",this);
 	
