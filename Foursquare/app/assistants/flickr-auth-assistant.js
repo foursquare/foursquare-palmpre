@@ -15,6 +15,7 @@ FlickrAuthAssistant.prototype.setup = function() {
     );
 
 	Mojo.Event.listen(this.controller.get("flickrWeb"),Mojo.Event.webViewTitleUrlChanged, this.handleWebUrl.bind(this));
+	Mojo.Event.listen(this.controller.get("tooltip"),Mojo.Event.tap, function(){this.controller.stageController.popScene("flickr-auth");}.bind(this));
 
 	
 	//gotta set up out app-sig first
@@ -95,7 +96,7 @@ FlickrAuthAssistant.prototype.getTokenSuccess = function(response) {
 		}
 	)
 
-	if(this.prevScene!=undefined){this.prevScene.controller.get("flickrInfo").innerHTML="Account: <b>"+this.username+"</b>";}
+	if(this.prevScene!=undefined){this.prevScene.controller.get("flickrInfo").innerHTML="<b>"+this.username+"</b>";}
 	this.controller.stageController.popScene("flickr-auth");
 }
 FlickrAuthAssistant.prototype.getTokenFailed = function(event) {

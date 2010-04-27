@@ -25,6 +25,7 @@ _globals.ammodel = {
 	visible: true,
 	items: [
 		{label: "Refresh", command: "do-Refresh"},
+		{label: "Search", command: "do-Search",disabled:true},
 		{label: "Preferences & Accounts", command: "do-Prefs"},
 		Mojo.Menu.editItem,
 		{label: "Check for Updates", command: "do-Update"},

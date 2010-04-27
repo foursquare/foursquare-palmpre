@@ -176,6 +176,7 @@ NearbyVenuesAssistant.prototype.setup = function() {
 
     _globals.firstLoad=false;
     _globals.ammodel.items[0].disabled=false;
+    _globals.ammodel.items[1].disabled=false;
 	this.controller.modelChanged(_globals.ammodel);
 	
 	//are we still trying to get better gps accuracy in the bg?
@@ -728,6 +729,13 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
                 	break;
                 case "do-Nothing":
                 	break;
+                case "do-Search":
+					this.searchShowing=true;
+					this.controller.get("sendField").show();
+					this.controller.get("sendField").mojo.focus();		
+					this.searchHasShown=true;
+
+                	break;
             }
         }
     }
@@ -874,7 +882,9 @@ NearbyVenuesAssistant.prototype.cleanup = function(event) {
 	_globals.onVenues=false;
 	//this.doc.removeEventListener("keyup");
  //   this.doc.removeEventListener("shaking");
-	
+    _globals.ammodel.items[1].disabled=true;
+	this.controller.modelChanged(_globals.ammodel);
+
 	Mojo.Event.stopListening(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler);
 	Mojo.Event.stopListening(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandler);
     this.doc.removeEventListener("keyup", this.keyUpHandler.bind(this), true);

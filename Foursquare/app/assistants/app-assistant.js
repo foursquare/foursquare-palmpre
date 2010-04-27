@@ -615,7 +615,7 @@ AppAssistant.prototype.doFeedData = function(data,r){
 					}else{
 					}			
 				}
-				if(!inarray && newfeed[f].ping){
+				if(!inarray && newfeed[f].ping && (newfeed[f].venue || newfeed[f].shout)){
 					newitems.push(newfeed[f]);
 					inarray=false;
 					Mojo.Log.error("checkin for %i is new (ping=%i)",newfeed[f].user.firstname,newfeed[f].ping);
@@ -731,7 +731,9 @@ AppAssistant.prototype.doDashboard = function(){
 	}
 }
 
-
+function logthis(str){
+	Mojo.Log.error(str);
+}
 
 
 

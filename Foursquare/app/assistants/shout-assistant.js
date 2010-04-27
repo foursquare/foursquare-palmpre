@@ -388,14 +388,20 @@ ShoutAssistant.prototype.doShout = function(extra) {
 
 ShoutAssistant.prototype.checkInSuccess = function(response) {
 	this.controller.get("okButtonShout").mojo.deactivate();
+	logthis("deactivated button");
 	this.tipModel.value="";
+	logthis("cleared tip");
 	this.fileName="";
+	logthis("cleared filename");
 	this.controller.get("img").src="";
+	logthis("cleared image");
 	this.hasPhoto=false;
-	this.fileName="";
+	logthis("hasimage=false");
+	
 	this.controller.get("img-preview").hide();
+	logthis("hidden image");
 	this.controller.get("photohostList").hide();
-	this.controller.get("listborder").hide();
+	logthis("hid photohosts");
 
 	this.controller.modelChanged(this.tipModel);
 	Mojo.Controller.getAppController().showBanner("Sent your shout to your friends!", {source: 'notification'});
@@ -403,7 +409,8 @@ ShoutAssistant.prototype.checkInSuccess = function(response) {
 }
 
 ShoutAssistant.prototype.checkInFailed = function(response) {
-	Mojo.Controller.getAppController().showBanner("Error sending your shout.", {source: 'notification'});
+	logthis(Object.toJSON(response));
+		Mojo.Controller.getAppController().showBanner("Error sending your shout.", {source: 'notification'});
 }
 
 
@@ -565,7 +572,9 @@ ShoutAssistant.prototype.attachImage = function(event) {
 	Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image'],'defaultKind':'image','onSelect':function(fn){
 		this.fileName=fn.fullPath;
 		this.hasPhoto=true;
-		this.controller.get("img").src=this.fileName;
+		var icon="/var/luna/data/extractfs"+encodeURIComponent(this.fileName)+":0:0:150:150:2"
+
+		this.controller.get("img").src=icon;
 		this.controller.get("img-preview").show();
 		this.controller.get("photohostList").show();
 		this.controller.get("listborder").show();

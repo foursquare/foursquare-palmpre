@@ -68,7 +68,7 @@ CheckinAssistant.prototype.setup = function() {
 	}
 
 	Mojo.Event.listen(this.controller.get('share-facebook'), Mojo.Event.tap, function(){
-	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+		Mojo.Log.error("before: stf: %i, stt: %i",this.stf,this.stt);
 		if(this.stf=="1"){
 			this.stf="0";
 			this.controller.get('share-facebook').removeClassName("pressed");
@@ -76,6 +76,7 @@ CheckinAssistant.prototype.setup = function() {
 			this.stf="1";
 			this.controller.get('share-facebook').addClassName("pressed");
 		}
+		Mojo.Log.error("after: stf: %i, stt: %i",this.stf,this.stt);
 	}.bindAsEventListener(this));
 
 	if(this.stt=="1"){
@@ -83,14 +84,15 @@ CheckinAssistant.prototype.setup = function() {
 	}
 
 	Mojo.Event.listen(this.controller.get('share-twitter'), Mojo.Event.tap, function(){
-	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
-		if(this.stt=="1"){
+		Mojo.Log.error("before: stf: %i, stt: %i",this.stf,this.stt);
+		if(this.controller.get('share-twitter').hasClassName("pressed")){
 			this.stt="0";
 			this.controller.get('share-twitter').removeClassName("pressed");
 		}else{
 			this.stt="1";
 			this.controller.get('share-twitter').addClassName("pressed");		
 		}
+		Mojo.Log.error("after: stf: %i, stt: %i",this.stf,this.stt);
 	}.bindAsEventListener(this));
 
 	this.controller.get("checkin-info").update("<b>"+this.venue.name+"</b><br/>"+this.venue.address);
@@ -336,9 +338,12 @@ CheckinAssistant.prototype.okTapped = function() {
 
 CheckinAssistant.prototype.attachImage = function(event) {
 	Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image'],'defaultKind':'image','onSelect':function(fn){
+		Mojo.Log.error(Object.toJSON(fn));
 		this.fileName=fn.fullPath;
 		this.hasPhoto=true;
-		this.controller.get("img").src=this.fileName;
+		var icon="/var/luna/data/extractfs"+encodeURIComponent(this.fileName)+":0:0:150:150:2"
+		Mojo.Log.error(icon);
+		this.controller.get("img").src=icon;
 		this.controller.get("img-preview").show();
 		this.controller.get("photorow").show();
 		this.controller.get("listborder").show();
