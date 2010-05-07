@@ -483,20 +483,23 @@ a.vtag,a.vtip-black {
 	border-bottom: #ccc !important;
 }
 
+.result.row.tip {
+	background-color: #fff;
+}
 .result.row.selected {
-  background: #8ebe1b url(../images/row-select.png) repeat-x left top;
+  background: #8ebe1b url(../images/row-select.png) repeat-x left top !important;
 }
 
 .result.row.selected.first {
-  background: #8ebe1b url(../images/row-select.png) repeat-x left top;
+  background: #8ebe1b url(../images/row-select.png) repeat-x left top !important;
 }
 
 .result.row.selected.single {
-  background: #8ebe1b url(../images/row-select.png) repeat-x left top;
+  background: #8ebe1b url(../images/row-select.png) repeat-x left top !important;
 }
 
 .result.row.selected.last, .list-item-add-button.selected {
-  background: #8ebe1b url(../images/row-select.png) repeat-x left top;
+  background: #8ebe1b url(../images/row-select.png) repeat-x left top !important;
 }
 .result.row.selected > div,.result.row.selected.first > div,.result.row.selected.single > div,.result.row.selected.last > div, .list-item-add-button.selected > div
  {

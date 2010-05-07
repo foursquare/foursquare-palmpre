@@ -230,7 +230,7 @@ AppAssistant.prototype.setWakeup = function() {
             method: "set",
             parameters: {
                 "key": "com.foursquare.foursquare.update",
-                "in": "00:30:00",
+                "in": "00:05:00",
                 "wakeup": true,
                 "uri": "palm://com.palm.applicationManager/open",
                 "params": {
@@ -261,6 +261,8 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
  
     var cardStageController = this.controller.getStageController("mainStage");
     var appController = Mojo.Controller.getAppController();
+
+    var dashStageController = this.controller.getStageController("dashboard");
     
     if (!launchParams) {
         // FIRST LAUNCH
@@ -285,9 +287,39 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
             //cardStageController.popScenesTo("feedList");
             cardStageController.activate();
         } else {
+        
             // Create a callback function to set up the new main stage
             // once it is done loading. It is passed the new stage controller
             // as the first parameter.
+            //if(dashStageController){
+            Mojo.Log.error("loading shit");
+            	//if(_globals.GPS){_globals.GPS.stop();_globals.GPS={};}
+      			//_globals.GPS = new Location(_globals.gotLocation);
+				_globals.GPS.restart();
+				var now=(new Date().getTime());
+				_globals.gpsStart=now;
+				logthis("here");
+				_globals.nearbyVenues=undefined;
+				_globals.reloadVenues=true;
+				_globals.userData={};
+				_globals.firstLoad=false; //////////////
+				_globals.gpsokay=true;
+				_globals.retryingGPS=false;
+				logthis("here now");
+				//also grab user settings in bg
+				var url = "http://api.foursquare.com/v1/user.json";
+				var request = new Ajax.Request(url, {
+				   method: 'get',
+				   evalJSON: 'true',
+				   requestHeaders: {Authorization:_globals.auth},
+				   onSuccess: this.userSuccess.bind(this),
+				   onFailure: this.userFailed.bind(this)
+				 });
+	
+	
+            //}
+            
+            
             var pushMainScene = function(stageController) {
 				this.cookieData=new Mojo.Model.Cookie("credentials");
 				var credentials=this.cookieData.get();
@@ -297,6 +329,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 					this.username=credentials.username;
 					_globals.swf=credentials.swf || "1";
 					Mojo.Log.error("swf="+_globals.swf);
+
 					_globals.auth=credentials.auth;
 					this.gpsdata=new Mojo.Model.Cookie("gpsdata");
 					var gps=this.gpsdata.get();
@@ -447,7 +480,9 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 			}
 			this.username=credentials.username;
 			_globals.auth=credentials.auth;
-			
+			_globals.username=credentials.username;
+
+
 			
 			this.gpsdata=new Mojo.Model.Cookie("gpsdata");
 			var gps=this.gpsdata.get();
@@ -470,6 +505,17 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 			   evalJSON: 'force',
 			   onSuccess: _globals.categorySuccess.bind(this),
 			   onFailure: _globals.categoryFailed.bind(this)
+			 });
+
+
+			//also grab user settings in bg
+			var url = "http://api.foursquare.com/v1/user.json";
+			var request = new Ajax.Request(url, {
+			   method: 'get',
+			   evalJSON: 'true',
+			   requestHeaders: {Authorization:_globals.auth},
+			   onSuccess: this.userSuccess.bind(this),
+			   onFailure: this.userFailed.bind(this)
 			 });
 
 
@@ -643,6 +689,7 @@ AppAssistant.prototype.doFeedData = function(data,r){
 	
 AppAssistant.prototype.doDashboard = function(){
 	Mojo.Log.error("dodashboard");
+
 	var newitems=this.newitems;
 	Mojo.Log.error("copied newitems");
 	if(newitems && newitems.length>0){
@@ -738,5 +785,32 @@ function logthis(str){
 
 
 
+AppAssistant.prototype.userSuccess = function(response){
+	logthis("user okay");
+	var uid=response.responseJSON.user.id;
+	var savetw=response.responseJSON.user.settings.sendtotwitter;
+	var savefb=response.responseJSON.user.settings.sendtofacebook;
+ 	var ping=_globals.swf; //response.responseJSON.user.settings.pings;
+	_globals.uid=uid;
+	
+	this.cookieData=new Mojo.Model.Cookie("credentials");
+	this.cookieData.put({
+		username: _globals.username,
+		password: "",
+		auth: _globals.auth,
+		uid: uid,
+		savetotwitter: savetw,
+		savetofacebook: savefb,
+		ping: ping,
+		cityid: 0,
+		city: ""
+	});
+
+
+}
+
+AppAssistant.prototype.userFailed = function(r){
+	logthis(r.responseText);
+}
 
 

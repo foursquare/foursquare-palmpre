@@ -132,6 +132,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 		}else{
 			Mojo.Log.error("waiting on GPS");
 			this.gpscheck=this.controller.window.setInterval(function(){
+				Mojo.Log.error("checking gps");
 				if(_globals.gotGPS){
 					Mojo.Log.error("got gps finally!");
 					_globals.firstLoad=true;

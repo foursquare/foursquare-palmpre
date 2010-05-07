@@ -17,6 +17,7 @@ function DashboardAssistant(feedlist) {
 }
  
 DashboardAssistant.prototype.setup = function() {
+	_globals.hasDashboard=true;
 	this.controller.document.body.style="background-color: #000;";
     this.displayDashboard(this.title, this.message, this.count);
     this.switchHandler = this.launchMain.bindAsEventListener(this);
@@ -33,6 +34,7 @@ DashboardAssistant.prototype.setup = function() {
  
 DashboardAssistant.prototype.cleanup = function() {
     // Release event listeners
+    _globals.hasDashboard=false;
     this.controller.stopListening("dashboardinfo", Mojo.Event.tap, this.switchHandler);
     Mojo.Event.stopListening(this.stageDocument, Mojo.Event.stageActivate,
         this.activateStageHandler);

@@ -467,6 +467,15 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		Mojo.Log.error("phone="+phone);
 
 
+	//venue category
+	if(response.responseJSON.venue.primarycategory){
+		var itm={};
+		itm.icon=response.responseJSON.venue.primarycategory.iconurl;
+		itm.caption=response.responseJSON.venue.primarycategory.nodename;
+		itm.action="";
+		this.info.push(itm);
+	}
+
 	var vinfo='';
 	var s=(totalcheckins != 1)? "s" :"";
 	if (totalcheckins>0) {

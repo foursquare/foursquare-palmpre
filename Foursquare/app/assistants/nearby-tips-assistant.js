@@ -6,10 +6,11 @@ NearbyTipsAssistant.prototype.setup = function() {
 	this.resultsModel = {items: [], listTitle: $L('Results')};
     
 	this.controller.setupWidget('results-tips-list', 
-					      {itemTemplate:'listtemplates/tipsItems',dividerTemplate: 'listtemplates/dividertemplate',dividerFunction: this.groupTips},
+					      {itemTemplate:'listtemplates/tipsItems',swipeToDelete: true,dividerTemplate: 'listtemplates/dividertemplate',dividerFunction: this.groupTips,preventDeleteProperty:'candelete'},
 					      this.resultsModel);
 
 	Mojo.Event.listen(this.controller.get('results-tips-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+	Mojo.Event.listen(this.controller.get('results-tips-list'),Mojo.Event.listDelete, this.listDelete.bind(this));
 
 	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
@@ -82,6 +83,21 @@ NearbyTipsAssistant.prototype.listWasTapped = function(event){
                         }.bind(this)
     });
 }
+
+NearbyTipsAssistant.prototype.listDelete = function(event){
+	var tip=event.item.id;
+		var url = 'http://api.foursquare.com/v1/tip/unmark.json';
+		var request = new Ajax.Request(url, {
+		   method: 'post',
+		   evalJSON: 'force',
+		   requestHeaders: {Authorization: _globals.auth},
+		   parameters: {tid: tip},
+		   onSuccess: this.unmarkTipSuccess.bind(this),
+		   onFailure: this.markTipFailed.bind(this)
+		 });
+
+}
+
 NearbyTipsAssistant.prototype.markTip = function(tip,how){
 		var url = 'http://api.foursquare.com/v1/tip/mark'+how+'.json';
 		var request = new Ajax.Request(url, {
@@ -98,6 +114,13 @@ NearbyTipsAssistant.prototype.markTipSuccess = function(response){
 		Mojo.Controller.getAppController().showBanner("Tip was marked!", {source: 'notification'});
 	}else{
 		Mojo.Controller.getAppController().showBanner("Error marking tip!", {source: 'notification'});
+	}
+}
+NearbyTipsAssistant.prototype.unmarkTipSuccess = function(response){
+	if(response.responseJSON.tip!=undefined){
+		Mojo.Controller.getAppController().showBanner("Tip was unmarked!", {source: 'notification'});
+	}else{
+		Mojo.Controller.getAppController().showBanner("Error unmarking tip!", {source: 'notification'});
 	}
 }
 NearbyTipsAssistant.prototype.markTipFailed = function(response){
@@ -159,6 +182,11 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 					this.tipsList[this.tipsList.length-1].distance=dist;
 					this.tipsList[this.tipsList.length-1].unit=unit;
 					this.tipsList[this.tipsList.length-1].grouping=grouping;
+					if(grouping=="Me"){
+						this.tipsList[this.tipsList.length-1].candelete=false;	
+					}else{
+						this.tipsList[this.tipsList.length-1].candelete=true;
+					}
 				}
 			}
 		}

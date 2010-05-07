@@ -174,6 +174,8 @@ NearbyVenuesAssistant.prototype.setup = function() {
 		}
 	}
 
+	this.controller.get("fakefield").focus(); //focuses a hidden field so the real search field doesn't double-type the first letter
+
     _globals.firstLoad=false;
     _globals.ammodel.items[0].disabled=false;
     _globals.ammodel.items[1].disabled=false;
