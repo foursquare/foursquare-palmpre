@@ -230,7 +230,7 @@ AppAssistant.prototype.setWakeup = function() {
             method: "set",
             parameters: {
                 "key": "com.foursquare.foursquare.update",
-                "in": "00:05:00",
+                "in": "00:30:00",
                 "wakeup": true,
                 "uri": "palm://com.palm.applicationManager/open",
                 "params": {
