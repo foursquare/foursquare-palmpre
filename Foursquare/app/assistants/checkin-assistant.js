@@ -537,6 +537,32 @@ CheckinAssistant.prototype.deactivate = function(event) {
 };
 
 CheckinAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
+	Mojo.Event.stopListening(this.controller.get('share-facebook'), Mojo.Event.tap, function(){
+		Mojo.Log.error("before: stf: %i, stt: %i",this.stf,this.stt);
+		if(this.stf=="1"){
+			this.stf="0";
+			this.controller.get('share-facebook').removeClassName("pressed");
+		}else{
+			this.stf="1";
+			this.controller.get('share-facebook').addClassName("pressed");
+		}
+		Mojo.Log.error("after: stf: %i, stt: %i",this.stf,this.stt);
+	}.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('share-twitter'), Mojo.Event.tap, function(){
+		Mojo.Log.error("before: stf: %i, stt: %i",this.stf,this.stt);
+		if(this.controller.get('share-twitter').hasClassName("pressed")){
+			this.stt="0";
+			this.controller.get('share-twitter').removeClassName("pressed");
+		}else{
+			this.stt="1";
+			this.controller.get('share-twitter').addClassName("pressed");		
+		}
+		Mojo.Log.error("after: stf: %i, stt: %i",this.stf,this.stt);
+	}.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost);
+	Mojo.Event.stopListening(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
 };

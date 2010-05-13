@@ -288,7 +288,15 @@ NearbyVenuesMapAssistant.prototype.deactivate = function(event) {
 }
 
 NearbyVenuesMapAssistant.prototype.cleanup = function(event) {
-	  // $("vmenu-caption").update(this.what);
+    Mojo.Event.stopListening(this.controller.get('venue-nearby'),"mousedown", function(){this.controller.get('venue-nearby').addClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('venue-nearby'),"mouseup", function(){this.controller.get('venue-nearby').removeClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('venue-nearby'),Mojo.Event.tap, function(){this.controller.stageController.popScene("nearby-venues-map");}.bind(this));
+
+   
+	Mojo.Event.stopListening(this.controller.document, 'gesturestart', this.handleGestureStart.bindAsEventListener(this), false);
+    Mojo.Event.stopListening(this.controller.document, 'gesturechange', this.handleGestureChange.bindAsEventListener(this), false);
+    Mojo.Event.stopListening(this.controller.document, 'gestureend', this.handleGestureEnd.bindAsEventListener(this), false);
+	Mojo.Event.stopListening(this.controller.get('vmenu'),Mojo.Event.tap, this.showMenu.bind(this));
 }
 
 

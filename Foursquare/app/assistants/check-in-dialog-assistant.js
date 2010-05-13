@@ -99,3 +99,8 @@ CheckInDialogAssistant.prototype.initData = function(checkinJSON) {
 CheckInDialogAssistant.prototype.okTappedCheckin = function() {
 	this.widget.mojo.close();
 };
+
+CheckInDialogAssistant.prototype.cleanup = function() {
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('okButtonCheckin'), Mojo.Event.tap, this.okTappedCheckin.bindAsEventListener(this));
+
+};

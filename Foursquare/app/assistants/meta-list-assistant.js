@@ -94,7 +94,9 @@ MetaListAssistant.prototype.banksFailed = function(response) {
 
 
 MetaListAssistant.prototype.showParking = function() {
-	var url='http://api.geoapi.com/v1/q?apikey=3KbTrN2r4h&pretty=1&q={%22lat%22:'+this.vgeolat+',%22lon%22:'+this.vgeolong+',%22entity%22:[{%22guid%22:null,%22name%22:null,%22geom%22:null,%22distance-from-origin%22:null,%22type%22:%22business%22,%22view.listing%22:{%22*%22:null,%22verticals%22:%22tourist-center:parking%22}}],%22radius%22:%221km%22,%22limit%22:20}';
+//	'{"lat":'+this.vgeolat+',"lon":'+this.vgeolong+',"entity":[{"guid":null,"name":null,"geom":null,"distance-from-origin":null,"type":"business","view.listing":{"*":null,"verticals":"tourist-center:parking"}}],"radius":"1km","limit":20}';
+	
+	var url='http://api.geoapi.com/v1/q?apikey=3KbTrN2r4h&pretty=1&q={"lat":'+this.vgeolat+',"lon":'+this.vgeolong+',"entity":[{"guid":null,"name":null,"geom":null,"distance-from-origin":null,"type":"business","view.listing":{"*":null,"verticals":"tourist-center:parking"}}],"radius":"1km","limit":20}';
 	var request = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'true',

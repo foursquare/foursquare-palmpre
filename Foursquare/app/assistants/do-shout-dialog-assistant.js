@@ -102,3 +102,8 @@ DoShoutDialogAssistant.prototype.tipFailed = function() {
 DoShoutDialogAssistant.prototype.cancelTappedShout = function() {
 	this.widget.mojo.close();
 }
+DoShoutDialogAssistant.prototype.cleanup = function() {
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('okButtonShout'), Mojo.Event.tap, this.okTappedShout.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('cancelButtonShout'), Mojo.Event.tap, this.cancelTappedShout.bindAsEventListener(this));
+
+}

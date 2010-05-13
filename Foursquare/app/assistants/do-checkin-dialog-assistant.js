@@ -90,3 +90,9 @@ DoCheckinDialogAssistant.prototype.tipFailed = function() {
 DoCheckinDialogAssistant.prototype.cancelTapped = function() {
 	this.widget.mojo.close();
 }
+
+DoCheckinDialogAssistant.prototype.cleanup = function() {
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
+
+}

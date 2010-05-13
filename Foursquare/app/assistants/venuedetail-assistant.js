@@ -360,6 +360,15 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		}
 		this.controller.get("mayorInfo").innerHTML=mInfo;
 		
+	}else{
+		this.controller.get("snapMayor").show();
+		this.controller.get("mayorPic").src='images/blank_boy.png';
+		this.controller.get("mayorName").innerHTML="No mayor yet!";
+		this.controller.get("mayorName").removeClassName("userlink");
+		this.controller.get("mayorPic").removeClassName("userlink");
+		this.controller.get("mayorPicBorder").removeClassName("userlink");
+		this.controller.get("mayorAvatar").removeClassName("userlink");
+		this.controller.get("mayorInfo").innerHTML="You could be the first!";
 	}
 	
 		//specials!
@@ -473,6 +482,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		itm.icon=response.responseJSON.venue.primarycategory.iconurl;
 		itm.caption=response.responseJSON.venue.primarycategory.nodename;
 		itm.action="";
+		itm.highlight="";
 		this.info.push(itm);
 	}
 
@@ -487,12 +497,14 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		itm.icon="images/marker_32.png";
 		itm.caption=totalcheckins+" Check-in"+s+" Here";
 		itm.action="";
+		itm.highlight="";
 		this.info.push(itm);
 
 		var itm={};
 		itm.icon="images/beenhere_32.png";
 		itm.caption=(beenhere)? "You've been here":"You've never been here";
 		itm.action="";
+		itm.highlight="";
 		this.info.push(itm);
 
 	}else{
@@ -502,6 +514,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		itm.icon="images/marker_32.png";
 		itm.caption="No one has checked-in here";
 		itm.action="";
+		itm.highlight="";
 		this.info.push(itm);
 	}
 	
@@ -510,12 +523,14 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		itm.icon="images/flag_32.png";
 		itm.caption="Flag This Place as 'Closed'";
 		itm.action="flagclosed";
+		itm.highlight="momentary";
 		this.info.push(itm);
 
 		var itm={};
 		itm.icon="images/edit_32.png";
 		itm.caption="Suggest an Edit";
 		itm.action="suggestedit";
+		itm.highlight="momentary";
 		this.info.push(itm);
 
 
@@ -527,6 +542,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		itm.caption="Twitter ("+twitter+")";
 		itm.action="url";
 		itm.url='http://twitter.com/'+twitter;
+		itm.highlight="momentary";
 		this.info.push(itm);
 	}
 
@@ -537,6 +553,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		itm.caption="Call ("+phone+")";
 		itm.action="url";
 		itm.url='tel://'+phone;
+		itm.highlight="momentary";
 		this.info.push(itm);
 	}
 
@@ -576,18 +593,21 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		itm.icon="images/photos_32.png";
 		itm.caption="Photos";
 		itm.action="photos";
+		itm.highlight="momentary";
 		this.info.push(itm);
 
 		var itm={};
 		itm.icon="images/banks_32.png";
 		itm.caption="Nearby Banks and ATMs";
 		itm.action="banks";
+		itm.highlight="momentary";
 		this.info.push(itm);
 
 		var itm={};
 		itm.icon="images/parking_32.png";
 		itm.caption="Nearby Parking";
 		itm.action="parking";
+		itm.highlight="momentary";
 		this.info.push(itm);
 
 	
@@ -603,6 +623,8 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	
 	//attach events to any new user links
 	var userlinks=zBar.getElementsByClassName(".userLink",this.controller.get("main-venuedetail"));
+	this.userlinks=userlinks;
+	this.ulinks_len=userlinks.length;
 	for(var e=0;e<userlinks.length;e++) {
 		var eid=userlinks[e].id;
 		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo);
@@ -614,6 +636,8 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 
 	//attach events to any new save tip links
 	var savetips=zBar.getElementsByClassName(".tipsave",this.controller.get("snapTips"));
+	this.savetips=savetips;
+	this.slinks_len=savetips.length;
 	for(var e=0;e<savetips.length;e++) {
 		var eid=savetips[e].id;
 		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.tipTapped);
@@ -622,6 +646,8 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	}
 
 	var donetips=zBar.getElementsByClassName(".tipdone",this.controller.get("snapTips"));
+	this.dlinks_len=donetips.length;
+	this.donetips=donetips;
 	for(var e=0;e<donetips.length;e++) {
 		var eid=donetips[e].id;
 		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.tipTapped);
@@ -1495,7 +1521,26 @@ VenuedetailAssistant.prototype.deactivate = function(event) {
 }
 
 VenuedetailAssistant.prototype.cleanup = function(event) {
-	  // zBar.render(zBar.oldBar,"venues");
+	Mojo.Event.stopListening(this.controller.get("checkinButton"),Mojo.Event.tap,this.promptCheckin.bind(this));
+	Mojo.Event.stopListening(this.controller.get("buttonAddTip"),Mojo.Event.tap, this.handleAddTip.bind(this));
+	Mojo.Event.stopListening(this.controller.get("buttonAddTodo"),Mojo.Event.tap, this.handleAddTodo.bind(this));
+ 	Mojo.Event.stopListening(this.controller.get("venueMap"),Mojo.Event.tap, this.showGoogleMaps.bind(this));
+	Mojo.Event.stopListening(this.controller.get("overlay-closer"),Mojo.Event.tap, function(){this.controller.get("docheckin-fields").hide();this.controller.get("overlay-content").innerHTML="";this.controller.get("meta-overlay").hide();}.bind(this));
+	Mojo.Event.stopListening(this.controller.get("tabButtons"), Mojo.Event.propertyChange, this.swapTabs.bind(this));
+	Mojo.Event.stopListening(this.controller.get('infoList'),Mojo.Event.listTap, this.infoTapped.bindAsEventListener(this));
+	for(var e=0;e<this.ulinks_len;e++) {
+		var eid=this.userlinks[e].id;
+		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo);
+	}
+	Mojo.Event.stopListening(this.controller.get("mayorAvatar"),Mojo.Event.tap,this.showUserInfo.bind(this));
+	for(var e=0;e<this.slinks_len;e++) {
+		var eid=this.savetips[e].id;
+		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.tipTapped);
+	}
+	for(var e=0;e<this.dlinks_len;e++) {
+		var eid=this.donetips[e].id;
+		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.tipTapped);
+	}
 }
 
 VenuedetailAssistant.prototype.okTapped = function() {

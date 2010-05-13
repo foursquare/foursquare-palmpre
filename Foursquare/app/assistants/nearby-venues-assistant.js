@@ -441,7 +441,7 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 	this.controller.get('message').innerHTML = '';
 		Mojo.Log.error(response.responseText);
 	
-	if (response.responseJSON == undefined || (response.responseText=='{"venues":null}')) {
+	if (response.responseJSON == undefined || (response.responseText=='{"venues":null}') || (response.responseText=='{"venues":[]}')) {
 		this.controller.get('message').innerHTML = 'No Results Found';
 		Mojo.Log.error("no results");
 		this.controller.get("spinnerId").mojo.stop();
@@ -484,6 +484,11 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 						this.venueList[this.venueList.length-1].peopleicon="on";
 					}else{
 						this.venueList[this.venueList.length-1].peopleicon="off";
+					}
+					
+					//handle ismayor
+					if(this.venueList[this.venueList.length-1].ismayor){
+						this.venueList[this.venueList.length-1].mayoricon='<img src="images/crown_smallgrey.png"/>';
 					}
 					
 					//handle empty category
@@ -613,7 +618,7 @@ NearbyVenuesAssistant.prototype.onKeyPressHandler = function(event) {
 	var char = String.fromCharCode(event.originalEvent.keyCode);
 	this.firstChar=char;
 	Mojo.Log.error("press keycode="+event.originalEvent.keyCode+", value="+this.textModel.value);
-	if(!this.searchShowing){
+	if(!this.searchShowing && !this.isdelete){
 		Mojo.Log.error("notshowing yet");
 		this.searchShowing=true;
 		this.controller.get("sendField").show();
@@ -631,6 +636,11 @@ NearbyVenuesAssistant.prototype.onKeyPressHandler = function(event) {
 NearbyVenuesAssistant.prototype.keyDownHandler = function(event) {
 	var char = String.fromCharCode(event.originalEvent.keyCode);
 	Mojo.Log.error("down keycode="+event.originalEvent.keyCode+", value="+this.textModel.value);
+	if(event.originalEvent.keyCode==8){
+		this.isdelete=true;
+	}else{
+		this.isdelete=false;
+	}
 	if(this.controller.get("sendField").mojo.getValue()==char){
 		event.stop();
 		Mojo.Log.error("stopped");
@@ -887,8 +897,44 @@ NearbyVenuesAssistant.prototype.cleanup = function(event) {
     _globals.ammodel.items[1].disabled=true;
 	this.controller.modelChanged(_globals.ammodel);
 
-	Mojo.Event.stopListening(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler);
+	/*Mojo.Event.stopListening(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler);
 	Mojo.Event.stopListening(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandler);
     this.doc.removeEventListener("keyup", this.keyUpHandler.bind(this), true);
+    this.doc.removeEventListener("shaking",this.handleShake.bind(this), true);*/
+
+
+
+
+
+
+
+
+
+	Mojo.Event.stopListening(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenuesSearch.bind(this));
+	Mojo.Event.stopListening(this.controller.get('venue-refresh'),"mousedown", function(){this.controller.get('venue-refresh').addClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('venue-refresh'),"mouseup", function(){this.controller.get('venue-refresh').removeClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('venue-refresh'),Mojo.Event.tap, this.hardRefresh.bind(this));
+
+	Mojo.Event.stopListening(this.controller.get('venue-map'),"mousedown", function(){this.controller.get('venue-map').addClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('venue-map'),"mouseup", function(){this.controller.get('venue-map').removeClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('venue-map'),Mojo.Event.tap, this.showMap.bind(this));
+
+	Mojo.Event.stopListening(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+	Mojo.Event.stopListening(this.controller.get('results-venue-list'),Mojo.Event.listDelete, this.listHideItem.bind(this));
+	Mojo.Event.stopListening(this.controller.get('results-venue-list'),Mojo.Event.listAdd, this.addNewVenue.bind(this));
+	this.controller.stopListening(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bindAsEventListener(this));
+	this.controller.stopListening(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandler.bindAsEventListener(this));
+	//this.controller.listen(this.controller.sceneElement, Mojo.Event.keyup, this.keyUpHandler.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('refresh-venues'),Mojo.Event.tap, this.refreshVenues.bind(this));
+    this.doc.removeEventListener("keyup", this.keyUpHandler.bind(this), true);
     this.doc.removeEventListener("shaking",this.handleShake.bind(this), true);
+    //this.doc.addEventListener(Mojo.Event.keypress, this.onKeyPressHandler.bind(this), true);
+	Mojo.Event.stopListening(this.controller.get('vmenu'),Mojo.Event.tap, this.showMenu.bind(this));
+	Mojo.Event.stopListening(this.controller.get('gotloc'),"handleit", this.gotLocation.bind(this));
+	Mojo.Event.stopListening(this.controller.get('gotloc'),"showrefresh", this.showRefresh.bind(this));
+	Mojo.Event.stopListening(this.controller.get('gotloc'),"gaveup", this.hideRetryBanner.bind(this));
+	Mojo.Event.stopListening(this.controller.get('gotlocagain'),"handleit", this.gotLocationAgain.bind(this));
+	Mojo.Event.stopListening(this.controller.get('retryloc'),"handleit", this.loadVenues.bind(this));
+
+
 }

@@ -187,6 +187,9 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 					}else{
 						this.tipsList[this.tipsList.length-1].candelete=true;
 					}
+					if(this.tipsList[this.tipsList.length-1].user.id==_globals.uid){
+						this.tipsList[this.tipsList.length-1].candelete=false;	
+					}
 				}
 			}
 		}
@@ -271,4 +274,6 @@ NearbyTipsAssistant.prototype.deactivate = function(event) {
 }
 
 NearbyTipsAssistant.prototype.cleanup = function(event) {
+	Mojo.Event.stopListening(this.controller.get('results-tips-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+	Mojo.Event.stopListening(this.controller.get('results-tips-list'),Mojo.Event.listDelete, this.listDelete.bind(this));
 }

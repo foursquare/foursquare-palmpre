@@ -31,4 +31,5 @@ WhatsNewDialogAssistant.prototype.tipokTapped = function() {
 
 WhatsNewDialogAssistant.prototype.cleanup = function() {
 		Mojo.Controller.getAppController().showBanner("To search, just start typing!", {source: 'notification'});
+		  Mojo.Event.stopListening(this.sceneAssistant.controller.get('tipokButton'), Mojo.Event.tap, this.tipokTapped.bindAsEventListener(this));
 }

@@ -7,6 +7,9 @@ _globals.db = new Mojo.Depot({name:"feed"}, function(){Mojo.Log.error("depot OK"
 
 //_globals.db.discard("feed");
 
+_globals.interval="00:30:00";
+//_globals.interval="00:05:00";
+
 _globals.onVenues=false;
 _globals.retryingGPS=false;
 _globals.hiddenVenues=[];
@@ -175,7 +178,7 @@ _globals.categorySuccess = function(r) {
 
 
 function AppAssistant() {
-	
+
 }
 
 AppAssistant.prototype.setup = function() {
@@ -230,11 +233,11 @@ AppAssistant.prototype.setWakeup = function() {
             method: "set",
             parameters: {
                 "key": "com.foursquare.foursquare.update",
-                "in": "00:30:00",
+                "in": _globals.interval,
                 "wakeup": true,
                 "uri": "palm://com.palm.applicationManager/open",
                 "params": {
-                    "id": "com.foursquare.foursquare",
+                    "id": Mojo.appInfo.id,
                     "params": {"action": "feedUpdate"}
                 }
             },
@@ -388,6 +391,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 			if(credentials){
 				_globals.auth=credentials.auth;
 				_globals.uid=credentials.uid;
+				_globals.swf=credentials.swf || "1";
 			}
 			/*var gpsdata=_globals.GPS.get();
 			_globals.lat=gpsdata.latitude;
@@ -477,6 +481,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 			if(credentials){
 				_globals.auth=credentials.auth;
 				_globals.uid=credentials.uid;
+				_globals.swf=credentials.swf || "1";
 			}
 			this.username=credentials.username;
 			_globals.auth=credentials.auth;

@@ -132,5 +132,5 @@ CheckinResultAssistant.prototype.deactivate = function(event) {
 }
 
 CheckinResultAssistant.prototype.cleanup = function(event) {
-	 //  zBar.showToolbar();
+	Mojo.Event.stopListening(this.controller.get('okButtonCheckin'), Mojo.Event.tap, this.okTappedCheckin.bindAsEventListener(this));
 }

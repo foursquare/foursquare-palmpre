@@ -118,6 +118,7 @@ PhotosAssistant.prototype.flickrSuccess = function(response) {
 			html.update(html.innerHTML+'<img src="'+url+'" id="flickr'+i+'" class="flickr-pic" width="80" link="'+link+'"/> ');
 		}
 
+		this.flickr_len=j.photos.photo.length;
 		for(var i=0;i<j.photos.photo.length;i++) {
 			Mojo.Event.listen(this.controller.get("flickr"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
 		}
@@ -165,6 +166,7 @@ PhotosAssistant.prototype.flickrNearbySuccess = function(response) {
 			html.update(html.innerHTML+'<img src="'+url+'" id="flickrnearby'+i+'" class="flickr-pic" width="80" link="'+link+'"/> ');
 		}
 
+		this.flickrn_len=j.photos.photo.length;
 		for(var i=0;i<j.photos.photo.length;i++) {
 			Mojo.Event.listen(this.controller.get("flickrnearby"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
 		}
@@ -204,6 +206,7 @@ PhotosAssistant.prototype.tweetPhotoSuccess = function(r) {
 					html.update(html.innerHTML+'<img src="'+tn+'" id="tweetphoto'+p+'" class="flickr-pic" width="80" link="'+url+'"/> ');
 				}
 			
+				this.tp_len=pics.length;
 				for(var p=0;p<pics.length;p++){
 					Mojo.Event.listen(this.controller.get("tweetphoto"+p),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
 				}
@@ -251,6 +254,7 @@ PhotosAssistant.prototype.pikchurSuccess = function(r) {
 				html.update(html.innerHTML+'<img src="'+tn+'" id="pikchur'+p+'" class="flickr-pic" width="80" link="'+url+'"/> ');
 			}
 			
+			this.pikchur_len=pics.length;
 			for(var p=0;p<pics.length;p++){
 				Mojo.Event.listen(this.controller.get("pikchur"+p),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
 			}
@@ -292,4 +296,20 @@ PhotosAssistant.prototype.deactivate = function(event) {
 PhotosAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
+
+
+	Mojo.Event.stopListening(this.controller.get("buttonUpload"),Mojo.Event.tap, this.tryflickrUpload.bind(this));
+	for(var p=0;p<this.pikchur_len;p++){
+		Mojo.Event.stopListening(this.controller.get("pikchur"+p),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+	}
+	for(var p=0;p<this.tp_len;p++){
+		Mojo.Event.stopListening(this.controller.get("tweetphoto"+p),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+	}
+	for(var i=0;i<this.flickrn_len;i++) {
+		Mojo.Event.stopListening(this.controller.get("flickrnearby"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+	}
+	for(var i=0;i<this.flickr_len;i++) {
+		Mojo.Event.stopListening(this.controller.get("flickr"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+	}
+
 };

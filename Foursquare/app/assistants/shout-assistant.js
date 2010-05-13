@@ -80,7 +80,7 @@ ShoutAssistant.prototype.setup = function() {
 
 	if(Mojo.Environment.DeviceInfo.touchableRows < 8)
 	{
-	   this.controller.get("docheckingroup").style.minHeight="247px;";
+	   this.controller.get("docheckingroup").style.minHeight="275px;"; //247
 	}
 	else{
 	   this.controller.get("docheckingroup").style.minHeight="327px"; //372
@@ -607,4 +607,30 @@ ShoutAssistant.prototype.deactivate = function(event) {
 }
 
 ShoutAssistant.prototype.cleanup = function(event) {
+  Mojo.Event.stopListening(this.controller.get('okButtonShout'), Mojo.Event.tap, this.okTappedShout.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost);
+	Mojo.Event.stopListening(this.controller.get('share-facebook'), Mojo.Event.tap, function(){
+	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+		if(this.stf=="1"){
+			this.stf="0";
+			this.controller.get('share-facebook').removeClassName("pressed");
+		}else{
+			this.stf="1";
+			this.controller.get('share-facebook').addClassName("pressed");
+		}
+	}.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('share-twitter'), Mojo.Event.tap, function(){
+	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+		if(this.stt=="1"){
+			this.stt="0";
+			this.controller.get('share-twitter').removeClassName("pressed");
+		}else{
+			this.stt="1";
+			this.controller.get('share-twitter').addClassName("pressed");		
+		}
+	}.bindAsEventListener(this));
 }

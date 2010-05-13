@@ -50,7 +50,7 @@ FriendsListAssistant.prototype.setup = function() {
 	this.controller.setupWidget('sendField', this.textFieldAtt, this.textModel);
     
 	this.controller.setupWidget('results-friends-list', 
-					      {itemTemplate:'listtemplates/friendItems',dividerTemplate: 'listtemplates/dividertemplate'},
+					      {itemTemplate:'listtemplates/friendItems',dividerFunction: this.groupVenues,dividerTemplate: 'listtemplates/dividertemplate'},
 					      this.resultsModel);
 
 	this.buttonModel1 = {
@@ -173,6 +173,9 @@ function make_base_auth(user, pass) {
   var tok = user + ':' + pass;
   var hash = Base64.encode(tok);
   return "Basic " + hash;
+}
+FriendsListAssistant.prototype.groupVenues = function(data){
+	return data.grouping;
 }
 
 FriendsListAssistant.prototype.getFriends = function() {
@@ -719,6 +722,7 @@ FriendsListAssistant.prototype.feedSuccess = function(response) {
 				this.feedList[f].at=(response.responseJSON.checkins[f].venue != undefined)? "@ ": "";
 				this.feedList[f].geolat=(response.responseJSON.checkins[f].venue != undefined)? response.responseJSON.checkins[f].venue.geolat: "";
 				this.feedList[f].geolong=(response.responseJSON.checkins[f].venue != undefined)? response.responseJSON.checkins[f].venue.geolong: "";
+				
 				this.feedList[f].shout=(response.responseJSON.checkins[f].shout != undefined)? "\n"+response.responseJSON.checkins[f].shout: "";
 				var urlmatch=/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
 				this.feedList[f].shout=this.feedList[f].shout.replace(urlmatch,'<a href="$1" class="listlink">$1</a>');
@@ -731,6 +735,19 @@ FriendsListAssistant.prototype.feedSuccess = function(response) {
 					var later = new Date(response.responseJSON.checkins[f].created);
 					var offset = later.getTime() - now.getTime();
 					this.feedList[f].when=this.relativeTime(offset) + " ago";
+					
+					//group this based on time
+					var minsago=(Math.abs(offset)/1000)/60;
+					logthis("minsago="+minsago);
+					if(minsago<=180){
+						this.feedList[f].grouping="Recently";
+					}else if(minsago>180 && later.getMonth()==now.getMonth() && later.getDate()==now.getDate()){
+						this.feedList[f].grouping="Earlier Today";
+					}else if((Math.abs(offset)/1000)/86400>30){ //more than 30 days ago
+						this.feedList[f].grouping="A Long, Long Time Ago...";
+					}else{
+						this.feedList[f].grouping="Older";
+					}
 				}else{
 					this.feedList[f].when="";
 				}
@@ -899,4 +916,27 @@ FriendsListAssistant.prototype.deactivate = function(event) {
 }
 
 FriendsListAssistant.prototype.cleanup = function(event) {
+	Mojo.Event.stopListening(this.controller.get('go_button'),Mojo.Event.tap, this.onSearchFriends.bind(this));
+	Mojo.Event.stopListening(this.controller.get('go_twitter_button'),Mojo.Event.tap, this.onSearchTwitterFriends.bind(this));
+	Mojo.Event.stopListening(this.controller.get('fmenu'),Mojo.Event.tap, this.showMenu.bind(this));
+//	Mojo.Event.listen(this.controller.get('results-friends-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+//	Mojo.Event.listen(this.controller.get('friend-refresh'),"mousedown", function(){this.controller.get('friend-refresh').addClassName("pressed");}.bind(this));
+//	Mojo.Event.listen(this.controller.get('friend-refresh'),"mouseup", function(){this.controller.get('friend-refresh').removeClassName("pressed");}.bind(this));
+//	Mojo.Event.listen(this.controller.get('friend-refresh'),Mojo.Event.tap, this.hardRefresh.bind(this));
+
+	Mojo.Event.stopListening(this.controller.get('friend-shout'),"mousedown", function(){this.controller.get('friend-shout').addClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('friend-shout'),"mouseup", function(){this.controller.get('friend-shout').removeClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('friend-shout'),Mojo.Event.tap, this.doShout.bind(this));
+
+
+
+	Mojo.Event.stopListening(this.controller.get('mainfeed'),Mojo.Event.tap, this.hardRefresh.bind(this));
+
+	Mojo.Event.stopListening(this.controller.get('friend-map'),"mousedown", function(){this.controller.get('friend-map').addClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('friend-map'),"mouseup", function(){this.controller.get('friend-map').removeClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('friend-map'),Mojo.Event.tap, this.showMap.bind(this));
+    this.doc.removeEventListener("shaking",this.handleShake.bind(this), true);
+	this.controller.stopListening(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bindAsEventListener(this));
+	this.controller.stopListening(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandler.bindAsEventListener(this));
+    this.doc.removeEventListener("keyup", this.keyUpHandler.bind(this), true);
 }

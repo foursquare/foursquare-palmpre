@@ -59,3 +59,9 @@ FriendSearchDialogAssistant.prototype.twitterTapped = function() {
 FriendSearchDialogAssistant.prototype.cancelTapped = function() {
 	this.widget.mojo.close();
 }
+
+FriendSearchDialogAssistant.prototype.cleanup = function() {
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('searchButton'), Mojo.Event.tap, this.searchTapped.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('twitterButton'), Mojo.Event.tap, this.twitterTapped.bindAsEventListener(this));
+
+}

@@ -124,6 +124,8 @@ FlickrAuthAssistant.prototype.cleanup = function(event) {
 	   		onFailure: this.getTokenFailed.bind(this)
 	 	});
 
-	   
+	   	Mojo.Event.stopListening(this.controller.get("flickrWeb"),Mojo.Event.webViewTitleUrlChanged, this.handleWebUrl.bind(this));
+		Mojo.Event.stopListening(this.controller.get("tooltip"),Mojo.Event.tap, function(){this.controller.stageController.popScene("flickr-auth");}.bind(this));
+
 	  // zBar.showToolbar();
 }

@@ -389,6 +389,10 @@ AddVenueAssistant.prototype.cancelTapped = function() {
 
 AddVenueAssistant.prototype.cleanup = function(event) {
 	//zBar.showToolbar();
+  Mojo.Event.stopListening(this.controller.get('setCategory'), Mojo.Event.tap, this.categoryTapped.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
+
 }
 
 AddVenueAssistant.prototype.loadSubCat = function(event) {

@@ -178,6 +178,7 @@ CategoriesAssistant.prototype.deactivate = function(event) {
 };
 
 CategoriesAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
+	Mojo.Event.stopListening(this.controller.get('categoryBack'), Mojo.Event.tap, this.goBack.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('categorySelect'), Mojo.Event.tap, this.useCat.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('categories-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 };

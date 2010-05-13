@@ -58,7 +58,7 @@ Mojo.Log.error("oktapped");
 
 AddTipDialogAssistant.prototype.tipSuccess = function() {
 	Mojo.Controller.getAppController().showBanner("Successfully added your "+this.type+"!", {source: 'notification'});
-	this.sceneAssistant.controller.get("okButton").mojo.deactivate();
+	//this.sceneAssistant.controller.get("okButton").mojo.deactivate();
 	this.sceneAssistant.getVenueInfo();
 	this.widget.mojo.close();
 }
@@ -69,4 +69,10 @@ AddTipDialogAssistant.prototype.tipFailed = function() {
 }
 AddTipDialogAssistant.prototype.cancelTapped = function() {
 	this.widget.mojo.close();
+}
+
+AddTipDialogAssistant.prototype.cleanup = function() {
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('tipokButton'), Mojo.Event.tap, this.tipokTapped.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
+
 }

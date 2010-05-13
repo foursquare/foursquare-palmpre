@@ -122,6 +122,5 @@ DupeVenueAssistant.prototype.deactivate = function(event) {
 };
 
 DupeVenueAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
+	Mojo.Event.stopListening(this.sceneAssistant.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 };

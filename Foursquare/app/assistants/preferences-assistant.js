@@ -234,11 +234,11 @@ PreferencesAssistant.prototype.handleNotifs = function(event) {
 	            method: "set",
 	            parameters: {
 	                "key": "com.foursquare.foursquare.update",
-	                "in": "00:30:00",
+	                "in": _globals.interval,
 	                "wakeup": true,
 	                "uri": "palm://com.palm.applicationManager/open",
 	                "params": {
-	                    "id": "com.foursquare.foursquare",
+	                    "id": Mojo.appInfo.id,
 	                    "params": {"action": "feedUpdate"}
 	                }
 	            },
@@ -305,5 +305,12 @@ PreferencesAssistant.prototype.deactivate = function(event) {
 }
 
 PreferencesAssistant.prototype.cleanup = function(event) {
-	//   zBar.showToolbar();
+	Mojo.Event.stopListening(this.controller.get("fsq-account-row"), Mojo.Event.tap, this.onLoginTapped.bind(this));
+	Mojo.Event.stopListening(this.controller.get("ringtone-select"), Mojo.Event.tap, this.chooseRingtone.bind(this));
+	Mojo.Event.stopListening(this.controller.get("flickr-account-row"), Mojo.Event.tap, this.onFlickrTapped.bind(this));
+	Mojo.Event.stopListening(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSlider.bind(this));
+	Mojo.Event.stopListening(this.controller.get("numVenuesPicker"), Mojo.Event.propertyChange, this.handleNumPicker.bind(this));
+	Mojo.Event.stopListening(this.controller.get("units"), Mojo.Event.propertyChange, this.handleUnits.bind(this));
+	Mojo.Event.stopListening(this.controller.get("alert-type"), Mojo.Event.propertyChange, this.handleAlertType.bind(this));
+	Mojo.Event.stopListening(this.controller.get("chkNotifications"), Mojo.Event.propertyChange, this.handleNotifs.bind(this));
 }

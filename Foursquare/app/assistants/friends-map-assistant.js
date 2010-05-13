@@ -294,4 +294,12 @@ FriendsMapAssistant.prototype.deactivate = function(event) {
 }
 
 FriendsMapAssistant.prototype.cleanup = function(event) {
+    Mojo.Event.stopListening(this.controller.get('friend-feed'),"mousedown", function(){this.controller.get('friend-feed').addClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('friend-feed'),"mouseup", function(){this.controller.get('friend-feed').removeClassName("pressed");}.bind(this));
+	Mojo.Event.stopListening(this.controller.get('friend-feed'),Mojo.Event.tap, function(){this.controller.stageController.popScene("friends-map");}.bind(this));
+
+
+    Mojo.Event.stopListening(this.controller.document, 'gesturestart', this.handleGestureStart.bindAsEventListener(this), false);
+    Mojo.Event.stopListening(this.controller.document, 'gesturechange', this.handleGestureChange.bindAsEventListener(this), false);
+    Mojo.Event.stopListening(this.controller.document, 'gestureend', this.handleGestureEnd.bindAsEventListener(this), false);
 }

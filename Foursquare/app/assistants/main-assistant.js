@@ -70,90 +70,122 @@ function make_base_auth(user, pass) {
   _globals.auth="Basic " + hash;
   return "Basic " + hash;
 }
+MainAssistant.prototype.callInProgress = function(xmlhttp) {
+	switch (xmlhttp.readyState) {
+		case 1: case 2: case 3:
+			return true;
+			break;
+		// Case 4 and 0
+		default:
+			return false;
+			break;
+	}
+}
+
 
 MainAssistant.prototype.login = function(uname, pass){
  
 	var url = "http://api.foursquare.com/v1/user.json";
-	
+	//var url="http://192.168.1.141/user.json"; //use this to test server being down
 	auth = (this.expressLogin)? _globals.auth: make_base_auth(uname, pass);
+	//this.timeout=this.controller.window.setTimeout(this.connectionTimedOut.bindAsEventListener(this),5000);
 	
 	this.controller.get('signupbutton').hide();
 	
 	this.controller.get('message').innerHTML = '<br/>Logging <b>'+uname+'</b> in to Foursquare... <div class="small-text">Getting location...</div>';
 	
-	var request = new Ajax.Request(url, {
+	this.request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'true',
 	   requestHeaders: {Authorization:auth},
 	   onSuccess: this.loginRequestSuccess.bind(this),
-	   onFailure: this.loginRequestFailed.bind(this)
+	   onFailure: this.loginRequestFailed.bind(this,false),
+	   onCreate: function(request){
+			this.timeout=this.controller.window.setTimeout(function(){
+		   		if(this.callInProgress(request.transport)){
+		   			request.transport.abort();
+		   			this.loginRequestFailed(request.transport,true);	
+		   		}			
+			}.bind(this),7000);
+	   }.bind(this)
 	 });
 }
 
 var userData;
 
 MainAssistant.prototype.loginRequestSuccess = function(response) {
-	userData = response.responseJSON.user;
-	var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
-	this.controller.get('message').innerHTML = '<br/>' + disp;
-	var uid=response.responseJSON.user.id;
-	var savetw=response.responseJSON.user.settings.sendtotwitter;
-	var savefb=response.responseJSON.user.settings.sendtofacebook;
- 	var ping=_globals.swf; //response.responseJSON.user.settings.pings;
-	_globals.uid=uid;
-	_globals.username=this.username;
-	_globals.password=this.password;
-	_globals.city="";//city;
-
-	this.cookieData=new Mojo.Model.Cookie("credentials");
-	this.cookieData.put({
-		username: this.username,
-		password: "",
-		auth: auth,
-		uid: uid,
-		savetotwitter: savetw,
-		savetofacebook: savefb,
-		ping: ping,
-		cityid: 0,
-		city: ""
-	});
-	this.loggedIn=true;
-	if(this.fromPrefs){
-		_globals.reloadVenues=true;
-		_globals.reloadFriends=true;
-		_globals.reloadTips=true;
-		
-		this.controller.stageController.popScene('preferences');
-		this.controller.stageController.popScene('main');
-	}else{
-		if(_globals.gotGPS){
-			_globals.firstLoad=true;
-			this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
-		}else{
-			Mojo.Log.error("waiting on GPS");
-			this.gpscheck=this.controller.window.setInterval(function(){
-				Mojo.Log.error("checking gps");
-				if(_globals.gotGPS){
-					Mojo.Log.error("got gps finally!");
-					_globals.firstLoad=true;
-					this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
-				}
-			}.bind(this),200);
-			this.controller.get('message').innerHTML+='<div class="small-text">Getting location...</div>';
-		}
+logthis("complete: "+response.status);
+	if(response.status!=0){
+		this.controller.window.clearTimeout(this.timeout);
+		userData = response.responseJSON.user;
+		var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
+		this.controller.get('message').innerHTML = '<br/>' + disp;
+		var uid=response.responseJSON.user.id;
+		var savetw=response.responseJSON.user.settings.sendtotwitter;
+		var savefb=response.responseJSON.user.settings.sendtofacebook;
+	 	var ping=_globals.swf; //response.responseJSON.user.settings.pings;
+		_globals.uid=uid;
+		_globals.username=this.username;
+		_globals.password=this.password;
+		_globals.city="";//city;
 	
+		this.cookieData=new Mojo.Model.Cookie("credentials");
+		this.cookieData.put({
+			username: this.username,
+			password: "",
+			auth: auth,
+			uid: uid,
+			savetotwitter: savetw,
+			savetofacebook: savefb,
+			ping: ping,
+			cityid: 0,
+			city: ""
+		});
+		this.loggedIn=true;
+		if(this.fromPrefs){
+			_globals.reloadVenues=true;
+			_globals.reloadFriends=true;
+			_globals.reloadTips=true;
+			
+			this.controller.stageController.popScene('preferences');
+			this.controller.stageController.popScene('main');
+		}else{
+			if(_globals.gotGPS){
+				_globals.firstLoad=true;
+				this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
+			}else{
+				Mojo.Log.error("waiting on GPS");
+				this.gpscheck=this.controller.window.setInterval(function(){
+					Mojo.Log.error("checking gps");
+					if(_globals.gotGPS){
+						Mojo.Log.error("got gps finally!");
+						_globals.firstLoad=true;
+						this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
+					}
+				}.bind(this),200);
+				this.controller.get('message').innerHTML+='<div class="small-text">Getting location...</div>';
+			}
+		
+		}
+	}else{
+		this.loginRequestFailed(response,true);
 	}
 }
+MainAssistant.prototype.connectionTimedOut = function() {
+	//this.request.abort();
+};
 
-MainAssistant.prototype.loginRequestFailed = function(response) {
+MainAssistant.prototype.loginRequestFailed = function(response,timeout) {
 	auth = undefined;
 	this.controller.get('main').style.background="";
 	this.controller.get("loginfields").style.visibility="visible";
 	var msg="";
-	if(response.responseJSON.ratelimited != undefined) {
-		msg="Rate-limited. Try again later.";
-	}else{
-		msg='Login Failed... Try Again';
+	if(response.responseJSON != undefined){
+		if(response.responseJSON.ratelimited != undefined) {
+			msg="Rate-limited. Try again later.";
+		}else{
+			msg='Login Failed... Try Again';
+		}
 	}
 	var eauth=_globals.auth.replace("Basic ","");
 	var plaintext=Base64.decode(eauth);
@@ -165,7 +197,13 @@ MainAssistant.prototype.loginRequestFailed = function(response) {
 	this.passwordModel.value=pw;
 	this.controller.modelChanged(this.usernameModel);
 	this.controller.modelChanged(this.passwordModel);
-	this.controller.get('message').innerHTML = msg;
+
+	if(timeout){
+		msg='Foursquare appears to be down. Try again later.<br/><a href="http://m.twitter.com/foursquare">Check @foursquare on Twitter for Status</a>';
+	}
+	this.controller.window.clearInterval(this.gpscheck);
+	this.controller.get('message').innerHTML = "<br/><br/>"+msg;
+
 }
 
 		

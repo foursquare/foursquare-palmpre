@@ -414,5 +414,6 @@ FlickrUploadAssistant.prototype.deactivate = function(event) {
 }
 
 FlickrUploadAssistant.prototype.cleanup = function(event) {
-	   zBar.showToolbar();
+		Mojo.Event.stopListening(this.controller.get("uploadButton"),Mojo.Event.tap, this.doUpload.bind(this));
+		Mojo.Event.stopListening(this.controller.get("chooseButton"),Mojo.Event.tap, this.choosePhoto.bind(this));
 }

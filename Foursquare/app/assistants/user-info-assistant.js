@@ -366,6 +366,7 @@ Mojo.Log.error("handled pings");
 		this.controller.get("badges-box").innerHTML=o+"</table>";
 		
 		//hook tooltip event to each badge
+		this.badges_len=j.user.badges.length;
 		for(var b=0;b<j.user.badges.length;b++){
 			Mojo.Event.listen(this.controller.get('badge-'+b),Mojo.Event.tap, this.showBadgeTip.bind(this));
 		}
@@ -559,6 +560,7 @@ UserInfoAssistant.prototype.approveSuccess = function(response) {
 	if(response.responseJSON.user != undefined) {
 		Mojo.Controller.getAppController().showBanner("Friend request approved!", {source: 'notification'});
 		//this.controller.get("friend_button").innerHTML='You\'re Friends!';
+		this.controller.stageController.swapScene("user-info",this.auth,this.uid,this.prevScene,this.fromFriends);
 	}else{
 		Mojo.Controller.getAppController().showBanner("Error approving friend request", {source: 'notification'});
 	}
@@ -875,7 +877,17 @@ UserInfoAssistant.prototype.deactivate = function(event) {
 }
 
 UserInfoAssistant.prototype.cleanup = function(event) {
-	 if(this.fromFriends){
-	// 	zBar.render("main","friends");
-	 }
+	Mojo.Event.stopListening(this.controller.get('mayorshipList'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+	Mojo.Event.stopListening(this.controller.get('checkinHistory'),Mojo.Event.listTap, this.historyListWasTapped.bind(this));
+
+	Mojo.Event.stopListening(this.controller.get('user-mayorinfo'),Mojo.Event.tap, this.showMayorInfo.bind(this));
+	Mojo.Event.stopListening(this.controller.get('user-badgeinfo'),Mojo.Event.tap, this.showBadgeInfo.bind(this));
+	Mojo.Event.stopListening(this.controller.get("tabButtons"), Mojo.Event.propertyChange, this.handleTabs.bind(this));
+	Mojo.Event.stopListening(this.controller.get('friendsList'),Mojo.Event.listTap, this.friendTapped.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('friendsResultsList'),Mojo.Event.listTap, this.friendTapped.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('infoList'),Mojo.Event.listTap, this.infoTapped.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('friendsList'),Mojo.Event.listAdd, this.addFriends.bind(this));
+	for(var b=0;b<this.badges_len;b++){
+		Mojo.Event.stopListening(this.controller.get('badge-'+b),Mojo.Event.tap, this.showBadgeTip.bind(this));
+	}
 }
