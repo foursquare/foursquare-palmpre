@@ -642,6 +642,7 @@ a.vtag,a.vtip-black {
 	margin: 0px;
 	padding: 2px;
 	font-size: 16px;
+	margin-top: 4px;
 
 }
 .checkin-special-title {
@@ -651,6 +652,23 @@ a.vtag,a.vtip-black {
 	font-style: italic;
 	line-height: 22px;
 }
+.special-locked {
+	font-size: 15px;
+	height: 22px;
+	color: #002337;
+	padding-left: 25px;
+	margin-top: 3px;
+	background: url(../images/special_locked.png) no-repeat left top;
+}
+.special-unlocked {
+	font-size: 15px;
+	height: 22px;
+	color: #002337;
+	padding-left: 25px;
+	margin-top: 3px;
+	background: url(../images/special_unlocked.png) no-repeat left top;
+}
+
 #mayor-group {
 	font-size: 14px;
 	margin: 0px;
@@ -951,6 +969,10 @@ a.vtag,a.vtip-black {
 
 .dashboard-icon-fsq {
 	background: url(../icon_48x48.png);
+}
+
+#about-main {
+	background: #1e1e1e url(../images/darker-bg.png) repeat left top;
 }
 .darkerbg {
 	-webkit-border-image: url(../images/darker-bg.png) 5 5 5 5 repeat repeat !important;

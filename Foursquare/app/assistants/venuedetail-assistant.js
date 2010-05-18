@@ -359,7 +359,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 				mInfo="You've checked in here "+response.responseJSON.venue.stats.mayor.count+" time"+s+".";			
 		}
 		this.controller.get("mayorInfo").innerHTML=mInfo;
-		
+		this.nomayor=false;
 	}else{
 		this.controller.get("snapMayor").show();
 		this.controller.get("mayorPic").src='images/blank_boy.png';
@@ -369,6 +369,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		this.controller.get("mayorPicBorder").removeClassName("userlink");
 		this.controller.get("mayorAvatar").removeClassName("userlink");
 		this.controller.get("mayorInfo").innerHTML="You could be the first!";
+		this.nomayor=true;
 	}
 	
 		//specials!
@@ -376,9 +377,23 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		for(var b = 0; b < response.responseJSON.venue.specials.length;b++) {
 			var special_type=response.responseJSON.venue.specials[b].type;
 			var special_msg=response.responseJSON.venue.specials[b].message;
+			var unlock_msg="";
 			switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
 				case "mayor":
 					var spt="<img src=\"images/smallcrown.png\" width=\"22\" height=\"22\" /> Mayor Special";
+					if(!this.nomayor){
+						if(response.responseJSON.venue.stats.mayor.user.id==_globals.uid){
+							//user is or just became the mayor
+							this.ismayor=true;
+							unlock_msg='<div class="special-unlocked">You\'ve unlocked this special!</div>';
+						}else{
+							this.ismayor=false;
+							unlock_msg='<div class="special-locked">You have not unlocked this special.</div>';
+						}
+					}else{
+						this.ismayor=false;
+						unlock_msg='<div class="special-locked">You have not unlocked this special.</div>';
+					}
 					break;
 				default:
 					var spt="<img src=\"images/starburst.png\" width=\"22\" height=\"22\" /> Foursquare Special";
@@ -423,6 +438,9 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			tips+='<span class="vtip-black tipdone" id="tip-done-'+t+'" data="'+tipid+'">I\'ve Done This</span></div></div></div>'+"\n";
 			tips+='<br class="breaker"/>';
 		}
+		this.controller.get("venueTips").update(tips);
+	}else{
+		var tips='<div class="venueTip" style="margin: 0px 7px;">No tips have been left here yet... lend a hand and leave one!</div>';
 		this.controller.get("venueTips").update(tips);
 	}
 

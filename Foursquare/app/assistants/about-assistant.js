@@ -3,6 +3,7 @@ function AboutAssistant() {
 
 AboutAssistant.prototype.setup = function() {
 	this.controller.get("about-header").innerHTML="ABOUT FOURSQUARE v"+Mojo.appInfo.version;
+//	this.controller.get("about-main").style.background="#1e1e1e url(images/darker-bg.png) repeat left top";
 	//zBar.hideToolbar();
 
 }

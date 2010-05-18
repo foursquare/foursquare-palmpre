@@ -27,6 +27,8 @@ CheckinResultAssistant.prototype.setup = function() {
 }
 
 CheckinResultAssistant.prototype.initData = function(checkinJSON) {
+//	checkinJSON.checkin.created="";
+//logthis(Object.toJSON(checkinJSON.checkin));
 
 	//set the title message
 	this.controller.get('checkin-display').innerHTML = checkinJSON.checkin.message;
@@ -76,7 +78,7 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 	if(checkinJSON.checkin.mayor != undefined) {
 		this.controller.get('checkin-mayorship').innerHTML = '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="images/crown_50x50.png" width="50" height="50"  class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 180px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+checkinJSON.checkin.mayor.message+'	</div><br class="breaker"/></div>';
 	//'<div class="palm-row single"><span>'+checkinJSON.checkin.mayor.message+'</span></div>';
-
+		this.nomayor=false;
 
 	}else{
 		this.nomayor=true;
@@ -89,9 +91,24 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 		for(var b = 0; b < checkinJSON.checkin.specials.length;b++) {
 			var special_type=checkinJSON.checkin.specials[b].type;
 			var special_msg=checkinJSON.checkin.specials[b].message;
+			var unlock_msg="";
 			switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
 				case "mayor":
 					var spt="<img src=\"images/crown_30x30.png\" width=\"22\" height=\"22\" /> Mayor Special";
+					//detect if user is mayor
+					if(!this.nomayor){
+						if(checkinJSON.checkin.mayor.message.indexOf('You')>-1 || checkinJSON.checkin.mayor.message.indexOf('Congratulations')>-1){
+							//user is or just became the mayor
+							this.ismayor=true;
+							unlock_msg='<div class="special-unlocked">You\'ve unlocked this special!</div>';
+						}else{
+							this.ismayor=false;
+							unlock_msg='<div class="special-locked">You have not unlocked this special.</div>';
+						}
+					}else{
+						this.ismayor=false;
+						unlock_msg='<div class="special-locked">You have not unlocked this special.</div>';
+					}
 					break;
 				default:
 					var spt="<img src=\"images/starburst.png\" width=\"22\" height=\"22\" /> Foursquare Special";
@@ -106,12 +123,45 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			//spt="Mayor Special";
 			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
 			//special_venue="@ Venue Name (123 Venue St.)";
-			this.controller.get('checkin_specials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
+			this.controller.get('checkin_specials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+unlock_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
 		}
 	}
 
 	
+	//some checkins have a tips block. we should handle that
+	//i'm guessing that this works... can't find a checkin in at all that handles this.
+	//but @naveen insists a tips block is returned sometimes
+	/*checkinJSON.checkin.tips=[
+		{
+			text: "Sample tip text",
+			user: {
+				firstname: "Geoff",
+				lastname: "G",
+				photo: "url"
+			}
+		}
+	];*/
+	if(checkinJSON.checkin.tips != undefined){
+		logthis("there's a tip!");
+		//if(checkinJSON.checkin.tips.length != undefined){
+			var tip=checkinJSON.checkin.tips[0];
+			var tiptext=tip.text;
+			var tipuserfn=tip.user.firstname;
+			var tipuserln=(tip.user.lastname!=undefined)? tip.user.lastname: "";
+			var tipuserpic=tip.user.photo;
+			
+			this.controller.showAlertDialog({
+				onChoose: function(value) {},
+				title: $L(tipuserfn+" "+tipuserln+" says..."),
+				message: $L(tiptext),
+				choices:[
+					{label:$L('Gotcha!'), value:"OK", type:'primary'}
+				]
+			});
 
+			
+		//}
+	}
 	
 
 }

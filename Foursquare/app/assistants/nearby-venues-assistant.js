@@ -884,7 +884,8 @@ NearbyVenuesAssistant.prototype.activate = function(event) {
 		});
 
 	}
-	   
+	   	this.controller.get("fakefield").focus(); //focuses a hidden field so the real search field doesn't double-type the first letter
+
 }
 
 NearbyVenuesAssistant.prototype.deactivate = function(event) {

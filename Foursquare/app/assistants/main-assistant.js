@@ -92,7 +92,7 @@ MainAssistant.prototype.login = function(uname, pass){
 	
 	this.controller.get('signupbutton').hide();
 	
-	this.controller.get('message').innerHTML = '<br/>Logging <b>'+uname+'</b> in to Foursquare... <div class="small-text">Getting location...</div>';
+	this.controller.get('message').innerHTML = '<br/><br/>Logging <b>'+uname+'</b> in to Foursquare... <div class="small-text">Getting location...</div>';
 	
 	this.request = new Ajax.Request(url, {
 	   method: 'get',
@@ -106,7 +106,7 @@ MainAssistant.prototype.login = function(uname, pass){
 		   			request.transport.abort();
 		   			this.loginRequestFailed(request.transport,true);	
 		   		}			
-			}.bind(this),7000);
+			}.bind(this),10000);
 	   }.bind(this)
 	 });
 }

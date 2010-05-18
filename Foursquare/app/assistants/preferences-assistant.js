@@ -74,8 +74,8 @@ PreferencesAssistant.prototype.setup = function() {
     this.controller.setupWidget("units",
         this.unitsattributes = {
             choices: [
-                {label: "SI (miles)", value: "si"},
-                {label: "Metric (meters)", value: "metric"}
+                {label: "Miles", value: "si"},
+                {label: "Meters", value: "metric"}
                 ]},
 
         this.unitsmodel = {

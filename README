@@ -13,11 +13,11 @@ $ palm-package Foursquare
 Creating package in /Users/...
 
 # to install:
-$ palm-install com.andrewwalpole.foursquare....ipk
+$ palm-install com.foursquare.foursquare....ipk
 connecting to device emulator (...
 copying /Users/...
 installing package /media/internal/developer/...
 
 # to run:
-$ palm-launch com.andrewwalpole.foursquare
+$ palm-launch com.foursquare.foursquare
 
