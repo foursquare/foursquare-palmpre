@@ -4,6 +4,7 @@ window.maps = window.maps || {};
 
 
 _globals.db = new Mojo.Depot({name:"feed"}, function(){Mojo.Log.error("depot OK");}, function(){Mojo.Log.error("depot FAIL");}); 
+_globals.rdb = new Mojo.Depot({name:"rec"}, function(){Mojo.Log.error("recdepot OK");}, function(){Mojo.Log.error("recdepot FAIL");}); 
 
 //_globals.db.discard("feed");
 
@@ -278,6 +279,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 		   onSuccess: _globals.categorySuccess.bind(this),
 		   onFailure: _globals.categoryFailed.bind(this)
 		 });
+		 this.getHistory();
 		/*taking this out while dash notifs aren't enabled
 		_globals.GPS = new Location(_globals.gotLocation);
 		_globals.GPS.start();
@@ -345,6 +347,10 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 					this.units=new Mojo.Model.Cookie("units");
 					var un=this.units.get();
 					_globals.units=(un)? un.units: "si";
+
+					this.houses=new Mojo.Model.Cookie("houses");
+					var un=this.houses.get();
+					_globals.houses=(un)? un.houses: "no";
 
 					/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
 					var hv=this.hv.get();
@@ -501,6 +507,10 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 			var un=this.units.get();
 			_globals.units=(un)? un.units: "si";
 
+			this.houses=new Mojo.Model.Cookie("houses");
+			var un=this.houses.get();
+			_globals.houses=(un)? un.houses: "no";
+
 			/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
 			var hv=this.hv.get();
 			_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];*/
@@ -629,6 +639,7 @@ Mojo.Log.error("got feed");
 		this.doFeedData([],this.r);
 	}.bind(this));
 }
+
 
 AppAssistant.prototype.doFeedData = function(data,r){
 	Mojo.Log.error("checkins="+Object.toJSON(data));
@@ -815,7 +826,135 @@ AppAssistant.prototype.userSuccess = function(response){
 }
 
 AppAssistant.prototype.userFailed = function(r){
-	logthis(r.responseText);
+	logthis("ufail="+r.responseText);
 }
 
 
+_globals.rec={};
+
+
+AppAssistant.prototype.getHistory = function(r) {
+	this.r=r;
+	//see if we've got a stored list of old checkins
+	_globals.rdb.get("venues",function(d){
+		//found an history list
+		if(d) {var f=d;}
+		if(!f){
+		
+			var f=[];
+		}
+		Mojo.Log.error("history="+Object.toJSON(f));
+		_globals.rec.venues=f;
+
+	    this.cookieData=new Mojo.Model.Cookie("lastHID");
+		var credentials=this.cookieData.get();
+		_globals.lastHID=(credentials)? credentials.lastHID: '0';
+
+		this.loadHistory(_globals.lastHID);
+	}.bind(this),function(d){
+		//no feed found
+		_globals.rec.venues=[];
+
+	    this.cookieData=new Mojo.Model.Cookie("lastHID");
+		var credentials=this.cookieData.get();
+		_globals.lastHID=(credentials)? credentials.lastHID: '0';
+
+		this.loadHistory(_globals.lastHID);
+	}.bind(this));
+}
+
+AppAssistant.prototype.loadHistory = function(hid){
+	if(hid==0){
+		var params={l: 250};
+	}else{
+		var params={sinceid: hid};
+	}
+	var url = "http://api.foursquare.com/v1/history.json";
+	var request = new Ajax.Request(url, {
+	   method: 'get',
+	   evalJSON: 'true',
+	   parameters: params,
+	   requestHeaders: {Authorization:_globals.auth},
+	   onSuccess: this.historySuccess.bind(this),
+	   onFailure: this.historyFailed.bind(this)
+	 });
+
+}
+
+AppAssistant.prototype.historySuccess = function(r) {
+	var j=r.responseJSON;
+	if(j.checkins != undefined){
+		//check if venues in array are already visited in the past
+		for(var c=0;c<j.checkins.length;c++){
+			if(c==0){
+				var lhid=j.checkins[c].id;
+			}
+			if(j.checkins[c].venue != undefined){
+				var venue=j.checkins[c].venue;
+				if(venue.primarycategory!=undefined){
+					var inarray=false;
+					for(var v=0;v<_globals.rec.venues.length;v++){
+						if(_globals.rec.venues[v].id==venue.id){
+							inarray=true;
+						}
+					}
+					if(!inarray){
+						_globals.rec.venues.push(venue);
+					}
+				}
+			}
+		}
+		
+		//save new venue array
+		_globals.rdb.add("venues",_globals.rec.venues,function(r){Mojo.Log.error("add v OK");}.bind(this),function(r){Mojo.Log.error("add v FAIL");}.bind(this));
+		this.cookieData=new Mojo.Model.Cookie("lastHID");
+		this.cookieData.put({
+			lastHID: lhid
+		});
+
+		
+		//now loop through new array of venues and calculate top 5 categories
+		_globals.topCategories=[];
+		for(var v=0;v<_globals.rec.venues.length;v++){
+			var pc=_globals.rec.venues[v].primarycategory;
+			if(pc!=undefined){
+				var catid=-1;
+				var foundid=false;
+				
+				for(var d=0;d<_globals.topCategories.length;d++){
+					if(_globals.topCategories[d].id==pc.id){
+						catid=d;
+						foundid=true;
+						//break;
+					}
+				}
+				
+				if(foundid){
+					_globals.topCategories[catid].count=_globals.topCategories[catid].count+1;
+				}else{
+					var itm={
+						id: pc.id,
+						name: pc.nodename,
+						path: pc.fullpathname,
+						count: 1
+					};
+					_globals.topCategories.push(itm);
+				}
+			}
+		}
+		
+		//categories are now in an array.
+		//sort by count, descending
+		_globals.topCategories.sort(_globals.categorySort);
+		
+	}
+}
+
+_globals.categorySort = function(a, b){
+	return (b.count - a.count) //causes an array to be sorted numerically and descending
+};
+
+
+AppAssistant.prototype.historyFailed = function(r) {
+	logthis("hfail="+Object.toJSON(r));
+}

@@ -99,7 +99,9 @@
         "scenes": "meta-list",
         "source": "app/assistants/meta-list-assistant.js"
     },
+    {"source": "app/assistants/dupe-venue-assistant.js"},
     {
-        "source": "app/assistants/dupe-venue-assistant.js"
+        "scenes": "recommend",
+        "source": "app/assistants/recommend-assistant.js"
     }
 ]

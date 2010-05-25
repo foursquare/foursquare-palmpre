@@ -1240,3 +1240,16 @@ body.zblueb .thin-header {
 	font-size: 13px;
 	color:  #fff !important;
 }
+
+
+
+
+#nearby-special {
+	width: 80px;
+	height: 53px;
+	background: url(../images/special-nearby.png) no-repeat left top;
+	position: fixed;
+	right: 10px;
+	top: -53px;
+	z-index: 99999;
+}

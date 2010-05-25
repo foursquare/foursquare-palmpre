@@ -115,57 +115,62 @@ var userData;
 
 MainAssistant.prototype.loginRequestSuccess = function(response) {
 logthis("complete: "+response.status);
+//logthis(Object.toJSON(response.responseJSON.error));
 	if(response.status!=0){
-		this.controller.window.clearTimeout(this.timeout);
-		userData = response.responseJSON.user;
-		var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
-		this.controller.get('message').innerHTML = '<br/>' + disp;
-		var uid=response.responseJSON.user.id;
-		var savetw=response.responseJSON.user.settings.sendtotwitter;
-		var savefb=response.responseJSON.user.settings.sendtofacebook;
-	 	var ping=_globals.swf; //response.responseJSON.user.settings.pings;
-		_globals.uid=uid;
-		_globals.username=this.username;
-		_globals.password=this.password;
-		_globals.city="";//city;
-	
-		this.cookieData=new Mojo.Model.Cookie("credentials");
-		this.cookieData.put({
-			username: this.username,
-			password: "",
-			auth: auth,
-			uid: uid,
-			savetotwitter: savetw,
-			savetofacebook: savefb,
-			ping: ping,
-			cityid: 0,
-			city: ""
-		});
-		this.loggedIn=true;
-		if(this.fromPrefs){
-			_globals.reloadVenues=true;
-			_globals.reloadFriends=true;
-			_globals.reloadTips=true;
-			
-			this.controller.stageController.popScene('preferences');
-			this.controller.stageController.popScene('main');
-		}else{
-			if(_globals.gotGPS){
-				_globals.firstLoad=true;
-				this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
-			}else{
-				Mojo.Log.error("waiting on GPS");
-				this.gpscheck=this.controller.window.setInterval(function(){
-					Mojo.Log.error("checking gps");
-					if(_globals.gotGPS){
-						Mojo.Log.error("got gps finally!");
-						_globals.firstLoad=true;
-						this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
-					}
-				}.bind(this),200);
-				this.controller.get('message').innerHTML+='<div class="small-text">Getting location...</div>';
-			}
+		if(response.responseJSON.error==undefined){
+			this.controller.window.clearTimeout(this.timeout);
+			userData = response.responseJSON.user;
+			var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
+			this.controller.get('message').innerHTML = '<br/>' + disp;
+			var uid=response.responseJSON.user.id;
+			var savetw=response.responseJSON.user.settings.sendtotwitter;
+			var savefb=response.responseJSON.user.settings.sendtofacebook;
+		 	var ping=_globals.swf; //response.responseJSON.user.settings.pings;
+			_globals.uid=uid;
+			_globals.username=this.username;
+			_globals.password=this.password;
+			_globals.city="";//city;
 		
+			this.cookieData=new Mojo.Model.Cookie("credentials");
+			this.cookieData.put({
+				username: this.username,
+				password: "",
+				auth: auth,
+				uid: uid,
+				savetotwitter: savetw,
+				savetofacebook: savefb,
+				ping: ping,
+				cityid: 0,
+				city: ""
+			});
+			this.loggedIn=true;
+			if(this.fromPrefs){
+				_globals.reloadVenues=true;
+				_globals.reloadFriends=true;
+				_globals.reloadTips=true;
+				
+				this.controller.stageController.popScene('preferences');
+				this.controller.stageController.popScene('main');
+			}else{
+				if(_globals.gotGPS){
+					_globals.firstLoad=true;
+					this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
+				}else{
+					Mojo.Log.error("waiting on GPS");
+					this.gpscheck=this.controller.window.setInterval(function(){
+						Mojo.Log.error("checking gps");
+						if(_globals.gotGPS){
+							Mojo.Log.error("got gps finally!");
+							_globals.firstLoad=true;
+							this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
+						}
+					}.bind(this),200);
+					this.controller.get('message').innerHTML+='<div class="small-text">Getting location...</div>';
+				}
+			
+			}
+		}else{
+			this.loginRequestFailed(response,true);
 		}
 	}else{
 		this.loginRequestFailed(response,true);

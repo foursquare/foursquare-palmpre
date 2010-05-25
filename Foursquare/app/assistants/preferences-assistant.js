@@ -83,6 +83,18 @@ PreferencesAssistant.prototype.setup = function() {
         disabled: false
         }
     );
+    this.controller.setupWidget("houses",
+        this.housesattributes = {
+            choices: [
+                {label: "Yes", value: "yes"},
+                {label: "No", value: "no"}
+                ]},
+
+        this.housesmodel = {
+        value: "no",
+        disabled: false
+        }
+    );
     this.controller.setupWidget("numVenuesPicker",
         this.numattributes = {
             choices: [
@@ -108,6 +120,7 @@ PreferencesAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSlider.bind(this));
 	Mojo.Event.listen(this.controller.get("numVenuesPicker"), Mojo.Event.propertyChange, this.handleNumPicker.bind(this));
 	Mojo.Event.listen(this.controller.get("units"), Mojo.Event.propertyChange, this.handleUnits.bind(this));
+	Mojo.Event.listen(this.controller.get("houses"), Mojo.Event.propertyChange, this.handleHouses.bind(this));
 	Mojo.Event.listen(this.controller.get("alert-type"), Mojo.Event.propertyChange, this.handleAlertType.bind(this));
 	Mojo.Event.listen(this.controller.get("chkNotifications"), Mojo.Event.propertyChange, this.handleNotifs.bind(this));
 
@@ -125,6 +138,11 @@ PreferencesAssistant.prototype.setup = function() {
 	this.unitsmodel.value=unitsval;
 	this.controller.modelChanged(this.unitsmodel);
 	this.handleUnits("setup-routine");
+
+	var housesval=(_globals.houses != undefined)? _globals.houses: "no";
+	this.housesmodel.value=housesval;
+	this.controller.modelChanged(this.housesmodel);
+	this.handleHouses("setup-routine");
 
 	if(_globals.flickr_username != undefined){
 		this.controller.get("flickrInfo").innerHTML=""+_globals.flickr_username+"";
@@ -196,6 +214,19 @@ PreferencesAssistant.prototype.handleUnits = function(event) {
 			{"units":v}
 		)
 		_globals.units=v;
+	}
+}
+PreferencesAssistant.prototype.handleHouses = function(event) {
+	if(event.type===Mojo.Event.propertyChange || event=="setup-routine") {
+		var v=this.housesmodel.value;
+				
+		this.cookieData=new Mojo.Model.Cookie("houses");
+		this.cookieData.put(
+			{"houses":v}
+		)
+		_globals.houses=v;
+		
+		logthis(v);
 	}
 }
 PreferencesAssistant.prototype.handleAlertType = function(event) {

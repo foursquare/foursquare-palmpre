@@ -88,9 +88,13 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 
 	//specials!
 	if(checkinJSON.checkin.specials != undefined) {
+	logthis("has specials");
 		for(var b = 0; b < checkinJSON.checkin.specials.length;b++) {
+			logthis("in loop");
 			var special_type=checkinJSON.checkin.specials[b].type;
 			var special_msg=checkinJSON.checkin.specials[b].message;
+			var special_kind=checkinJSON.checkin.specials[b].kind;
+			logthis("kind="+special_kind);
 			var unlock_msg="";
 			switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
 				case "mayor":
@@ -116,10 +120,27 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			}
 			var special_venue="";
 			
-			if(checkinJSON.checkin.specials[b].venue != undefined) { //not at this venue, but nearby
+			/*if(checkinJSON.checkin.specials[b].venue != undefined) { //not at this venue, but nearby
 				spt=spt+" Nearby";
 				special_venue="@ "+checkinJSON.checkin.specials[b].venue.name;
+			}*/
+			logthis("im here");
+			if(special_kind=="nearby"){
+				logthis("is nearby");
+				spt=spt+" Nearby";
+				special_venue="@ "+checkinJSON.checkin.specials[b].venue.name;
+				logthis("set vars");
+				this.controller.get("checkin_specials").hide();
+				this.controller.get("nearby-special").show();
+				logthis("set visibility");
+				Mojo.Event.listen(this.controller.get("nearby-special"),Mojo.Event.tap,function(){
+					this.controller.get("checkin_specials").toggle();
+				}.bind(this));
+				logthis("listening");
+				Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
+				logthis("animated");
 			}
+
 			//spt="Mayor Special";
 			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
 			//special_venue="@ Venue Name (123 Venue St.)";
@@ -141,11 +162,30 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			}
 		}
 	];*/
+	checkinJSON.checkin.created="";
+	logthis(Object.toJSON(checkinJSON.checkin));
 	if(checkinJSON.checkin.tips != undefined){
 		logthis("there's a tip!");
+		//logthis(Object.toJSON(checkinJSON.checkin.tips);
 		//if(checkinJSON.checkin.tips.length != undefined){
 			var tip=checkinJSON.checkin.tips[0];
+			var here=false;
+			if(tip.venue != undefined){
+				var tipvenuename=tip.venue.name;
+				var tipvenueid=tip.venue.id;
+				if(tipvenueid==checkinJSON.checkin.venue.id){
+					here=true;
+				}
+			}else{
+				here=true;
+				var tipvenuename=checkinJSON.checkin.venue.name;
+			}
 			var tiptext=tip.text;
+			if(here){
+				tiptext="Since you're at "+tipvenuename+": "+tiptext;
+			}else{
+				tiptext="Since you're so close to "+tipvenuename+": "+tiptext;
+			}
 			var tipuserfn=tip.user.firstname;
 			var tipuserln=(tip.user.lastname!=undefined)? tip.user.lastname: "";
 			var tipuserpic=tip.user.photo;

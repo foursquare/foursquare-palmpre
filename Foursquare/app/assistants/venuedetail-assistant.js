@@ -276,6 +276,31 @@ VenuedetailAssistant.prototype.infoTapped = function(event) {
 				 }
 			});
 			break;
+		case "flagoredit":
+		    this.controller.popupSubmenu({
+                items: [{label: $L('Suggest an Edit'), command: 'edit', icon: 'status-available-dark'},
+                    {label: $L('Flag as Closed'), command: 'closed'},
+                    {label: $L('Flag as Mislocated'), command: 'mislocated'},
+                    {label: $L('Flag as Duplicate'), command: 'duplicate'}
+                ],
+                onChoose: function(arg) {
+                   switch(arg) {
+                   		case "edit":
+       						this.handleProposeEdit();
+                   			break;
+                   		case "closed":
+                   			this.handleMarkClosed();
+                   			break;
+                   		case "mislocated":
+                   			this.handleMarkMislocated();
+                   			break;
+                   		case "duplicate":
+                   			this.handleMarkDupe();
+                   			break;
+                   }
+                }.bind(this)
+		    });
+			break;
 		case "flagclosed":
 			this.handleMarkClosed();
 			break;
@@ -298,6 +323,7 @@ VenuedetailAssistant.prototype.infoTapped = function(event) {
 
 VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	var th=this;
+	
 	this.controller.get("vcategory").innerHTML=(response.responseJSON.venue.primarycategory)? 
 		'<img src="'+response.responseJSON.venue.primarycategory.iconurl+'"><br/>'+response.responseJSON.venue.primarycategory.nodename: '';
 	
@@ -377,6 +403,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		for(var b = 0; b < response.responseJSON.venue.specials.length;b++) {
 			var special_type=response.responseJSON.venue.specials[b].type;
 			var special_msg=response.responseJSON.venue.specials[b].message;
+			var special_kind=response.responseJSON.venue.specials[b].kind;
 			var unlock_msg="";
 			switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
 				case "mayor":
@@ -402,8 +429,16 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			var special_venue="";
 			
 			if(response.responseJSON.venue.specials[b].venue != undefined) { //not at this venue, but nearby
+			}
+			if(special_kind=="nearby"){
 				spt=spt+" Nearby";
 				special_venue="@ "+response.responseJSON.venue.specials[b].venue.name;
+				this.controller.get("snapSpecials").hide();
+				this.controller.get("nearby-special").show();
+				Mojo.Event.listen(this.controller.get("nearby-special"),Mojo.Event.tap,function(){
+					this.controller.get("snapSpecials").toggle();
+				}.bind(this));
+				Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
 			}
 			//spt="Mayor Special";
 			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
@@ -536,7 +571,16 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		this.info.push(itm);
 	}
 	
-	
+
+		var itm={};
+		itm.icon="images/flag_32.png";
+		itm.caption="Flag or Edit Venue";
+		itm.action="flagoredit";
+		itm.highlight="momentary";
+		this.info.push(itm);
+
+
+	/*
 		var itm={};
 		itm.icon="images/flag_32.png";
 		itm.caption="Flag This Place as 'Closed'";
@@ -549,7 +593,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		itm.caption="Suggest an Edit";
 		itm.action="suggestedit";
 		itm.highlight="momentary";
-		this.info.push(itm);
+		this.info.push(itm);*/
 
 
 	vinfo+=(twitter != undefined)? '<img src="images/bird.png" width="20" height="20" /> <a href="http://twitter.com/'+twitter+'">@'+twitter+'</a><br/>': '';
@@ -736,6 +780,42 @@ VenuedetailAssistant.prototype.markClosed = function() {
 			},
 			onSuccess: this.markClosedSuccess.bind(this),
 			onFailure: this.markClosedFailed.bind(this)
+		});
+	} else {
+	}
+}
+VenuedetailAssistant.prototype.markMislocated = function() {
+	if (_globals.auth) {
+		var url = 'http://api.foursquare.com/v1/venue/flagmislocated.json';
+		var request = new Ajax.Request(url, {
+			method: 'post',
+			evalJSON: 'true',
+			requestHeaders: {
+				Authorization: _globals.auth
+			},
+			parameters: {
+				vid: this.venue.id,
+			},
+			onSuccess: this.markMislocatedSuccess.bind(this),
+			onFailure: this.markMislocatedFailed.bind(this)
+		});
+	} else {
+	}
+}
+VenuedetailAssistant.prototype.markDuplicate = function() {
+	if (_globals.auth) {
+		var url = 'http://api.foursquare.com/v1/venue/flagduplicate.json';
+		var request = new Ajax.Request(url, {
+			method: 'post',
+			evalJSON: 'true',
+			requestHeaders: {
+				Authorization: _globals.auth
+			},
+			parameters: {
+				vid: this.venue.id,
+			},
+			onSuccess: this.markDuplicateSuccess.bind(this),
+			onFailure: this.markDuplicateFailed.bind(this)
 		});
 	} else {
 	}
@@ -1099,6 +1179,18 @@ VenuedetailAssistant.prototype.markClosedSuccess = function(response) {
 VenuedetailAssistant.prototype.markClosedFailed = function(response) {
 	Mojo.Controller.getAppController().showBanner("Error marking venue as closed!", {source: 'notification'});
 }
+VenuedetailAssistant.prototype.markMislocatedSuccess = function(response) {
+	Mojo.Controller.getAppController().showBanner("Venue has been marked as mislocated!", {source: 'notification'});
+}
+VenuedetailAssistant.prototype.markMislocatedFailed = function(response) {
+	Mojo.Controller.getAppController().showBanner("Error marking venue as mislocated!", {source: 'notification'});
+}
+VenuedetailAssistant.prototype.markDuplicateSuccess = function(response) {
+	Mojo.Controller.getAppController().showBanner("Venue has been marked as a duplicate!", {source: 'notification'});
+}
+VenuedetailAssistant.prototype.markDuplicateFailed = function(response) {
+	Mojo.Controller.getAppController().showBanner("Error marking venue as a duplicate!", {source: 'notification'});
+}
 
 
 VenuedetailAssistant.prototype.handleAddTip=function(event) {
@@ -1126,6 +1218,32 @@ this.controller.showAlertDialog({
 		},
 		title:this.venue.name,
 		message:"Do you want to mark this venue as closed?",
+		cancelable:true,
+		choices:[ {label:'Yep!', value:true, type:'affirmative'}, {label:'Nevermind', value:false, type:'negative'} ]
+	});
+}
+VenuedetailAssistant.prototype.handleMarkMislocated=function(event) {
+this.controller.showAlertDialog({
+		onChoose: function(value) {
+			if (value) {
+				this.markMislocated();
+			}
+		},
+		title:this.venue.name,
+		message:"Do you want to mark this venue as mislocated?",
+		cancelable:true,
+		choices:[ {label:'Yep!', value:true, type:'affirmative'}, {label:'Nevermind', value:false, type:'negative'} ]
+	});
+}
+VenuedetailAssistant.prototype.handleMarkDupe=function(event) {
+this.controller.showAlertDialog({
+		onChoose: function(value) {
+			if (value) {
+				this.markDuplicate();
+			}
+		},
+		title:this.venue.name,
+		message:"Do you want to mark this venue as a duplicate?",
 		cancelable:true,
 		choices:[ {label:'Yep!', value:true, type:'affirmative'}, {label:'Nevermind', value:false, type:'negative'} ]
 	});
