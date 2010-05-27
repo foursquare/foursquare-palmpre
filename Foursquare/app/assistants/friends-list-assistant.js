@@ -121,9 +121,9 @@ FriendsListAssistant.prototype.setup = function() {
 		this.doc=cardStageController.document;
 
     this.doc.addEventListener("shaking",this.handleShake.bind(this), true);
-	this.controller.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bindAsEventListener(this));
-	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandler.bindAsEventListener(this));
-    this.doc.addEventListener("keyup", this.keyUpHandler.bind(this), true);
+//	this.controller.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandler.bindAsEventListener(this));
+//	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandler.bindAsEventListener(this));
+//    this.doc.addEventListener("keyup", this.keyUpHandler.bind(this), true);
 
 
 	this.controller.setupWidget(Mojo.Menu.appMenu,

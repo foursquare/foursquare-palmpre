@@ -433,17 +433,21 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			if(special_kind=="nearby"){
 				spt=spt+" Nearby";
 				special_venue="@ "+response.responseJSON.venue.specials[b].venue.name;
-				this.controller.get("snapSpecials").hide();
+				this.controller.get("nearbySpecials").hide();
 				this.controller.get("nearby-special").show();
 				Mojo.Event.listen(this.controller.get("nearby-special"),Mojo.Event.tap,function(){
-					this.controller.get("snapSpecials").toggle();
+					this.controller.get("nearbySpecials").toggle();
 				}.bind(this));
 				Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
+
+				this.controller.get('nearbySpecials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
+			}else{
+				this.controller.get("venueSpecials").show();
+				this.controller.get('venueSpecials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';			
 			}
 			//spt="Mayor Special";
 			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
 			//special_venue="@ Venue Name (123 Venue St.)";
-			this.controller.get('venueSpecials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
 		}
 	}else{
 		this.controller.get("snapSpecials").hide();

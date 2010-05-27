@@ -17,9 +17,10 @@ body {
 
 #message {
 	width: 90%;
-	position: absolute;
+/*	position: absolute;
 	top: 220px;
-	left: 0px;	
+	left: 0px;	*/
+	margin-top: -60px;
 }
 
 #spinnerId {
@@ -1252,4 +1253,9 @@ body.zblueb .thin-header {
 	right: 10px;
 	top: -53px;
 	z-index: 99999;
+}
+
+#main #sendField {
+	background: #fff url(../images/search-grey.png) no-repeat 2px 6px;
+	padding-left: 28px;
 }

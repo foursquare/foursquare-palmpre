@@ -26,7 +26,7 @@ MainAssistant.prototype.setup = function() {
 		Mojo.Log.error("expresslogin");
 		this.controller.get("loginfields").style.visibility="hidden";
 		this.controller.get("main").removeClassName("palm-hasheader");
-		this.controller.get("message").style.marginTop="70px";
+		this.controller.get("message").style.marginTop="-70px";
 		this.controller.get("main").style.background="url(SPLASH_boy_transparent.png) no-repeat left top";
 
 		this.login(this.username,this.password);
@@ -43,7 +43,7 @@ MainAssistant.prototype.setup = function() {
 }
 
 MainAssistant.prototype.onLoginTapped = function(event){
-	this.controller.get('message').innerHTML = 'logging in';
+	//this.controller.get('message').innerHTML = 'logging in';
 	
 	this.username=this.usernameModel.value;
 	this.password=this.passwordModel.value;
@@ -99,7 +99,7 @@ MainAssistant.prototype.login = function(uname, pass){
 	   evalJSON: 'true',
 	   requestHeaders: {Authorization:auth},
 	   onSuccess: this.loginRequestSuccess.bind(this),
-	   onFailure: this.loginRequestFailed.bind(this,false),
+	   onFailure: this.loginRequestFailed.bindAsEventListener(this,false),
 	   onCreate: function(request){
 			this.timeout=this.controller.window.setTimeout(function(){
 		   		if(this.callInProgress(request.transport)){
@@ -170,9 +170,11 @@ logthis("complete: "+response.status);
 			
 			}
 		}else{
+			logthis("resp="+response.responseText);
 			this.loginRequestFailed(response,true);
 		}
 	}else{
+			logthis("resp2="+response.responseText);
 		this.loginRequestFailed(response,true);
 	}
 }
@@ -181,28 +183,35 @@ MainAssistant.prototype.connectionTimedOut = function() {
 };
 
 MainAssistant.prototype.loginRequestFailed = function(response,timeout) {
+	logthis("resp3="+response.responseText);
 	auth = undefined;
 	this.controller.get('main').style.background="";
 	this.controller.get("loginfields").style.visibility="visible";
 	var msg="";
+	var resetcredentials=true;
 	if(response.responseJSON != undefined){
 		if(response.responseJSON.ratelimited != undefined) {
 			msg="Rate-limited. Try again later.";
+		}else if(response.responseJSON.unauthorized != undefined){
+			msg="Whoops! Wrong username or password!";
+			resetcredentials=false;
 		}else{
-			msg='Login Failed... Try Again';
+			msg='Couldn\'t log you in for some reason. Try again later.';
 		}
 	}
-	var eauth=_globals.auth.replace("Basic ","");
-	var plaintext=Base64.decode(eauth);
-	var creds=plaintext.split(":");
-	var un=creds[0];
-	var pw=creds[1];
-
-	this.usernameModel.value=un;
-	this.passwordModel.value=pw;
-	this.controller.modelChanged(this.usernameModel);
-	this.controller.modelChanged(this.passwordModel);
-
+	if(resetcredentials){
+		var eauth=_globals.auth.replace("Basic ","");
+		var plaintext=Base64.decode(eauth);
+		var creds=plaintext.split(":");
+		var un=creds[0];
+		var pw=creds[1];
+	
+		this.usernameModel.value=un;
+		this.passwordModel.value=pw;
+		this.controller.modelChanged(this.usernameModel);
+		this.controller.modelChanged(this.passwordModel);
+	}
+	
 	if(timeout){
 		msg='Foursquare appears to be down. Try again later.<br/><a href="http://m.twitter.com/foursquare">Check @foursquare on Twitter for Status</a>';
 	}
@@ -215,7 +224,7 @@ MainAssistant.prototype.loginRequestFailed = function(response,timeout) {
 MainAssistant.prototype.keyDownHandler = function(event) {
       if(Mojo.Char.isEnterKey(event.keyCode)) {
          if(event.srcElement.parentElement.id=="password") {
-    		this.controller.get('username').mojo.blur();
+    		//this.controller.get('username').mojo.blur();
     		setTimeout(this.onLoginTapped.bind(this), 10);
          }
       }

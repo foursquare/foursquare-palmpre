@@ -531,7 +531,7 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 						}				
 					}else{
 						var vname=tmp_venue.name.toLowerCase();
-						if(vname.indexOf("'s house")!=-1 || vname.indexOf("my house")!=-1 || vname.indexOf("my bed")!=-1 || vname.indexOf("my bathroom")!=-1 || vname.indexOf("'s bed")!=-1){
+						if(vname.indexOf("'s house")!=-1 || vname.indexOf("my house")!=-1 || vname.indexOf("my bed")!=-1 || vname.indexOf("my bathroom")!=-1 || vname.indexOf("'s bed")!=-1 || vname=="home" || vname.indexOf("'s home")!=-1){
 							tmp_venue.grouping="Houses";
 							ar="houses";
 						}else{
@@ -657,7 +657,7 @@ NearbyVenuesAssistant.prototype.addNewVenue = function(){
 
 }
 
-
+/*
 NearbyVenuesAssistant.prototype.onKeyPressHandler = function(event) {
 	var char = String.fromCharCode(event.originalEvent.keyCode);
 	this.firstChar=char;
@@ -710,6 +710,47 @@ NearbyVenuesAssistant.prototype.keyUpHandler = function(event) {
      }
 
 }
+*/
+NearbyVenuesAssistant.prototype.keyDownHandler = function(event) {
+	//show search field when a key is pressed that isn't delete
+	var key=event.originalEvent.keyCode;
+	if(!this.searchShowing && key!=8){
+		this.searchShowing=true;
+		this.controller.get("sendField").show();
+		this.controller.get("sendField").mojo.focus();
+		if(this.searchHasShown){
+			//this.controller.setupWidget('sendField', this.textFieldAtt, this.textModel);
+			var char=String.fromCharCode(event.originalEvent.keyCode);
+			this.controller.get("sendField").mojo.setValue("");
+		}
+		this.searchHasShown=true;
+	}
+	
+	if(key==8 && this.controller.get("sendField").mojo.getValue().length==0){
+		this.controller.get("sendField").hide();
+		this.searchShowing=false;		
+	
+	}
+}
+
+NearbyVenuesAssistant.prototype.onKeyPressHandler = function(event) {
+//	this.controller.get("sendField").mojo.focus();
+}
+
+NearbyVenuesAssistant.prototype.keyUpHandler = function(event) {
+	//hide box if deleted last char; do search if key is enter key
+	var key=event.keyCode;
+	if(this.searchShowing && Mojo.Char.isEnterKey(key)){
+		setTimeout(this.onGetNearbyVenuesSearch.bind(this), 10);
+		this.controller.get("sendField").hide();
+		this.searchShowing=false;		
+	}
+	if(this.searchShowing && key==8 && (this.textModel.value.length==1 || this.textModel.value.length==0)){
+		this.controller.get("sendField").hide();
+		this.searchShowing=false;		
+	}
+}
+
 
 NearbyVenuesAssistant.prototype.hardRefresh = function(event) {
 	
