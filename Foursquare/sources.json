@@ -1,4 +1,7 @@
 [
+	{"source": "app/models/metrix.js"},
+	{"source": "app/models/asyncWrappers.js"},
+	{"source": "app/lib/navmenu.js"},
     {"source": "app/assistants/app-assistant.js"},
     {"source": "app/assistants/stage-assistant.js"},
     {
@@ -22,7 +25,6 @@
     {"source": "app/assistants/do-checkin-dialog-assistant.js"},
     {"source": "app/assistants/do-shout-dialog-assistant.js"},
     {"source": "app/assistants/friend-search-dialog-assistant.js"},
-    {"source": "app/assistants/add-venue-dialog-assistant.js"},
     {
         "scenes": "venuedetail",
         "source": "app/assistants/venuedetail-assistant.js"

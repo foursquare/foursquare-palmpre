@@ -15,6 +15,7 @@ function NearbyVenuesAssistant(a, ud, un, pw,i,ss,q,what) {
 	 _globals.username=un;
 	 _globals.password=pw;
 	 _globals.uid=i;
+	 _globals.gpsLoop=0;
 	 
 	 
 	 switch(what) {
@@ -25,11 +26,14 @@ function NearbyVenuesAssistant(a, ud, un, pw,i,ss,q,what) {
 	 		this.showList=true;
 	 		break;
 	 }
+	 
+	 this.searchDelay=undefined;
 
 }
 
 NearbyVenuesAssistant.prototype.setup = function() {
-	
+		NavMenu.setup(this,{buttons: 'venues'});
+
        this.controller.setupWidget("drawerId",
          this.drawerAttributes = {
              modelProperty: 'open',
@@ -99,13 +103,14 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	
 	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenuesSearch.bind(this));
 	Mojo.Event.listen(this.controller.get('recommend'),Mojo.Event.tap, this.doRecommend.bind(this));
-	Mojo.Event.listen(this.controller.get('venue-refresh'),"mousedown", function(){this.controller.get('venue-refresh').addClassName("pressed");}.bind(this));
-	Mojo.Event.listen(this.controller.get('venue-refresh'),"mouseup", function(){this.controller.get('venue-refresh').removeClassName("pressed");}.bind(this));
-	Mojo.Event.listen(this.controller.get('venue-refresh'),Mojo.Event.tap, this.hardRefresh.bind(this));
+	//Mojo.Event.listen(this.controller.get('venue-refresh'),"mousedown", function(){this.controller.get('venue-refresh').addClassName("pressed");}.bind(this));
+//	Mojo.Event.listen(this.controller.get('venue-refresh'),"mouseup", function(){this.controller.get('venue-refresh').removeClassName("pressed");}.bind(this));
+//	Mojo.Event.listen(this.controller.get('venue-refresh'),Mojo.Event.tap, this.hardRefresh.bind(this));
+	//Mojo.Event.listen(this.controller.get('venue-refresh'),Mojo.Event.tap, NavMenu.showMenu);
 
-	Mojo.Event.listen(this.controller.get('venue-map'),"mousedown", function(){this.controller.get('venue-map').addClassName("pressed");}.bind(this));
-	Mojo.Event.listen(this.controller.get('venue-map'),"mouseup", function(){this.controller.get('venue-map').removeClassName("pressed");}.bind(this));
-	Mojo.Event.listen(this.controller.get('venue-map'),Mojo.Event.tap, this.showMap.bind(this));
+	//Mojo.Event.listen(this.controller.get('venue-map'),"mousedown", function(){this.controller.get('venue-map').addClassName("pressed");}.bind(this));
+	//Mojo.Event.listen(this.controller.get('venue-map'),"mouseup", function(){this.controller.get('venue-map').removeClassName("pressed");}.bind(this));
+	//Mojo.Event.listen(this.controller.get('venue-map'),Mojo.Event.tap, this.showMap.bind(this));
 
 	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listDelete, this.listHideItem.bind(this));
@@ -131,13 +136,30 @@ NearbyVenuesAssistant.prototype.setup = function() {
     zBar.activeScene=this;
     //zBar.render("main","venues");
     
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
     	this.attributes = {
 	        spacerHeight: 0,
         	menuClass: 'fsq-fade'
     	},
 	    _globals.cmmodel
-	);
+	);*/
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    	this.attributes = {
+	        spacerHeight: 0,
+        	menuClass: 'fsq-fade'
+    	},
+		{
+          	visible: true,
+        	items: [ 
+                 { iconPath: "images/map-pin.png", command: "venue-map"},
+                 {},
+                 {items: [
+	                /* { icon: "search", command: "do-Search"},*/
+    	             { icon: "refresh", command: "do-Refresh"}
+    	         ]}
+                 
+                 ]
+    });
     
     
 
@@ -158,14 +180,14 @@ NearbyVenuesAssistant.prototype.setup = function() {
 
 	_globals.onVenues=true;
 	if(!_globals.reloadVenues && _globals.nearbyVenues==undefined){
-		Mojo.Log.error("venues: loading venues");
+		//Mojo.Log.error("venues: loading venues");
 		//_globals.GPS.stop(); //we just needed it until now
 		this.gotLocation(_globals.gps);
 		//_globals.GPS.stop();
 	}else{
 		Mojo.Log.error("venues: not loading venues");
 		if(_globals.nearbyVenues==undefined && _globals.reloadVenues){
-			Mojo.Log.error("venues: doing venue refresh");
+			//Mojo.Log.error("venues: doing venue refresh");
 			this.onGetNearbyVenues();
 		}else{
 			this.venueList=_globals.nearbyVenues;
@@ -184,12 +206,12 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	
 	//are we still trying to get better gps accuracy in the bg?
 	if(_globals.retryingGPS==true){
-		Mojo.Log.error("venues: retrying gps true");
+		//Mojo.Log.error("venues: retrying gps true");
 		this.controller.get("gps_banner").show();
 		this.controller.get("smallSpinner").show();
 		this.controller.get("banner_text").update("Getting better accuracy... ("+roundNumber(_globals.hacc,2)+"m)");
 	}else{
-		Mojo.Log.error("venues: not retrying gps");
+		//Mojo.Log.error("venues: not retrying gps");
 		this.controller.get("gps_banner").hide();
 		this.controller.get("smallSpinner").hide();
 	}
@@ -233,8 +255,10 @@ NearbyVenuesAssistant.prototype.hideRetryBanner = function(event) {
 NearbyVenuesAssistant.prototype.onGetNearbyVenuesSearch = function(event) {
 	_globals.nearbyVenues=undefined;
 	this.dosearch=true;
-		this.controller.get("spinnerId").show();
-		this.controller.get("spinnerId").mojo.start();
+	this.controller.get("spinnerId").show();
+	this.controller.get("spinnerId").mojo.start();
+	var scroller=this.controller.getSceneScroller();
+	scroller.mojo.revealTop();
 
 	this.onGetNearbyVenues();
 }
@@ -253,7 +277,7 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 	if(_globals.nearbyVenues==undefined || _globals.reloadVenues==true) {
 		_globals.reloadVenues=false;
 		_globals.nearbyVenues=undefined;
-	Mojo.Log.error("reloading venues");
+	//Mojo.Log.error("reloading venues");
 		//hide the result list box and clear out it's model
 		this.controller.get("resultListBox").style.display = 'none';
 
@@ -263,7 +287,7 @@ NearbyVenuesAssistant.prototype.onGetNearbyVenues = function(event) {
 		//get the location. set the maximum age to 0 if we're reloading the list so we dont reuse the coords
 		var ma=(_globals.reloadVenues)? 0: 30;
 		  if(_globals.firstLoad==false){
-		  	Mojo.Log.error("getting new coords");
+		  	//Mojo.Log.error("getting new coords");
 			this.controller.get('getting-gps-alert').show();
 			this.controller.serviceRequest('palm://com.palm.location', {
 				method: "getCurrentPosition",
@@ -301,41 +325,64 @@ NearbyVenuesAssistant.prototype.refreshVenues = function(event) {
 }
 
 NearbyVenuesAssistant.prototype.gotLocation = function(event) {
-	Mojo.Log.error("doing gotlocation");
+	//Mojo.Log.error("doing gotlocation");
 	event=(event)? event:  _globals.GPS.get();
+	if(event.latitude==null && _globals.gpsLoop<4){
+		_globals.GPS=undefined;
+		_globals.GPS = new Location(this.gotLocation.bind(this));
+		_globals.GPS.start();
+		_globals.gpsLoop++;
+		return;
+	}else if(event.latitude!=null){
+		_globals.GPS.stop();
+	}
+	if(_globals.gpsLoop>=4){
+		_globals.GPS.stop();
+		this.controller.showAlertDialog({
+			onChoose: function(value) {opts.onFailure(r);},
+			title: $L("Error"),
+			message: $L("Your phone's GPS seems to be malfunctioning and is returning null values for its position. Try turning Airport Mode on and then off and retrying. If that doesn't fix things, try restarting your phone."),
+			allowHTMLMessage: true,
+			choices:[
+				{label:$L('D\'oh!'), value:"OK", type:'primary'}
+			]
+		});
+
+	}
+	logthis(Object.toJSON(event));
 	if(event.errorCode == 0) {
 		//check their prefs. if the results are good enough, carry on
 		//otherwise, repoll the gps
 		this.controller.get('getting-gps-alert').hide();
-		Mojo.Log.error("1");
+		//Mojo.Log.error("1");
 		this.controller.get('message').innerHTML = 'Found Location...';
-		Mojo.Log.error("2");
+		//Mojo.Log.error("2");
 		//we got the location so now query it against 4square for a venue list
 		this.lat=event.latitude;
 		this.long=event.longitude;
 		this.hacc=event.horizAccuracy;
 		this.vacc=event.vertAccuracy;
 		this.altitude=event.altitude;
-		Mojo.Log.error("3");
+		//Mojo.Log.error("3");
 		_globals.lat=this.lat;
 		_globals.long=this.long;
 		_globals.hacc=this.hacc;
 		_globals.vacc=this.vacc;
 		_globals.altitude=this.altitude;
 		_globals.gps=event;
-		Mojo.Log.error("4");
+		//Mojo.Log.error("4");
 		//_globals.GPS.stop();            
-		Mojo.Log.error("5");
+		//Mojo.Log.error("5");
 		_globals.accuracy="&plusmn;"+roundNumber(this.hacc,2)+"m";
-		Mojo.Log.error("6");
+		//Mojo.Log.error("6");
 		this.controller.get("accuracy").innerHTML="Accuracy: "+_globals.accuracy;
 
 		this.getVenues(event.latitude, event.longitude,event.horizAccuracy,event.vertAccuracy,event.altitude);
-		Mojo.Log.error("7");
+		//Mojo.Log.error("7");
 	} else {
 		this.controller.get('getting-gps-alert').hide();
 		this.controller.get('message').innerHTML = "gps error: " + event.errorCode;
-		Mojo.Log.error("gps error: " + event.errorCode);
+		//Mojo.Log.error("gps error: " + event.errorCode);
 		Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
 	}
 }
@@ -352,6 +399,7 @@ NearbyVenuesAssistant.prototype.loadVenues = function() {
 
 NearbyVenuesAssistant.prototype.gotLocationAgain = function(event) {
 	//only do something if we got a better accuracy
+	logthis("getting again");
 	event=_globals.GPS.get();
 	if(event.horizAccuracy<this.hacc){
 		this.lat=event.latitude;
@@ -387,17 +435,17 @@ NearbyVenuesAssistant.prototype.failedLocation = function(event) {
 }
 
 NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,vacc,alt) {
-		Mojo.Log.error("getvenues");
+	//	Mojo.Log.error("getvenues");
 
 	this.controller.get('message').innerHTML += '<br/>Searching Venues...';
-		Mojo.Log.error("msg");
-		Mojo.Log.error("lat=%i, long=%i",_globals.lat,_globals.long);
+		//Mojo.Log.error("msg");
+		//Mojo.Log.error("lat=%i, long=%i",_globals.lat,_globals.long);
 
 	this.controller.serviceRequest('palm://com.palm.location', {
 			method: "getReverseLocation",
 			parameters: {latitude: _globals.lat, longitude:_globals.long},
 			onSuccess: function(address){
-				Mojo.Log.error("reversing loc");
+				//Mojo.Log.error("reversing loc");
 				_globals.nearness="Near "+address.substreet+" "+address.street+" "+address.city+", "+address.state;
 				this.controller.get("accuracy").innerHTML=_globals.nearness+" ("+_globals.accuracy+")";
 			}.bind(this),
@@ -406,17 +454,14 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,va
 
 	var query = this.textModel.value;
 	this.query=query;
-	var url = 'http://api.foursquare.com/v1/venues.json';
-	auth = _globals.auth;
-	var radius=(query!="")? 1.5: 0.5;
 	var vlimit=_globals.venueCount;
-	var request = new Ajax.Request(url, {
-	   method: 'get',
-	   evalJSON: 'force',
-	   requestHeaders: {Authorization: auth}, 
-	   parameters: {geolat:latitude, geolong:longitude, geohacc:hacc,geovacc:vacc, geoalt:alt,r:radius, l:vlimit, q:query},
+	 
+	 foursquareGet(this, {
+	 	endpoint: 'venues.json',
+	 	requiresAuth: true,
+	   parameters: {geolat:latitude, geolong:longitude, geohacc:hacc,geovacc:vacc, geoalt:alt, l:vlimit, q:query},
 	   onSuccess: this.nearbyVenueRequestSuccess.bind(this),
-	   onFailure: this.nearbyVenueRequestFailed.bind(this)
+	   onFailure: this.nearbyVenueRequestFailed.bind(this)	 	
 	 });
 }
 
@@ -429,9 +474,6 @@ NearbyVenuesAssistant.prototype.fixItem = function(list,item,dom){
 			parameters: {latitude: item.geolat, longitude:item.geolong},
 			onSuccess: function(address){
 				item.address="Near "+address.substreet+" "+address.street;
-				//this.controller.modelChanged(this.resultsModel);
-				//this.controller.get("results-venue-list").mojo.noticeUpdatedItems(0, this.resultsModel.items);
-				//this.controller.get("results-venue-list").mojo.setCount(this.venueList.length);
 				var addy=zBar.getElementsByClassName("venue-address",dom)[0];
 				addy.innerHTML="Near "+address.substreet+" "+address.street;
 			}.bind(this),
@@ -447,11 +489,11 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 	mybutton.mojo.deactivate();
 	
 	this.controller.get('message').innerHTML = '';
-		Mojo.Log.error(response.responseText);
+		//Mojo.Log.error(response.responseText);
 	
 	if (response.responseJSON == undefined || (response.responseText=='{"venues":null}') || (response.responseText=='{"venues":[]}')) {
 		this.controller.get('message').innerHTML = 'No Results Found';
-		Mojo.Log.error("no results");
+		//Mojo.Log.error("no results");
 		this.controller.get("spinnerId").mojo.stop();
 		this.controller.get("spinnerId").hide();
 		this.controller.get("resultListBox").style.display = 'block';
@@ -587,7 +629,9 @@ NearbyVenuesAssistant.prototype.performSearch = function(query) {
 
 }
 NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
-	
+	this.controller.get("sendField").hide();
+	this.searchShowing=false;		
+
 	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid,false,this);
 }
 
@@ -657,64 +701,13 @@ NearbyVenuesAssistant.prototype.addNewVenue = function(){
 
 }
 
-/*
-NearbyVenuesAssistant.prototype.onKeyPressHandler = function(event) {
-	var char = String.fromCharCode(event.originalEvent.keyCode);
-	this.firstChar=char;
-	Mojo.Log.error("press keycode="+event.originalEvent.keyCode+", value="+this.textModel.value+", char="+char);
-	if(!this.searchShowing && !this.isdelete){
-		Mojo.Log.error("notshowing yet");
-		this.searchShowing=true;
-		this.controller.get("sendField").show();
-		this.controller.get("sendField").mojo.focus();		
-		if(!this.searchHasShown ){
-			this.textModel.value=char;
-			this.controller.modelChanged(this.textModel);
-		}
-		this.searchHasShown=true;
-	}else{
-		Mojo.Log.error("showing");
-	}
-}
-
-NearbyVenuesAssistant.prototype.keyDownHandler = function(event) {
-	var char = String.fromCharCode(event.originalEvent.keyCode);
-	Mojo.Log.error("down keycode="+event.originalEvent.keyCode+", value="+this.textModel.value+", char="+char);
-	if(event.originalEvent.keyCode==8){
-		this.isdelete=true;
-	}else{
-		this.isdelete=false;
-	}
-	if(this.controller.get("sendField").mojo.getValue()==char){
-		event.stop();
-		Mojo.Log.error("stopped");
-	}
-
-}	
-NearbyVenuesAssistant.prototype.keyUpHandler = function(event) {
-	var code=event.keyCode; //event.originalEvent.keyCode;
-	logthis("target="+event.target.id);
-	Mojo.Log.error("up keycode="+event.keyCode+", value="+this.textModel.value);
-	if(this.textModel.value.length<2 && code==8){
-		this.searchShowing=false;
-		//this.controller.get("sendField").mojo.blur();
-    	setTimeout(function(){this.controller.get("sendField").hide();}.bind(this),5);
-	}
-    if(Mojo.Char.isEnterKey(code)) {
-        if(event.srcElement.parentElement.id=="sendField") {
-	   		setTimeout(this.onGetNearbyVenuesSearch.bind(this), 10);
-   			this.controller.get("sendField").hide();
-   			this.searchShowing=false;
-   			this.searchHasShown=false;
-        }
-     }
-
-}
-*/
 NearbyVenuesAssistant.prototype.keyDownHandler = function(event) {
 	//show search field when a key is pressed that isn't delete
+	window.clearTimeout(this.searchDelay);
 	var key=event.originalEvent.keyCode;
-	if(!this.searchShowing && key!=8){
+	//logthis("key="+key);
+//logthis("kd="+key);
+	if(!this.searchShowing && key!=8 && key!=57575 && key != 27){
 		this.searchShowing=true;
 		this.controller.get("sendField").show();
 		this.controller.get("sendField").mojo.focus();
@@ -738,9 +731,14 @@ NearbyVenuesAssistant.prototype.onKeyPressHandler = function(event) {
 }
 
 NearbyVenuesAssistant.prototype.keyUpHandler = function(event) {
-	//hide box if deleted last char; do search if key is enter key
 	var key=event.keyCode;
-	if(this.searchShowing && Mojo.Char.isEnterKey(key)){
+//logthis("ku="+key);
+	if(this.textModel.value.length>1  && !Mojo.Char.isEnterKey(key) && key!=27){
+		this.searchDelay=window.setTimeout(this.onGetNearbyVenuesSearch.bind(this),250);
+	}
+	//hide box if deleted last char; do search if key is enter key
+	if(this.searchShowing && Mojo.Char.isEnterKey(key) && key!=27){
+		window.clearTimeout(this.searchDelay);
 		setTimeout(this.onGetNearbyVenuesSearch.bind(this), 10);
 		this.controller.get("sendField").hide();
 		this.searchShowing=false;		
@@ -761,6 +759,7 @@ NearbyVenuesAssistant.prototype.hardRefresh = function(event) {
 }
 
 NearbyVenuesAssistant.prototype.handleCommand = function(event) {
+		logthis("doingcommand");
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
                 case "venue-search":
@@ -794,9 +793,10 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
                 	var thisauth=auth;
 					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid,this.lat,this.long,this);
 					break;
+				case "do-Profile":
                 case "do-Badges":
                 	var thisauth=auth;
-					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"",this,false);
+					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade},thisauth,"",this,false);
                 	break;
                 case "do-Tips":
                 	var thisauth=auth;
@@ -808,19 +808,29 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
                 	break;
                 case "do-Shout":
                 	var thisauth=auth;
-					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					this.controller.stageController.pushScene({name: "shout", transition: Mojo.Transition.zoomFade},thisauth,"",this);
 
                 	break;
                 case "do-About":
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Prefs":
-					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.zoomFade},this);
                 	break;
                 case "do-Refresh":
-					_globals.nearbyVenues=undefined;
-					_globals.reloadVenues=true;
-					this.controller.stageController.swapScene('nearby-venues',_globals.auth,_globals.userData,_globals.username,_globals.password,_globals.uid)
+                	if(this.searchShowing){
+                		//clear search and load venues back
+				   		this.textModel.value="";
+				   		this.controller.modelChanged(this.textModel);
+						this.controller.get("sendField").hide();
+						this.searchShowing=false;		
+				   		this.onGetNearbyVenuesSearch();
+                	}else{
+                
+						_globals.nearbyVenues=undefined;
+						_globals.reloadVenues=true;
+						this.controller.stageController.swapScene('nearby-venues',_globals.auth,_globals.userData,_globals.username,_globals.password,_globals.uid)
+					}
                 	break;
                 case "do-Update":
                 	_globals.checkUpdate(this);
@@ -828,13 +838,36 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
                 case "do-Nothing":
                 	break;
                 case "do-Search":
-					this.searchShowing=true;
-					this.controller.get("sendField").show();
-					this.controller.get("sendField").mojo.focus();		
-					this.searchHasShown=true;
-
+					if(this.searchShowing){						
+						this.searchShowing=false;
+						this.controller.get("sendField").hide();
+					}else{
+						this.searchShowing=true;
+						this.controller.get("sendField").show();
+						this.controller.get("sendField").mojo.focus();		
+						this.searchHasShown=true;
+					}
                 	break;
+                case "toggleMenu":
+                	NavMenu.toggleMenu();
+                	break;
+                case "gototop":
+					var scroller=this.controller.getSceneScroller();
+					scroller.mojo.scrollTo(0,0,true);
+					break;
             }
+        }else if(event.type===Mojo.Event.forward){
+			_globals.nearbyVenues=undefined;
+			_globals.reloadVenues=true;
+			this.controller.stageController.swapScene('nearby-venues',_globals.auth,_globals.userData,_globals.username,_globals.password,_globals.uid)
+        
+        }else if(event.type===Mojo.Event.back){
+			if(this.searchShowing){
+				event.preventDefault();
+				window.clearTimeout(this.searchDelay);
+				this.controller.get("sendField").hide();
+				this.searchShowing=false;		
+			}        
         }
     }
 NearbyVenuesAssistant.prototype.filterFunction = function(filterString, widget, offset, limit) {
@@ -843,13 +876,6 @@ NearbyVenuesAssistant.prototype.filterFunction = function(filterString, widget, 
 		matches=_globals.nearbyVenues;
 	}else{
 	  if(_globals.nearbyVenues!=undefined) {
-		/*for(var m=0;m<_globals.nearbyVenues.length;m++) {
-			var vname=_globals.nearbyVenues[m].name;
-	  		if(vname.toLowerCase().indexOf(filterString.toLowerCase())>-1) {
-	  			matches.push(_globals.nearbyVenues[m]);
-	  		}
-		}*/
-		Mojo.Log.info('event.keyCode = ' + event.keyCode);
 
 	  }
 	}
@@ -932,6 +958,7 @@ NearbyVenuesAssistant.prototype.showMenu = function(event){
 
 NearbyVenuesAssistant.prototype.activate = function(event) {
    // this.controller.get("sendField").mojo.blur();
+   NavMenu.setThat(this,{buttons:'venues'});
     this.controller.get("vmenu-caption").update("Nearby");
     this.controller.get("searchgroup").show();
     this.controller.get("results-venue-list").mojo.showAddItem(true);
@@ -970,6 +997,8 @@ NearbyVenuesAssistant.prototype.activate = function(event) {
 		});
 
 	}
+	
+	fsq.Metrix.checkBulletinBoard(this.controller, Mojo.appInfo.version);
 	   //	this.controller.get("fakefield").focus(); //focuses a hidden field so the real search field doesn't double-type the first letter
 	//this.controller.get("sendField").mojo.blur();
 }

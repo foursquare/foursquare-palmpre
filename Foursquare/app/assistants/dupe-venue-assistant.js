@@ -14,7 +14,7 @@ DupeVenueAssistant.prototype.setup = function(widget) {
 					      this.resultsModel);
 	Mojo.Event.listen(this.sceneAssistant.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
 
-	var url = 'http://api.foursquare.com/v1/venues.json';
+/*	var url = 'http://api.foursquare.com/v1/venues.json';
 	var auth = _globals.auth;
 	
 	var request = new Ajax.Request(url, {
@@ -24,7 +24,16 @@ DupeVenueAssistant.prototype.setup = function(widget) {
 	   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude, q:this.query},
 	   onSuccess: this.venueSuccess.bind(this),
 	   onFailure: this.venueFailed.bind(this)
-	 });
+	 });*/
+	 
+	 foursquareGet(this.sceneAssistant,{
+	 	endpoint: 'venues.json',
+	 	requiresAuth: true,
+	   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude, q:this.query},
+	   onSuccess: this.venueSuccess.bind(this),
+	   onFailure: this.venueFailed.bind(this)
+	 	
+	 })
 
 };
 

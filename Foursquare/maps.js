@@ -61,14 +61,14 @@ function loadMaps () {
 }
 
 function initLoader() {
-   	    var appController = Mojo.Controller.getAppController();
+   /*	    var appController = Mojo.Controller.getAppController();
   	  	var cardStageController = appController.getStageController("mainStage");
 		var doc=cardStageController.document;
 
     Mojo.Log.error("Initializing Google Loader");
     // Code from Google Sample
     var script = doc.createElement("script");
-    script.src = "http://www.google.com/jsapi?key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=Maps.loadMaps";
+    script.src = "http://www.google.com/jsapi?key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=mapLoaded";
     script.type = "text/javascript";
-    doc.getElementsByTagName("head")[0].appendChild(script);
+    doc.getElementsByTagName("head")[0].appendChild(script);*/
 }

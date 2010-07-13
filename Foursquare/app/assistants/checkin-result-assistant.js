@@ -5,7 +5,8 @@ function CheckinResultAssistant( checkinJSON,i) {
 
 CheckinResultAssistant.prototype.setup = function() {
 //	zBar.hideToolbar();
-	
+		NavMenu.setup(this,{buttons:'empty'});
+
   this.controller.setupWidget("okButtonCheckin",
     this.attributes = {},
     this.OKButtonModel = {
@@ -100,7 +101,7 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 				case "mayor":
 					var spt="<img src=\"images/crown_30x30.png\" width=\"22\" height=\"22\" /> Mayor Special";
 					//detect if user is mayor
-					if(!this.nomayor){
+					if(!this.nomayor && special_kind!="nearby"){
 						if(checkinJSON.checkin.mayor.message.indexOf('You')>-1 || checkinJSON.checkin.mayor.message.indexOf('Congratulations')>-1){
 							//user is or just became the mayor
 							this.ismayor=true;
@@ -163,7 +164,6 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 		}
 	];*/
 	checkinJSON.checkin.created="";
-	logthis(Object.toJSON(checkinJSON.checkin));
 	if(checkinJSON.checkin.tips != undefined){
 		logthis("there's a tip!");
 		//logthis(Object.toJSON(checkinJSON.checkin.tips);

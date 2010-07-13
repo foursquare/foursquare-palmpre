@@ -1,11 +1,16 @@
 //Handle Global Vars 
 _globals = {};
 window.maps = window.maps || {};
-
+fsq = {}; //Global Object
+fsq.Metrix = new Metrix(); //Instantiate Metrix Library
 
 _globals.db = new Mojo.Depot({name:"feed"}, function(){Mojo.Log.error("depot OK");}, function(){Mojo.Log.error("depot FAIL");}); 
 _globals.rdb = new Mojo.Depot({name:"rec"}, function(){Mojo.Log.error("recdepot OK");}, function(){Mojo.Log.error("recdepot FAIL");}); 
 
+var webconnection=false;
+
+_globals.debugMode=true;
+_globals.hasWeb=false;
 //_globals.db.discard("feed");
 
 _globals.interval="00:30:00";
@@ -89,79 +94,17 @@ _globals.gotLocation = function(event) {
 	}
 }
 
-_globals.gotLocation2 = function(event) {
-	Mojo.Log.error("doing got location2");
-		_globals.lat=event.latitude;
-		_globals.long=event.longitude;
-		_globals.hacc=event.horizAccuracy;
-		_globals.vacc=event.vertAccuracy;
-		_globals.altitude=event.altitude;
-		_globals.gps=event;
-		_globals.gotGPS=true;
-		Mojo.Log.error("li2="+_globals.loggedIn+", ov2="+_globals.onVenues);
-		if(_globals.loggedIn && !_globals.onVenues){
-			Mojo.Log.error("doing nothing...");
-			_globals.firstLoad=true;
-//			var appController = Mojo.Controller.getAppController();
-//	  	  	var cardStageController = appController.getStageController("mainStage");
-//			cardStageController.swapScene('nearby-venues',auth,userData,_globals.main.username,_globals.main.password,_globals.uid);
-		}
-		
-		if(_globals.onVenues){
-			Mojo.Log.error("onvenues2");
-			var appController = Mojo.Controller.getAppController();
-	  	  	var cardStageController = appController.getStageController("mainStage");
-	  	  	cardStageController.delegateToSceneAssistant(NearbyVenuesAssistant.gotLocation,event);
-			var stage = Mojo.Controller.getAppController().getStageProxy("mainStage");
-		
-			
-			var acc=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy): 0;
-			Mojo.Log.error("acc="+acc);
-			if((acc>_globals.GPS.get().horizAccuracy || acc==0) && _globals.retryingGPS==false){
-				Mojo.Log.error("okay on first try2");
-				_globals.GPS.stop();
-				_globals.gpsokay=true;
-				//Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
-				_globals.accuracy="&plusmn;"+roundNumber(_globals.hacc,2)+"m";
-			}
-			if((acc<_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==false) {
-					Mojo.Log.error("bad radius; retrying2");
-					/*cardStageController.document.getElementById("gps_banner").show();
-					cardStageController.document.getElementById("smallSpinner").hide();
-					cardStageController.document.getElementById("banner_text").innerHTML="Getting better accuracy... ";
-					cardStageController.document.getElementById("refresh-venues").show();
-					cardStageController.document.getElementById("accuracy").innerHTML="Accuracy: &plusmn;"+roundNumber(this.hacc,2)+"m";
-					Mojo.Event.send(cardStageController.document.getElementById("retryloc"),"handleit");*/
 
-
-					_globals.GPS.stop();
-					_globals.retryingGPS=true;
-					_globals.GPS.restart();
-			}
-					
-			if((acc>_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==true){
-						Mojo.Log.error("got it on second try2");
-						_globals.GPS.stop();
-						_globals.gpsokay=true;
-						//Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
-						_globals.accuracy="&plusmn;"+roundNumber(_globals.hacc,2)+"m";
-			}
-					
-			if((acc<_globals.GPS.get().horizAccuracy && acc!=0) && _globals.retryingGPS==true && _globals.gpsokay==false){
-						Mojo.Log.error("giving up2");
-						_globals.GPS.stop();
-						_globals.gpsokay=true;
-						_globals.retryingGPS=false;
-						_globals.accuracy="&plusmn;"+roundNumber(_globals.hacc,2)+"m";
-
-						//Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"handleit");
-			}
-			
-		}
-
-
+function getElementsByClassName(classname,node){
+	//function from: http://snipplr.com/view.php?codeview&id=1696
+    if(!node) node = document.getElementsByTagName("body")[0];
+    var a = [];
+    var re = new RegExp('\\b' + classname + '\\b');
+    var els = node.getElementsByTagName("*");
+    for(var i=0,j=els.length; i<j; i++)
+        if(re.test(els[i].className))a.push(els[i]);
+    return a;
 }
-
 
 
 _globals.categoryFailed = function(event) {
@@ -169,12 +112,71 @@ _globals.categoryFailed = function(event) {
 }
 
 _globals.categorySuccess = function(r) {
-	Mojo.Log.error("got categories");
-	Mojo.Log.error(Object.toJSON(r.responseJSON.categories));
+	//Mojo.Log.error("got categories");
+	//Mojo.Log.error(Object.toJSON(r.responseJSON.categories));
 	if(r.responseJSON.categories){
 		_globals.categories=r.responseJSON.categories;
 	}
 }
+
+_globals.loadPrefs = function() {
+	this.cookieData=new Mojo.Model.Cookie("credentials");
+	var credentials=this.cookieData.get();
+
+
+	if (credentials/* && 1==2*//*uncomment the comment before this to force the login dialog*/){
+		this.username=credentials.username;
+		_globals.swf=credentials.swf || "1";
+		//Mojo.Log.error("swf="+_globals.swf);
+
+		_globals.auth=credentials.auth;
+		this.gpsdata=new Mojo.Model.Cookie("gpsdata");
+		var gps=this.gpsdata.get();
+		_globals.gpsAccuracy=(gps)? gps.gpsAccuracy*-1: 0;
+
+		this.venuecount=new Mojo.Model.Cookie("venuecount");
+		var vc=this.venuecount.get();
+		_globals.venueCount=(vc)? vc.venueCount: 15;
+
+		this.units=new Mojo.Model.Cookie("units");
+		var un=this.units.get();
+		_globals.units=(un)? un.units: "si";
+
+		this.sendstats=new Mojo.Model.Cookie("sendstats");
+		var un=this.sendstats.get();
+		_globals.sendstats=(un)? un.sendstats: "true";
+
+		this.houses=new Mojo.Model.Cookie("houses");
+		var un=this.houses.get();
+		_globals.houses=(un)? un.houses: "yes";
+
+		this.twitter=new Mojo.Model.Cookie("twitter");
+		var un=this.twitter.get();
+		_globals.twitter=(un)? un.twitter: "web";
+
+		this.autoclose=new Mojo.Model.Cookie("autoclose");
+		var un=this.autoclose.get();
+		_globals.autoclose=(un)? un.autoclose: "never";
+
+		/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
+		var hv=this.hv.get();
+		_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];*/
+
+
+		this.flickr=new Mojo.Model.Cookie("flickr");
+		var flickrinfo=this.flickr.get();
+		_globals.flickr_token=(flickrinfo)? flickrinfo.token: undefined;
+		_globals.flickr_username=(flickrinfo)? flickrinfo.username: undefined;
+		_globals.flickr_fullname=(flickrinfo)? flickrinfo.fullname: undefined;
+		_globals.flickr_nsid=(flickrinfo)? flickrinfo.nsid: undefined;
+
+	    _globals.getFriendRequests();
+		return true;
+	}else{
+		return false;
+	}
+
+};
 
 
 
@@ -183,88 +185,110 @@ function AppAssistant() {
 }
 
 AppAssistant.prototype.setup = function() {
+	this.sendstats=new Mojo.Model.Cookie("sendstats");
+	var un=this.sendstats.get();
+	_globals.sendstats=(un)? un.sendstats: "true";
 
+	if(_globals.sendstats=="true"){fsq.Metrix.postDeviceData(true);logthis("sent Metrix stats");}
     var cardStageController = this.controller.getStageController("mainStage");
     var dashboardStageController = this.controller.getStageController("fsqDash");
 
-	/*if(!cardStageController && !dashboardStageController){ //no dash but no normal stage
-	
-    Mojo.Log.error("starting appassistant");
-		
-	   //grab categories in the background...
-	 var url = "http://api.foursquare.com/v1/categories.json";
-	 var request = new Ajax.Request(url, {
-	   method: 'get',
-	   evalJSON: 'force',
-	   onSuccess: _globals.categorySuccess.bind(this),
-	   onFailure: _globals.categoryFailed.bind(this)
-	 });
-	}*/
-//		_globals.GPS = new Location(_globals.gotLocation);
-//		_globals.GPS.start();
-
+	_globals.appController=this.controller;
+	var r=new Mojo.Service.Request('palm://com.palm.connectionmanager', {
+     method: 'getstatus',
+     parameters: {},
+     onSuccess: function(response){
+     	if(response.isInternetConnectionAvailable){
+			setWeb("true");
+			webconnection=true;
+			logthis("good");
+		}
+		}.bind(this),
+     onFailure: function(response){
+	     setWeb("false");
+	     webconnection=false;
+	     logthis("bad");
+     }.bind(this)
+ 	});
 
 
     // Set up first timeout alarm
     this.setWakeup();
   
-  _globals.GPS = new Location(_globals.gotLocation);
-		_globals.GPS.start();
-		var now=(new Date().getTime());
-		_globals.gpsStart=now;
+	_globals.GPS = new Location(_globals.gotLocation);
+	_globals.GPS.start();
+	var now=(new Date().getTime());
+	_globals.gpsStart=now;
 };
 
+function setWeb(v){
+	logthis("v="+v);
+	if(v=="true"){
+		_globals.hasWeb=true;	
+		logthis("set true");
+	}else{
+		_globals.hasWeb=false;
+		logthis("set false");
+	}
 
+}
 /********HANDLE NOTIFICATIONS****************/
 AppAssistant.prototype.setWakeup = function() {    
     this.cookieData=new Mojo.Model.Cookie("notifications");
 	var notifdata=this.cookieData.get();
 	if(notifdata){
 		var notifs=(notifdata.notifs=="1")? '1': '0';
-		Mojo.Log.error("got cookie");
+		//Mojo.Log.error("got cookie");
 		_globals.notifs=notifs;
 	}
 
 
 
     if (_globals.notifs == "1") {
-    	Mojo.Log.error("setting alarm");
-    try{
-        this.wakeupRequest = new Mojo.Service.Request("palm://com.palm.power/timeout", {
-            method: "set",
-            parameters: {
-                "key": "com.foursquare.foursquare.update",
-                "in": _globals.interval,
-                "wakeup": true,
-                "uri": "palm://com.palm.applicationManager/open",
-                "params": {
-                    "id": Mojo.appInfo.id,
-                    "params": {"action": "feedUpdate"}
-                }
-            },
-            onSuccess: function(response) {
-                Mojo.Log.error("Alarm Set Success", response.returnValue);
-                _globals.wakeupTaskId = Object.toJSON(response.taskId);
-            },
-            onFailure: function(response) {
-                Mojo.Log.error("Alarm Set Failure",
-                    response.returnValue, response.errorText);
-            }
-        });
-      }catch (e) {
-Mojo.Log.error ('AppAssistant.clearSystemTimeout(): ' + e);
-}
+    	//Mojo.Log.error("setting alarm");
+	    try{
+	        this.wakeupRequest = new Mojo.Service.Request("palm://com.palm.power/timeout", {
+	            method: "set",
+	            parameters: {
+	                "key": "com.foursquare.foursquare.update",
+	                "in": _globals.interval,
+	                "wakeup": true,
+	                "uri": "palm://com.palm.applicationManager/open",
+	                "params": {
+	                    "id": Mojo.appInfo.id,
+	                    "params": {"action": "feedUpdate"}
+	                }
+	            },
+	            onSuccess: function(response) {
+	               // Mojo.Log.error("Alarm Set Success", response.returnValue);
+	                _globals.wakeupTaskId = Object.toJSON(response.taskId);
+	            },
+	            onFailure: function(response) {
+	                Mojo.Log.error("Alarm Set Failure",
+	                    response.returnValue, response.errorText);
+	            }
+	        });
+	      }catch (e) {
+			Mojo.Log.error ('AppAssistant.clearSystemTimeout(): ' + e);
+		}
         Mojo.Log.error("Set Update Timeout");
     }
 };
 
 
 
+
 AppAssistant.prototype.handleLaunch = function (launchParams) {
-    Mojo.Log.error("ReLaunch");
+   // Mojo.Log.error("ReLaunch");
  
     var cardStageController = this.controller.getStageController("mainStage");
     var appController = Mojo.Controller.getAppController();
+    
+    if(!cardStageController){
+    	_globals.cardstage=false;
+    }else{
+    	_globals.cardstage=true;
+    }
 
     var dashStageController = this.controller.getStageController("dashboard");
     
@@ -297,28 +321,40 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
             // once it is done loading. It is passed the new stage controller
             // as the first parameter.
             //if(dashStageController){
-            Mojo.Log.error("loading shit");
+            logthis("loading shit");
             	//if(_globals.GPS){_globals.GPS.stop();_globals.GPS={};}
       			//_globals.GPS = new Location(_globals.gotLocation);
-				_globals.GPS.restart();
+      			
+      			logthis("webcon"+webconnection);
+      			
+				//_globals.GPS.start();
 				var now=(new Date().getTime());
 				_globals.gpsStart=now;
-				logthis("here");
+				//logthis("here");
 				_globals.nearbyVenues=undefined;
 				_globals.reloadVenues=true;
 				_globals.userData={};
 				_globals.firstLoad=false; //////////////
 				_globals.gpsokay=true;
 				_globals.retryingGPS=false;
-				logthis("here now");
+				
+				//logthis("here now");
 				//also grab user settings in bg
-				var url = "http://api.foursquare.com/v1/user.json";
+
+/*				var url = "http://api.foursquare.com/v1/user.json";
 				var request = new Ajax.Request(url, {
 				   method: 'get',
 				   evalJSON: 'true',
 				   requestHeaders: {Authorization:_globals.auth},
 				   onSuccess: this.userSuccess.bind(this),
 				   onFailure: this.userFailed.bind(this)
+				 });*/
+				 
+				 foursquareGet({
+				 	endpoint: 'user.json',
+				 	onSuccess: this.userSuccess.bind(this),
+				 	onFailure: this.userFailed.bind(this),
+				 	requiresAuth: true
 				 });
 	
 	
@@ -330,44 +366,9 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 				var credentials=this.cookieData.get();
 	
 	
-				if (credentials/* && 1==2*//*uncomment the comment before this to force the login dialog*/){
-					this.username=credentials.username;
-					_globals.swf=credentials.swf || "1";
-					Mojo.Log.error("swf="+_globals.swf);
-
-					_globals.auth=credentials.auth;
-					this.gpsdata=new Mojo.Model.Cookie("gpsdata");
-					var gps=this.gpsdata.get();
-					_globals.gpsAccuracy=(gps)? gps.gpsAccuracy*-1: 0;
-		
-					this.venuecount=new Mojo.Model.Cookie("venuecount");
-					var vc=this.venuecount.get();
-					_globals.venueCount=(vc)? vc.venueCount: 15;
-
-					this.units=new Mojo.Model.Cookie("units");
-					var un=this.units.get();
-					_globals.units=(un)? un.units: "si";
-
-					this.houses=new Mojo.Model.Cookie("houses");
-					var un=this.houses.get();
-					_globals.houses=(un)? un.houses: "no";
-
-					/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
-					var hv=this.hv.get();
-					_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];*/
-
-
-					this.flickr=new Mojo.Model.Cookie("flickr");
-					var flickrinfo=this.flickr.get();
-					_globals.flickr_token=(flickrinfo)? flickrinfo.token: undefined;
-					_globals.flickr_username=(flickrinfo)? flickrinfo.username: undefined;
-					_globals.flickr_fullname=(flickrinfo)? flickrinfo.fullname: undefined;
-					_globals.flickr_nsid=(flickrinfo)? flickrinfo.nsid: undefined;
-		
+				if (_globals.loadPrefs()){		
 					zBar.stageController=stageController;		
 					stageController.pushScene('main',true,credentials);
-
-
 				}else{
 					zBar.stageController=stageController;
 					stageController.pushScene('main',false);
@@ -383,216 +384,295 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
         Mojo.Log.error("com.foursquare.foursquare -- Wakeup Call", launchParams.action);
 		//_globals.GPS = new Location(_globals.gotLocation2);
 		//_globals.GPS.start();
-    switch (launchParams.action) {
-                      
-	    // UPDATE FEEDS
-	    case "feedUpdate" :
-	    	//turn off GPS:
-	    	_globals.GPS.stop();
-	        // Set next wakeup alarm
-	        this.setWakeup();
+	    switch (launchParams.action) {
+	                      
+		    // UPDATE FEEDS
+		    case "feedUpdate" :
+		    	//turn off GPS:
+		    	_globals.GPS.stop();
+		        // Set next wakeup alarm
+		        this.setWakeup();
+		        
+		        this.cookieData=new Mojo.Model.Cookie("credentials");
+				var credentials=this.cookieData.get();
+				if(credentials){
+					_globals.auth=credentials.auth;
+					_globals.uid=credentials.uid;
+					_globals.swf=credentials.swf || "1";
+				}
+				this.username=credentials.username;
+				_globals.auth=credentials.auth;
+		
+		
+		        // Update the feed list
+		       // Mojo.Log.error("Update FeedList");
+				var url = 'http://api.foursquare.com/v1/checkins.json';
+				auth = _globals.auth;
+				var request = new Ajax.Request(url, {
+				   method: 'get',
+				   evalJSON: 'force',
+				   requestHeaders: {Authorization: auth}, 
+				   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
+				   onSuccess: this.feedSuccess.bind(this),
+				   onFailure: this.feedFailed.bind(this)
+				 });
+		    	break;
 	        
-	        this.cookieData=new Mojo.Model.Cookie("credentials");
-			var credentials=this.cookieData.get();
-			if(credentials){
-				_globals.auth=credentials.auth;
-				_globals.uid=credentials.uid;
-				_globals.swf=credentials.swf || "1";
-			}
-			/*var gpsdata=_globals.GPS.get();
-			_globals.lat=gpsdata.latitude;
-			_globals.long=gpsdata.longitude;
-			_globals.hacc=gpsdata.horizAccuracy;
-			_globals.vacc=gpsdata.vertAccuracy;
-			_globals.altitude=gpsdata.altitude;
-			Mojo.Log.error("lat="+_globals.lat);
-			_globals.userData={};
-			_globals.firstLoad=true;
-			_globals.gpsokay=true;
-			_globals.retryingGPS=false;*/
-						this.username=credentials.username;
-						_globals.auth=credentials.auth;
-						
-						
-						/*this.gpsdata=new Mojo.Model.Cookie("gpsdata");
-						var gps=this.gpsdata.get();
-						_globals.gpsAccuracy=(gps)? gps.gpsAccuracy*-1: 0;
-			
-						this.venuecount=new Mojo.Model.Cookie("venuecount");
-						var vc=this.venuecount.get();
-						_globals.venueCount=(vc)? vc.venueCount: 15;
-	
-						this.units=new Mojo.Model.Cookie("units");
-						var un=this.units.get();
-						_globals.units=(un)? un.units: "si";*/
-	
-						/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
-						var hv=this.hv.get();
-						_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];*/
-	
-	
-						/*this.flickr=new Mojo.Model.Cookie("flickr");
-						var flickrinfo=this.flickr.get();
-						_globals.flickr_token=(flickrinfo)? flickrinfo.token: undefined;
-						_globals.flickr_username=(flickrinfo)? flickrinfo.username: undefined;
-						_globals.flickr_fullname=(flickrinfo)? flickrinfo.fullname: undefined;
-						_globals.flickr_nsid=(flickrinfo)? flickrinfo.nsid: undefined;
-		_globals.cmmodel = {
-	          visible: true,
-	          items: [{
-	          	items: [ 
-	          		{},
-	                 { iconPath: "images/venue_button.png", command: "do-Venues"},
-	                 { iconPath: "images/friends_button.png", command: "do-Friends"},
-	                 { iconPath: "images/todo_button.png", command: "do-Tips"},
-	                 { iconPath: "images/user_info.png", command: "do-Badges"},
-	                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'},
-	                 {}
-	                 ],
-	            toggleCmd: "do-Friends",
-	            checkEnabled: true
-	            }]
-	    };*/
-	
-	
-	        // Update the feed list
-	        Mojo.Log.error("Update FeedList");
-			var url = 'http://api.foursquare.com/v1/checkins.json';
-			auth = _globals.auth;
-			var request = new Ajax.Request(url, {
-			   method: 'get',
-			   evalJSON: 'force',
-			   requestHeaders: {Authorization: auth}, 
-			   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
-			   onSuccess: this.feedSuccess.bind(this),
-			   onFailure: this.feedFailed.bind(this)
-			 });
-	    	break;
-        
-        // NOTIFICATION
-        case "notification" :
-            Mojo.Log.error("com.foursquare.foursquare -- Notification Tap");
-			_globals.GPS = new Location(_globals.gotLocation);
-			_globals.GPS.start();
-			var now=(new Date().getTime());
-			_globals.gpsStart=now;
-			_globals.nearbyVenues=undefined;
-			_globals.reloadVenues=true;
-			_globals.userData={};
-			_globals.firstLoad=false; //////////////
-			_globals.gpsokay=true;
-			_globals.retryingGPS=false;
-	        this.cookieData=new Mojo.Model.Cookie("credentials");
-			var credentials=this.cookieData.get();
-			if(credentials){
-				_globals.auth=credentials.auth;
-				_globals.uid=credentials.uid;
-				_globals.swf=credentials.swf || "1";
-			}
-			this.username=credentials.username;
-			_globals.auth=credentials.auth;
-			_globals.username=credentials.username;
-
-
-			
-			this.gpsdata=new Mojo.Model.Cookie("gpsdata");
-			var gps=this.gpsdata.get();
-			_globals.gpsAccuracy=(gps)? gps.gpsAccuracy*-1: 750;
-
-			this.venuecount=new Mojo.Model.Cookie("venuecount");
-			var vc=this.venuecount.get();
-			_globals.venueCount=(vc)? vc.venueCount: 15;
-
-			this.units=new Mojo.Model.Cookie("units");
-			var un=this.units.get();
-			_globals.units=(un)? un.units: "si";
-
-			this.houses=new Mojo.Model.Cookie("houses");
-			var un=this.houses.get();
-			_globals.houses=(un)? un.houses: "no";
-
-			/*this.hv=new Mojo.Model.Cookie("hiddenVenues");
-			var hv=this.hv.get();
-			_globals.hiddenVenues=(hv)? hv.hiddenVenues: [];*/
-			 var url = "http://api.foursquare.com/v1/categories.json";
-			 var request = new Ajax.Request(url, {
-			   method: 'get',
-			   evalJSON: 'force',
-			   onSuccess: _globals.categorySuccess.bind(this),
-			   onFailure: _globals.categoryFailed.bind(this)
-			 });
-
-
-			//also grab user settings in bg
-			var url = "http://api.foursquare.com/v1/user.json";
-			var request = new Ajax.Request(url, {
-			   method: 'get',
-			   evalJSON: 'true',
-			   requestHeaders: {Authorization:_globals.auth},
-			   onSuccess: this.userSuccess.bind(this),
-			   onFailure: this.userFailed.bind(this)
-			 });
-
-
-			this.flickr=new Mojo.Model.Cookie("flickr");
-			var flickrinfo=this.flickr.get();
-			_globals.flickr_token=(flickrinfo)? flickrinfo.token: undefined;
-			_globals.flickr_username=(flickrinfo)? flickrinfo.username: undefined;
-			_globals.flickr_fullname=(flickrinfo)? flickrinfo.fullname: undefined;
-			_globals.flickr_nsid=(flickrinfo)? flickrinfo.nsid: undefined;
-			_globals.cmmodel = {
-		          visible: true,
-		          items: [{
-		          	items: [ 
-		          		{},
-		                 { iconPath: "images/venue_button.png", command: "do-Venues"},
-		                 { iconPath: "images/friends_button.png", command: "do-Friends"},
-		                 { iconPath: "images/todo_button.png", command: "do-Tips"},
-		                 { iconPath: "images/user_info.png", command: "do-Badges"},
-		                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'},
-		                 {}
-		                 ],
-		            toggleCmd: "do-Friends",
-		            checkEnabled: true
-		            }]
-		    };
+	        // NOTIFICATION
+	        case "notification" :
+	            //Mojo.Log.error("com.foursquare.foursquare -- Notification Tap");
+				_globals.GPS = new Location(_globals.gotLocation);
+				_globals.GPS.start();
+				var now=(new Date().getTime());
+				_globals.gpsStart=now;
+				_globals.nearbyVenues=undefined;
+				_globals.reloadVenues=true;
+				_globals.userData={};
+				_globals.firstLoad=false; //////////////
+				_globals.gpsokay=true;
+				_globals.retryingGPS=false;
+		        this.cookieData=new Mojo.Model.Cookie("credentials");
+				var credentials=this.cookieData.get();
+				if(credentials){
+					_globals.auth=credentials.auth;
+					_globals.uid=credentials.uid;
+					_globals.swf=credentials.swf || "1";
+				}
 				
-            //_globals.cmmodel.items.toggleCmd="do-Friends";
-            if (cardStageController) {
-                
-                // If it exists, find the appropriate story list and activate it.
-                Mojo.Log.error("Main Stage Exists");
-                //cardStageController.popScenesTo("feedList");
-                _globals.onVenues=true;
-				cardStageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},_globals.thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
-                cardStageController.activate();
-            } else {
-                
-                // Create a callback function to set up a new main stage,
-                // push the feedList scene and then the appropriate story list
-                var pushMainScene2 = function(stageController) {
-                    //stageController.pushScene("feedList", this.feeds);
-                    //stageController.pushScene("storyList", this.feeds.list, launchParams.index);
-					stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},_globals.auth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
-                };
-                Mojo.Log.error("Create Main Stage");
-                var stageArguments2 = {name: "mainStage", lightweight: true};
-                this.controller.createStageWithCallback(stageArguments2, pushMainScene2.bind(this), "card");
-            }
-        	break;
-        
-        
-        
-        case "user":
-        
-        	break;
-        case "venue":
-        
-        	break;
-        case "leaderboard":
-        
-        	break;
-        }
+				_globals.loadPrefs();
+				
+				 var url = "http://api.foursquare.com/v1/categories.json";
+				 var request = new Ajax.Request(url, {
+				   method: 'get',
+				   evalJSON: 'force',
+				   onSuccess: _globals.categorySuccess.bind(this),
+				   onFailure: _globals.categoryFailed.bind(this)
+				 });
+	
+	
+				//also grab user settings in bg
+				var url = "http://api.foursquare.com/v1/user.json";
+				var request = new Ajax.Request(url, {
+				   method: 'get',
+				   evalJSON: 'true',
+				   requestHeaders: {Authorization:_globals.auth},
+				   onSuccess: this.userSuccess.bind(this),
+				   onFailure: this.userFailed.bind(this)
+				 });
+	
+	
+				_globals.cmmodel = {
+			          visible: true,
+			          items: [{
+			          	items: [ 
+			          		{},
+			                 { iconPath: "images/venue_button.png", command: "do-Venues"},
+			                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+			                 { iconPath: "images/todo_button.png", command: "do-Tips"},
+			                 { iconPath: "images/user_info.png", command: "do-Badges"},
+			                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'},
+			                 {}
+			                 ],
+			            toggleCmd: "do-Friends",
+			            checkEnabled: true
+			            }]
+			    };
+					
+	            //_globals.cmmodel.items.toggleCmd="do-Friends";
+	            if (cardStageController) {
+	                
+	                // If it exists, find the appropriate story list and activate it.
+	                //Mojo.Log.error("Main Stage Exists");
+	                //cardStageController.popScenesTo("feedList");
+	                _globals.onVenues=true;
+					cardStageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},_globals.thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
+	                cardStageController.activate();
+	            } else {
+	                
+	                // Create a callback function to set up a new main stage,
+	                // push the feedList scene and then the appropriate story list
+	                var pushMainScene2 = function(stageController) {
+	                    //stageController.pushScene("feedList", this.feeds);
+	                    //stageController.pushScene("storyList", this.feeds.list, launchParams.index);
+						stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},_globals.auth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
+	                };
+	                //Mojo.Log.error("Create Main Stage");
+	                var stageArguments2 = {name: "mainStage", lightweight: true};
+	                this.controller.createStageWithCallback(stageArguments2, pushMainScene2.bind(this), "card");
+	            }
+	        	break;
+	        
+	        case "saveAlertFile":
+				var appController = Mojo.Controller.getAppController();
+				var fn=launchParams.alertFile;
+				var fname=launchParams.alertName;
+				
+				this.cookieData=new Mojo.Model.Cookie("alert");
+				this.cookieData.put(
+					{"type":'ringtone',"ringtone":fname,"file":fn}
+				)
+				_globals.alerttype='ringtone';
+			 	if(!_globals.cardstage){
+					Mojo.Controller.getAppController().showBanner("Set notification ringtone!", {source: 'notification'});
+			 		logthis("nope");
+			 	 	appController.createStageWithCallback({name: "mainStage", lightweight: true}, function(){
+			 	 		//Mojo.Controller.getAppController().removeAllBanners();
+			 	 		Mojo.Controller.getAppController().closeAllStages();
+			 	 		}.bind(this), "card");
+			 	}
+
+	        	break;
+	        
+	        case "url":
+				var shorturl=launchParams.url;
+				var appController = Mojo.Controller.getAppController();
+
+				if(shorturl.indexOf("foursquare.com/venue")>-1){
+		   			var s=shorturl.indexOf("venue/")+6;
+		   			var vid=shorturl.substr(s);
+					appController.launch("com.foursquare.foursquare",{action: 'venue',venue: vid},
+						function(){logthis("launched");}.bind(this),
+						function(){logthis("launch failed");}.bind(this)
+					);				
+				}else if(shorturl.indexOf("4sq.com")>-1){
+					var url="http://api.bit.ly/v3/expand?shortUrl="+encodeURIComponent(shorturl)+"&login=sirgeoph&apiKey=R_6c499814739b04b067e6df774addba3b&format=json";
+					var request = new Ajax.Request(url, {
+					   method: 'get',
+					   evalJSON: 'true',
+					   onSuccess: function(r){
+					   		var longurl=r.responseJSON.data.expand[0].long_url;
+	
+					   		if(longurl.indexOf("foursquare.com/venue")>-1){
+					   			var s=longurl.indexOf("venue/")+6;
+					   			var vid=longurl.substr(s);
+								appController.launch("com.foursquare.foursquare",{action: 'venue',venue: vid},
+									function(){logthis("launched");}.bind(this),
+									function(){logthis("launch failed");}.bind(this)
+								);
+					   		}else{				   			
+								 appController.open({target: longurl},function(){
+									 	_globals.GPS.stop();
+									 	if(!_globals.cardstage){
+									 		logthis("nope");
+									 	 	appController.createStageWithCallback({name: "mainStage", lightweight: true}, function(){
+									 	 		logthis("created");
+									 	 		Mojo.Controller.getAppController().closeAllStages();
+									 	 		}.bind(this), "card");
+									 	}
+									 	}.bind(this)); 
+					   		}
+					   }.bind(this),
+					   onFailure: function(r){
+					   	logthis("fail: "+Object.toJSON(r.responseJSON));
+					   }.bind(this)
+					 });
+				}else{
+					 appController.open({target: shorturl},function(){
+					 	_globals.GPS.stop();
+					 	if(!_globals.cardstage){
+					 		logthis("nope");
+					 	 	appController.createStageWithCallback({name: "mainStage", lightweight: true}, function(){
+					 	 		logthis("created");
+					 	 		Mojo.Controller.getAppController().closeAllStages();
+					 	 		}.bind(this), "card");
+					 	}
+					 	}.bind(this)); 
+					 				
+				}
+				
+
+				
+	        	break;
+	        case "user":
+	        case "venue":
+	        	//logthis("vid="+launchParams.venue);
+	            //Mojo.Log.error("com.foursquare.foursquare -- Notification Tap");
+					
+	            //_globals.cmmodel.items.toggleCmd="do-Friends";
+	            if (cardStageController) {
+	                
+	                // If it exists, find the appropriate story list and activate it.
+	                //Mojo.Log.error("Main Stage Exists");
+	                //cardStageController.popScenesTo("feedList");
+	                _globals.onVenues=true;
+					if(launchParams.action=="venue"){
+						cardStageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade},{id:launchParams.venue},_globals.username,_globals.password,_globals.uid,false,undefined,undefined,this,false,true);
+					}else if(launchParams.action=="user"){
+						cardStageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade},{id:launchParams.user},_globals.username,_globals.password,_globals.uid,false,undefined,undefined,this,false,true);
+					}
+	                cardStageController.activate();
+	            } else {
+	                
+	                // Create a callback function to set up a new main stage,
+	                // push the feedList scene and then the appropriate story list
+	                var pushMainScene2 = function(stageController) {
+						_globals.GPS = new Location(_globals.gotLocation);
+						_globals.GPS.start();
+						var now=(new Date().getTime());
+						_globals.gpsStart=now;
+						_globals.nearbyVenues=undefined;
+						_globals.reloadVenues=true;
+						_globals.userData={};
+						_globals.firstLoad=false; //////////////
+						_globals.gpsokay=true;
+						_globals.retryingGPS=false;
+						
+						_globals.loadPrefs();
+						
+
+						 var url = "http://api.foursquare.com/v1/categories.json";
+						 var request = new Ajax.Request(url, {
+						   method: 'get',
+						   evalJSON: 'force',
+						   onSuccess: _globals.categorySuccess.bind(this),
+						   onFailure: _globals.categoryFailed.bind(this)
+						 });
+			
+			
+						//also grab user settings in bg
+						var url = "http://api.foursquare.com/v1/user.json";
+						var request = new Ajax.Request(url, {
+						   method: 'get',
+						   evalJSON: 'true',
+						   requestHeaders: {Authorization:_globals.auth},
+						   onSuccess: this.userSuccess.bind(this),
+						   onFailure: this.userFailed.bind(this)
+						 });
+			
+						_globals.cmmodel = {
+					          visible: true,
+					          items: [{
+					          	items: [ 
+					          		{},
+					                 { iconPath: "images/venue_button.png", command: "do-Venues"},
+					                 { iconPath: "images/friends_button.png", command: "do-Friends"},
+					                 { iconPath: "images/todo_button.png", command: "do-Tips"},
+					                 { iconPath: "images/user_info.png", command: "do-Badges"},
+					                 { iconPath: 'images/leader_button.png', command: 'do-Leaderboard'},
+					                 {}
+					                 ],
+					            toggleCmd: "do-Venues",
+					            checkEnabled: true
+					            }]
+					    };
+			                    //stageController.pushScene("feedList", this.feeds);
+	                    //stageController.pushScene("storyList", this.feeds.list, launchParams.index);
+						if(launchParams.action=="venue"){
+							stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade},{id:launchParams.venue},_globals.username,_globals.password,_globals.uid,false,undefined,undefined,this,false,true);
+						}else if(launchParams.action=="user"){
+							stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade},{id:launchParams.user},_globals.username,_globals.password,_globals.uid,false,undefined,undefined,this,false,true);
+
+						}
+	                };
+	                //Mojo.Log.error("Create Main Stage");
+	                var stageArguments2 = {name: "mainStage", lightweight: true};
+	                this.controller.createStageWithCallback(stageArguments2, pushMainScene2.bind(this), "card");
+	            }
+	        	break;
+	        case "leaderboard":
+	        
+	        	break;
+	        }
     }
 };
 
@@ -622,7 +702,7 @@ AppAssistant.prototype.feedFailed = function(r) {
 
 
 AppAssistant.prototype.feedSuccess = function(r) {
-Mojo.Log.error("got feed");
+//Mojo.Log.error("got feed");
 	this.r=r;
 	//see if we've got a stored list of old checkins
 	_globals.db.get("feed",function(d){
@@ -632,7 +712,7 @@ Mojo.Log.error("got feed");
 		
 			var f=[];
 		}
-		Mojo.Log.error("f="+Object.toJSON(f));
+		//Mojo.Log.error("f="+Object.toJSON(f));
 		this.doFeedData(f,this.r);
 	}.bind(this),function(d){
 		//no feed found
@@ -642,7 +722,7 @@ Mojo.Log.error("got feed");
 
 
 AppAssistant.prototype.doFeedData = function(data,r){
-	Mojo.Log.error("checkins="+Object.toJSON(data));
+	//Mojo.Log.error("checkins="+Object.toJSON(data));
 	/*this.cookieData=new Mojo.Model.Cookie("feed");
 	var feedcookie=this.cookieData.get();
 	if(feedcookie){
@@ -659,11 +739,11 @@ AppAssistant.prototype.doFeedData = function(data,r){
 	//setup array to hold actually new checkins
 	var newitems=[];
 	
-	Mojo.Log.error("setup arrays");
+	//Mojo.Log.error("setup arrays");
 	//run through array of newly downloaded checkins
 	var newfeed=r.responseJSON.checkins;
 	if(newfeed){
-		Mojo.Log.error("has newfeed. oldfeed.length="+oldfeed.length);
+		//Mojo.Log.error("has newfeed. oldfeed.length="+oldfeed.length);
 		if(oldfeed.length>0){
 			for(var f=0;f<newfeed.length;f++) {
 				var inarray=false;
@@ -680,7 +760,7 @@ AppAssistant.prototype.doFeedData = function(data,r){
 				if(!inarray && newfeed[f].ping && (newfeed[f].venue || newfeed[f].shout)){
 					newitems.push(newfeed[f]);
 					inarray=false;
-					Mojo.Log.error("checkin for %i is new (ping=%i)",newfeed[f].user.firstname,newfeed[f].ping);
+					//Mojo.Log.error("checkin for %i is new (ping=%i)",newfeed[f].user.firstname,newfeed[f].ping);
 					//Mojo.Log.error("old id=%i, new id=%i",oldfeed[of].id,newfeed[f].id);					
 				} //if the checkin is really new, add it to the newitems array
 				else{
@@ -689,8 +769,8 @@ AppAssistant.prototype.doFeedData = function(data,r){
 		}else{
 			newitems=newfeed;
 		}
-		Mojo.Log.error("added new items to newer array");
-		Mojo.Log.error("newitems="+Object.toJSON(newitems));
+		//Mojo.Log.error("added new items to newer array");
+		//Mojo.Log.error("newitems="+Object.toJSON(newitems));
 
 		//store the new feed in a cookie
 		/*this.cookieData=new Mojo.Model.Cookie("feed");
@@ -704,24 +784,24 @@ AppAssistant.prototype.doFeedData = function(data,r){
 	
 	
 AppAssistant.prototype.doDashboard = function(){
-	Mojo.Log.error("dodashboard");
+	//Mojo.Log.error("dodashboard");
 
 	var newitems=this.newitems;
-	Mojo.Log.error("copied newitems");
+	//Mojo.Log.error("copied newitems");
 	if(newitems && newitems.length>0){
-		Mojo.Log.error("in dashboard if");
+		//Mojo.Log.error("in dashboard if");
 		try{
 			var appController = Mojo.Controller.getAppController();
-			Mojo.Log.error("got appcontroller");
+			//Mojo.Log.error("got appcontroller");
 		}catch(e){
 			Mojo.Log.error(Object.toJSON(e));
 		}
         var stageController = appController.getStageController("mainStage");
-        Mojo.Log.error("gotmainstage");
+        //Mojo.Log.error("gotmainstage");
         var dashboardStageController = appController.getStageProxy("fsqDash");
         
 
-		Mojo.Log.error("got controllers");
+		//Mojo.Log.error("got controllers");
 		
 		
 		//handle sound settings
@@ -730,7 +810,7 @@ AppAssistant.prototype.doDashboard = function(){
 		var alerts=(credentials)? credentials: {type:"bounce",ringtone:"",file:""};
 		
 		var sound={};
-		Mojo.Log.error("alert type="+alerts.type);
+		//Mojo.Log.error("alert type="+alerts.type);
 		switch(alerts.type){
 			case "system_sound":
 				sound.soundClass="notifications";
@@ -753,49 +833,51 @@ AppAssistant.prototype.doDashboard = function(){
 		
 		if(stageController){
 			if(!stageController.isActiveAndHasScenes()){
-				Mojo.Log.error("no active scenes");
+				//Mojo.Log.error("no active scenes");
 				var s=(newitems.length==1)? "":"s";
 				sound.messageText=newitems.length+" New Check-in"+s;
 
 				appController.showBanner(sound, {action: "notification"});
 				if(!dashboardStageController) {
-            		Mojo.Log.error("New Dashboard Stage");
+            		//Mojo.Log.error("New Dashboard Stage");
                 	var pushDashboard = function(stageController){
                 		stageController.pushScene("dashboard", newitems);
                 	};
                 	appController.createStageWithCallback({name: "fsqDash", lightweight: true}, pushDashboard, "dashboard");
             	}else {
-                	Mojo.Log.error("Existing Dashboard Stage");
+                	//Mojo.Log.error("Existing Dashboard Stage");
                 	dashboardStageController.delegateToSceneAssistant("updateDashboard",newitems);
             	}
             }
 		}else{
-				Mojo.Log.error("no mainstage");
+				//Mojo.Log.error("no mainstage");
 				var s=(newitems.length==1)? "":"s";
 				sound.messageText=newitems.length+" New Check-in"+s;
 
 				appController.showBanner(sound, {action: "notification"});
 				if(!dashboardStageController) {
-            		Mojo.Log.error("New Dashboard Stage");
+            		//Mojo.Log.error("New Dashboard Stage");
                 	var pushDashboard = function(stageController){
                 		stageController.pushScene("dashboard", newitems);
                 	};
                 	appController.createStageWithCallback({name: "fsqDash", lightweight: true}, pushDashboard, "dashboard");
             	}else {
-                	Mojo.Log.error("Existing Dashboard Stage");
+                	//Mojo.Log.error("Existing Dashboard Stage");
                 	dashboardStageController.delegateToSceneAssistant("updateDashboard",newitems);
             	}
 		
 		}
-		Mojo.Log.error("done feed stuff");
+		//Mojo.Log.error("done feed stuff");
 	}
 	else{
-		Mojo.Log.error("done feed stuff with no new ones");
+		//Mojo.Log.error("done feed stuff with no new ones");
 	}
 }
 
 function logthis(str){
-	Mojo.Log.error(str);
+	if(_globals.debugMode){
+		Mojo.Log.error(str);
+	}
 }
 
 
@@ -843,7 +925,7 @@ AppAssistant.prototype.getHistory = function(r) {
 		
 			var f=[];
 		}
-		Mojo.Log.error("history="+Object.toJSON(f));
+		//Mojo.Log.error("history="+Object.toJSON(f));
 		_globals.rec.venues=f;
 
 	    this.cookieData=new Mojo.Model.Cookie("lastHID");
@@ -869,7 +951,7 @@ AppAssistant.prototype.loadHistory = function(hid){
 	}else{
 		var params={sinceid: hid};
 	}
-	var url = "http://api.foursquare.com/v1/history.json";
+/*	var url = "http://api.foursquare.com/v1/history.json";
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'true',
@@ -877,7 +959,9 @@ AppAssistant.prototype.loadHistory = function(hid){
 	   requestHeaders: {Authorization:_globals.auth},
 	   onSuccess: this.historySuccess.bind(this),
 	   onFailure: this.historyFailed.bind(this)
-	 });
+	 });*/
+	 
+	 
 
 }
 
@@ -958,3 +1042,273 @@ _globals.categorySort = function(a, b){
 AppAssistant.prototype.historyFailed = function(r) {
 	logthis("hfail="+Object.toJSON(r));
 }
+
+
+_globals.getFriendRequests = function(){
+//	    this.cookieData=new Mojo.Model.Cookie("lastHID");
+//		var credentials=this.cookieData.get();
+//		_globals.lastHID=(credentials)? credentials.lastHID: '0';
+		var url = "http://api.foursquare.com/v1/friend/requests.json";
+		var request = new Ajax.Request(url, {
+		   method: 'get',
+		   evalJSON: 'true',
+		   requestHeaders: {Authorization:_globals.auth},
+		   onSuccess: _globals.requestsSuccess.bind(this),
+		   onFailure: _globals.requestsFailed.bind(this)
+		 });
+
+};
+
+_globals.requestsSuccess = function(r){
+	if(r.responseJSON.requests != undefined && r.responseJSON.requests != null && r.responseJSON.requests.length>0){
+		_globals.requests='';
+		for(var f=0;f<r.responseJSON.requests.length;f++){
+			var html=Mojo.View.render({template:'listtemplates/friend-requests',object:r.responseJSON.requests[f]});
+			_globals.requests+=html;
+		}
+	}
+};
+
+_globals.requestsFailed = function(r){
+
+}
+
+/*
+foursquare AJAX Wrappers
+@param	that			Object		pass the this object of the current scene
+@param	obj				Object		Contains various parameters for the GET request
+
+		endpoint		String		Foursquare API endpoint (not full URL)
+		parameters		Object		Key:value pairs of parameters to be sent
+		requiresAuth	Boolean		If true, with provide HTTP Basic Auth header
+		onSuccess		Function	Callback function to fire on successful response
+		onFailure		Function	Callback function to fire on failed response
+
+		debug			Boolean		If true, logs the responseText to the console
+*/
+function foursquareGet(that,opts){
+	var headers={};
+	if(opts!=undefined){
+		if(opts.endpoint==undefined){
+			logthis("Foursquare API Fail: Missing endpoint");
+			return false;
+		}else{
+			if(opts.requiresAuth){
+				headers={Authorization: _globals.auth};
+			}
+			if(opts.parameters==undefined){
+				opts.parameters={};
+			}
+			
+			var url = "http://api.foursquare.com/v1/"+opts.endpoint;
+			var request = new Ajax.Request(url, {
+			   method: 'get',
+			   evalJSON: 'true',
+			   parameters: opts.parameters,
+			   requestHeaders: headers,
+			   onSuccess: function(r){
+			   		if(opts.debug){logthis(r.responseText);}
+			   		if(r.status!=0){
+			   			if(r.responseJSON.error==undefined && r.responseJSON.ratelimited==undefined && r.responseJSON.unauthorized==undefined){
+			   				opts.onSuccess(r);
+			   			}else if(r.responseJSON.error!=undefined){
+							if(opts.ignoreErrors!=false){
+								that.controller.showAlertDialog({
+									onChoose: function(value) {opts.onFailure(r);},
+									title: $L("Error"),
+									message: $L(r.responseJSON.error+"<br/>Endpoint: "+opts.endpoint),
+									allowHTMLMessage: true,
+									choices:[
+										{label:$L('D\'oh!'), value:"OK", type:'primary'}
+									]
+								});
+							}else{
+								opts.onFailure(r);
+							}
+			   			}else if(r.responseJSON.ratelimited!=undefined){
+							that.controller.showAlertDialog({
+								onChoose: function(value) {opts.onFailure(r);},
+								title: $L("Error"),
+								message: $L(r.responseJSON.ratelimited+"<br/>Endpoint: "+opts.endpoint),
+								allowHTMLMessage: true,
+								choices:[
+									{label:$L('D\'oh!'), value:"OK", type:'primary'}
+								]
+							});
+			   			}else if(r.responseJSON.unauthorized!=undefined){
+							that.controller.showAlertDialog({
+								onChoose: function(value) {opts.onFailure(r);},
+								title: $L("Error"),
+								message: $L(r.responseJSON.unauthorized+"<br/>Endpoint: "+opts.endpoint),
+								allowHTMLMessage: true,
+								choices:[
+									{label:$L('D\'oh!'), value:"OK", type:'primary'}
+								]
+							});
+			   			}
+			   		}else{
+			   			opts.onFailure(r);		   							   		
+			   		}
+			   },
+			   onFailure:  function(r){
+			   		if(opts.debug){logthis(r.responseText);}
+			   		if(r.status!=0){
+			   			if(r.responseJSON.error!=undefined){
+							if(opts.ignoreErrors!=false){
+								that.controller.showAlertDialog({
+									onChoose: function(value) {opts.onFailure(r);},
+									title: $L("Error"),
+									message: $L(r.responseJSON.error+"<br/>Endpoint: "+opts.endpoint),
+									allowHTMLMessage: true,
+									choices:[
+										{label:$L('D\'oh!'), value:"OK", type:'primary'}
+									]
+								});
+							}else{
+								opts.onFailure(r);
+							}
+			   			}else if(r.responseJSON.ratelimited!=undefined){
+							that.controller.showAlertDialog({
+								onChoose: function(value) {opts.onFailure(r);},
+								title: $L("Error"),
+								message: $L(r.responseJSON.ratelimited+"<br/>Endpoint: "+opts.endpoint),
+								allowHTMLMessage: true,
+								choices:[
+									{label:$L('D\'oh!'), value:"OK", type:'primary'}
+								]
+							});
+			   			}else if(r.responseJSON.unauthorized!=undefined){
+							that.controller.showAlertDialog({
+								onChoose: function(value) {opts.onFailure(r);},
+								title: $L("Error"),
+								message: $L(r.responseJSON.unauthorized+"<br/>Endpoint: "+opts.endpoint),
+								allowHTMLMessage: true,
+								choices:[
+									{label:$L('D\'oh!'), value:"OK", type:'primary'}
+								]
+							});
+			   			}
+			   		}else{
+			   			opts.onFailure(r);		   							   		
+			   		}
+			   }
+			 });
+			
+			
+		}
+	}
+};
+
+function foursquarePost(that,opts){
+	var headers={};
+	if(opts!=undefined){
+		if(opts.endpoint==undefined){
+			logthis("Foursquare API Fail: Missing endpoint");
+			return false;
+		}else{
+			if(opts.requiresAuth){
+				headers={Authorization: _globals.auth};
+			}
+			if(opts.parameters==undefined){
+				opts.parameters={};
+			}
+			
+			var url = "http://api.foursquare.com/v1/"+opts.endpoint;
+			var request = new Ajax.Request(url, {
+			   method: 'post',
+			   evalJSON: 'true',
+			   parameters: opts.parameters,
+			   requestHeaders: headers,
+			   onSuccess: function(r){
+			   		if(opts.debug){logthis(r.responseText);}
+			   		if(r.status!=0){
+			   			if(r.responseJSON.error==undefined && r.responseJSON.ratelimited==undefined && r.responseJSON.unauthorized==undefined){
+			   				opts.onSuccess(r);
+			   			}else if(r.responseJSON.error!=undefined){
+							if(r.responseJSON.error.indexOf("Possible Duplicate")==-1){
+								that.controller.showAlertDialog({
+									onChoose: function(value) {opts.onFailure(r);},
+									title: $L("Error"),
+									message: $L(r.responseJSON.error+"<br/>Endpoint: "+opts.endpoint),
+									allowHTMLMessage: true,
+									choices:[
+										{label:$L('D\'oh!'), value:"OK", type:'primary'}
+									]
+								});
+							}else{
+								opts.onFailure(r);
+							}
+			   			}else if(r.responseJSON.ratelimited!=undefined){
+							that.controller.showAlertDialog({
+								onChoose: function(value) {opts.onFailure(r);},
+								title: $L("Error"),
+								message: $L(r.responseJSON.ratelimited+"<br/>Endpoint: "+opts.endpoint),
+								allowHTMLMessage: true,
+								choices:[
+									{label:$L('D\'oh!'), value:"OK", type:'primary'}
+								]
+							});
+			   			}else if(r.responseJSON.unauthorized!=undefined){
+							that.controller.showAlertDialog({
+								onChoose: function(value) {opts.onFailure(r);},
+								title: $L("Error"),
+								message: $L(r.responseJSON.unauthorized+"<br/>Endpoint: "+opts.endpoint),
+								allowHTMLMessage: true,
+								choices:[
+									{label:$L('D\'oh!'), value:"OK", type:'primary'}
+								]
+							});
+			   			}
+			   		}else{
+			   			opts.onFailure(r);		   							   		
+			   		}
+			   },
+			   onFailure:  function(r){
+			   		if(opts.debug){logthis(r.responseText);}
+			   		if(r.status!=0){
+			   			if(r.responseJSON.error!=undefined){
+							if(r.responseJSON.error.indexOf("Possible Duplicate")==-1){
+								that.controller.showAlertDialog({
+									onChoose: function(value) {opts.onFailure(r);},
+									title: $L("Error"),
+									message: $L(r.responseJSON.error+"<br/>Endpoint: "+opts.endpoint),
+									allowHTMLMessage: true,
+									choices:[
+										{label:$L('D\'oh!'), value:"OK", type:'primary'}
+									]
+								});
+							}else{
+								opts.onFailure(r);
+							}
+			   			}else if(r.responseJSON.ratelimited!=undefined){
+							that.controller.showAlertDialog({
+								onChoose: function(value) {opts.onFailure(r);},
+								title: $L("Error"),
+								message: $L(r.responseJSON.ratelimited+"<br/>Endpoint: "+opts.endpoint),
+								allowHTMLMessage: true,
+								choices:[
+									{label:$L('D\'oh!'), value:"OK", type:'primary'}
+								]
+							});
+			   			}else if(r.responseJSON.unauthorized!=undefined){
+							that.controller.showAlertDialog({
+								onChoose: function(value) {opts.onFailure(r);},
+								title: $L("Error"),
+								message: $L(r.responseJSON.unauthorized+"<br/>Endpoint: "+opts.endpoint),
+								allowHTMLMessage: true,
+								choices:[
+									{label:$L('D\'oh!'), value:"OK", type:'primary'}
+								]
+							});
+			   			}
+			   		}else{
+			   			opts.onFailure(r);		   							   		
+			   		}
+			   }
+			 });
+			
+			
+		}
+	}
+
+};

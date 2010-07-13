@@ -1,62 +1,31 @@
-<!--<div id="main" class="palm-hasheader">
-	<div class="palm-header left" id="list-header">
-		Venues
-	</div>
-</div>-->
 <div id="main" class="no-palm-hasheader centered fsq-hasheader">
-	<!--<div class="palm-header-nope center-nope thin-header-redux" id="list-header" style="z-index:999;"> <!--height: 45px;position: fixed;top:0px;left:0px;width: 322px;--><!--
-		<div class="lefter" style="width:194px;text-indent: 0px;font-size: 43px;text-align:left;">Venues</div>
-		<div class="righter" style="text-align: left; padding-top: 8px; padding-right: 50px; width: 68px;height: 43px;right:79px;" id="vmenu"><span class="header-button"><span id="vmenu-caption">Nearby</span> &#9654;</span></div>
-	</div>-->
-	
 	<div class="thin-header-redux">
 		<div class="letterpress">
 <!--			<div class="white-text">Places</div>
 			<div class="dark-shadow">Places</div>-->
-		<div class="thin-blue-header">PLACES</div>
-		<div class="refresh-button" id="venue-refresh"></div>
-		<div class="map-button" id="venue-map"></div>
-		<div id="sendField" x-mojo-element="TextField" style="position: fixed; top:80px; left: 0px;display:none;z-index:999999;width: 320px;font-size: 16px;"></div>
+			<div class="thin-blue-header">PLACES</div>
+			<div class="refresh-button" id="venue-refresh" style="display: none;"></div>
+			<div class="map-button" id="venue-map" style="display: none;"></div>
+			<div id="sendField" x-mojo-element="TextField" style="position: fixed; top:50px; left: 0px;display:none;z-index:999999;width: 320px;font-size: 16px;"></div>
 		</div>
 	</div>
 	<br class="breaker-small"/>
-	<br/>
+<!--	<br/>-->
 <div x-mojo-element="Drawer" id="drawerId" class="drawerClass" name="drawerName">
-<div class="palm-group" style="display:none;" id="searchgroup">
-	<div class="palm-group-title" x-mojo-loc=''>Search Venues</div>
-	<div class="palm-list">
-   		<div class="palm-row single">
-			<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
-				<div class="title">
-      				<div id="sendField" x-mojo-element="TextField" ></div>
+	<div class="palm-group" style="display:none;" id="searchgroup">
+		<div class="palm-group-title" x-mojo-loc=''>Search Venues</div>
+		<div class="palm-list">
+	   		<div class="palm-row single">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+	      				<div id="sendField" x-mojo-element="TextField" ></div>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
+	<div id="go_button" x-mojo-element="Button"></div>
 </div>
-<div id="go_button" x-mojo-element="Button"></div>
-
-
-
-
-</div>
-
-<!--
-<div class="palm-group">
-	<div class="palm-group-title" x-mojo-loc=''>Search Venues</div>
-	<div class="palm-list">
-   		<div class="palm-row single">
-			<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
-				<div class="title">
-      				<div id="sendField" x-mojo-element="TextField" ></div>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-<div id="go_button" x-mojo-element="Button"></div>
--->
-
 <div id='message' style='padding: 0 20px;'></div>
 <div id="gps_banner" style="display:none;height: 27px;padding-top:8px;">
 	<span id="banner_text"></span>
@@ -91,3 +60,4 @@
 
 <div id="gotloc" style="display:none;"></div><div id="gotlocagain" style="display:none;"></div><div id="retryloc" style="display:none;"></div>
 <input type="text" style="visibility: hidden;" id="fakefield"/>
+<div class="innershadow"></div>

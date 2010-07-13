@@ -3,10 +3,11 @@
 function GPS(obj) {
 	this.location=obj;
 	this.going=false;
+    this.ServiceRequest = new ServiceRequestWrapper();
 }
 
 GPS.prototype.go = function() {
-	this.request = new Mojo.Service.Request("palm://com.palm.location", {
+	this.request = new Mojo.Service.Request("palm://com.palm.location", { //new Mojo.Service.Request
     	method: 'startTracking',
 	    parameters: { subscribe: true },
     	onSuccess: function(response) {
@@ -26,8 +27,11 @@ GPS.prototype.go = function() {
 
 GPS.prototype.stop = function() {
 	this.going=false;
-	
-	this.request.cancel();
+	logthis("got request to stop() GPS");
+	if(this.request!=undefined){
+		this.request.cancel();
+		window.setTimeout(function(){delete this.request;}.bind(this),600);
+	}
 };
 
 function Location(callback) {

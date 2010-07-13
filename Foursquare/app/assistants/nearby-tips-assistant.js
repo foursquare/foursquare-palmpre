@@ -1,8 +1,11 @@
 function NearbyTipsAssistant(a) {
 	   this.auth=a;
+	   this.tipsItems=[];
+	   this.todosItems=[];
 }
 
 NearbyTipsAssistant.prototype.setup = function() {
+	NavMenu.setup(this,{buttons:'navOnly'});
 	this.resultsModel = {items: [], listTitle: $L('Results')};
     
 	this.controller.setupWidget('results-tips-list', 
@@ -23,20 +26,41 @@ NearbyTipsAssistant.prototype.setup = function() {
          this.model = {
              spinning: true 
          });
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
     	this.attributes = {
 	        spacerHeight: 0,
         	menuClass: 'fsq-fade'
     	},
 	    _globals.cmmodel
-	);
+	);*/
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    	this.attributes = {
+	        spacerHeight: 0,
+        	menuClass: 'fsq-fade'
+    	},
+		{
+          	visible: true,
+        	items: [ 
+                 {
+                 items: [
+	                /* { icon: "search", command: "do-Search"},*/
+	                	{},
+    	             { label: "Tips", command: "show-Tips"},
+    	             { label: "To-Dos", command: "show-Todos"},
+    	             {}
+    	         ],
+    	         toggleCmd: 'show-Tips'
+    	         }
+                 
+                 ]
+    });
 
 
     
     _globals.ammodel.items[0].disabled=false;
 	this.controller.modelChanged(_globals.ammodel);
 
-    this.controller.get("message").hide();
+    this.controller.get("notice").hide();
     this.getTips();
 
 }
@@ -45,14 +69,13 @@ NearbyTipsAssistant.prototype.getTips = function() {
 	if(_globals.tipsList==undefined || _globals.reloadTips==true) {
 		_globals.reloadTips=false;
 		_globals.tipsList=undefined;
-		var url = 'http://api.foursquare.com/v1/tips.json';
-		var request = new Ajax.Request(url, {
-		   method: 'get',
-		   evalJSON: 'force',
-		   requestHeaders: {Authorization: _globals.auth}, 
+
+		 foursquareGet(this,{
+		 	endpoint: 'tips.json',
+		 	requiresAuth: true,
 		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
 		   onSuccess: this.getTipsSuccess.bind(this),
-		   onFailure: this.getTipsFailed.bind(this)
+		   onFailure: this.getTipsFailed.bind(this)		 	
 		 });
 	}else{
 		this.resultsModel.items=_globals.tipsList;
@@ -190,14 +213,27 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 					if(this.tipsList[this.tipsList.length-1].user.id==_globals.uid){
 						this.tipsList[this.tipsList.length-1].candelete=false;	
 					}
+					if(grouping=="Me"){
+						this.todosItems.push(this.tipsList[this.tipsList.length-1]);
+					}else{
+						this.tipsItems.push(this.tipsList[this.tipsList.length-1]);
+					}
 				}
 			}
 		}
 
-		_globals.tipsList=this.tipsList;
-		this.resultsModel.items =this.tipsList; //update list with basic user info
+
+		_globals.tipsList=this.tipsItems;
+		this.resultsModel.items =this.tipsItems; //update list with basic user info
 		this.controller.modelChanged(this.resultsModel);
-		
+		if(this.tipsItems.length==0){
+			this.controller.get("notice").innerHTML="There aren't any tips near you.";
+			this.controller.get("notice").show();
+			logthis("notips");
+		}else{
+			this.controller.get("notice").hide();		
+			logthis("tips");
+		}
 	
 		
 		this.controller.get("spinnerId").mojo.stop();
@@ -218,13 +254,14 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
                 	var thisauth=auth;
 					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},this.auth,_globals.userData,_globals.username,_globals.password,_globals.uid);
 					break;
+				case "do-Profile":
                 case "do-Badges":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade},thisauth,"");
                 	break;
                 case "do-Shout":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					this.controller.stageController.pushScene({name: "shout", transition: Mojo.Transition.zoomFade},thisauth,"",this);
                 	break;
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;
@@ -234,7 +271,7 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Prefs":
-					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.zoomFade},this);
                 	break;
                 case "do-Refresh":
                 	this.controller.get("spinnerId").mojo.start();
@@ -248,12 +285,46 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
                 	break;
       			case "do-Nothing":
       				break;
+                case "toggleMenu":
+                	NavMenu.toggleMenu();
+                	break;
+				case "show-Tips":
+					this.resultsModel.items =this.tipsItems; //update list with basic user info
+					this.controller.modelChanged(this.resultsModel);
+					if(this.tipsItems.length==0){
+						this.controller.get("notice").innerHTML="There aren't any tips near you.";
+						this.controller.get("notice").show();
+					}else{
+						this.controller.get("notice").hide();
+					}
+					
+					var scroller=this.controller.getSceneScroller();
+					scroller.mojo.revealTop();
+					break;
+				case "show-Todos":
+					this.resultsModel.items =this.todosItems; //update list with basic user info
+					this.controller.modelChanged(this.resultsModel);
+					if(this.todosItems.length==0){
+						this.controller.get("notice").innerHTML="You haven't created any to-dos yet.";
+						this.controller.get("notice").show();
+					}else{
+						this.controller.get("notice").hide();
+					}
 
+					var scroller=this.controller.getSceneScroller();
+					scroller.mojo.revealTop();
+					break;
+                case "gototop":
+					var scroller=this.controller.getSceneScroller();
+					//scroller.mojo.revealTop();
+					scroller.mojo.scrollTo(0,0,true);
+					break;
 			}
 		}
 }
 
 NearbyTipsAssistant.prototype.activate = function(event) {
+		NavMenu.setThat(this);
 	   if(_globals.tipsList!=undefined){
 			this.controller.get("resultListBox").style.display = 'block';
 	   		this.controller.get("spinnerId").mojo.stop();

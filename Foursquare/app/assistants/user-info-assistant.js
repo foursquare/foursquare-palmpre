@@ -7,13 +7,13 @@ function UserInfoAssistant(a,u,ps,ff) {
 
 UserInfoAssistant.prototype.setup = function() {
 	if(!this.fromFriends){
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
     	this.attributes = {
 	        spacerHeight: 0,
         	menuClass: 'fsq-fade'
     	},
 	    _globals.cmmodel
-	);
+	);*/
     
 	}
 	this.resultsModel = {items: [], listTitle: $L('Results')};
@@ -59,7 +59,7 @@ UserInfoAssistant.prototype.setup = function() {
        _globals.ammodel);
          
          
- 	if(this.fromFriends){
+ /*	if(this.fromFriends){
     this.controller.setupWidget("tabButtons",
         this.tabAttributes = {
             choices: [
@@ -85,12 +85,50 @@ UserInfoAssistant.prototype.setup = function() {
             disabled: false
         }
     );    
+    }*/
+    
+    if(this.fromFriends){
+    	var cm_items=[
+           	{},
+	         { label: "Info", command: "show-Info"},
+	         { label: "Friends", command: "show-Friends"},
+		    {}
+
+    	];
+    	var tog="show-Info";
+    }else{
+    	var cm_items=[
+           	{},
+	         { label: "History", command: "show-History"},
+	         { label: "Friends", command: "show-Friends"},
+		    {}
+
+    	];
+    	var tog="show-History";
     }
+    
+    
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    	this.attributes = {
+	        spacerHeight: 0,
+        	menuClass: 'fsq-fade'
+    	},
+		this.cmdMenuModel = {
+          	visible: true,
+        	items: [ 
+                 {
+                 items: cm_items,
+    	         toggleCmd: tog
+    	         }
+                 
+                 ]
+    });
+
 	
 
 	this.mayorshipModel = {items: [], listTitle: $L('Results')};
 	this.controller.setupWidget('mayorshipList', 
-					      {itemTemplate:'listtemplates/venueItemsLimited'},
+					      {itemTemplate:'listtemplates/venueItemsLimited', formatter:{primarycategory:this.fixIcon.bind(this)}},
 					      this.mayorshipModel);
 	
 	this.historyModel = {items: [], listTitle: $L('Results')};
@@ -119,7 +157,7 @@ UserInfoAssistant.prototype.setup = function() {
 	this.controller.modelChanged(_globals.ammodel);
 	
 	if (this.fromFriends){
-		this.controller.get("tooltip").style.bottom="10px";
+		//this.controller.get("tooltip").style.bottom="10px";
 	}
 }
 
@@ -129,15 +167,29 @@ function make_base_auth(user, pass) {
   var hash = Base64.encode(tok);
   return "Basic " + hash;
 }
-
+UserInfoAssistant.prototype.fixIcon = function(value,model) {
+	if(value==undefined){
+		return {iconurl:"images/no-cat.png"};
+	}else{
+		return value;
+	}
+}
 UserInfoAssistant.prototype.getUserInfo = function() {
-		var url = 'http://api.foursquare.com/v1/user.json';
+/*		var url = 'http://api.foursquare.com/v1/user.json';
 		auth=_globals.auth;
 		var request = new Ajax.Request(url, {
 	   		method: 'get',
 	   		evalJSON: 'force',
 	   		requestHeaders: {Authorization:auth},
 	   		parameters: {uid:this.uid,badges: '1', mayor: '1'},
+	   		onSuccess: this.getUserInfoSuccess.bind(this),
+	   		onFailure: this.getUserInfoFailed.bind(this)
+	 	});*/
+	 	
+	 	foursquareGet(this,{
+	 		endpoint: 'user.json',
+	 		requiresAuth: true,
+	 		parameters: {uid:this.uid,badges: '1', mayor: '1'},
 	   		onSuccess: this.getUserInfoSuccess.bind(this),
 	   		onFailure: this.getUserInfoFailed.bind(this)
 	 	});
@@ -178,8 +230,9 @@ Mojo.Log.error("uid="+this.uid);
 		var itm={};
 		itm.icon="images/twitter_32.png";
 		itm.caption="Twitter ("+j.user.twitter+")";
-		itm.action="url";
-		itm.url='http://twitter.com/'+j.user.twitter;
+		itm.action="twitter";
+		itm.url='http://mobile.twitter.com/'+j.user.twitter;
+		itm.username=j.user.twitter;
 		this.info.push(itm);
 	}
 		
@@ -332,20 +385,23 @@ Mojo.Log.error("handled pings");
 	Mojo.Log.error("###handled friendship buttons");*/
 
 	//user's mayorships
-	if(j.user.mayor != null && j.user.mayor != undefined) {
+	if(j.user.mayor != null && j.user.mayor != undefined && j.user.mayor.length>0) {
 		//this.controller.get("mayor-title").innerHTML=j.user.mayor.length+" Mayorships";
+		logthis("mayor="+Object.toJSON(j.user.mayor));
 		this.controller.get("mayorcount").innerHTML=j.user.mayor.length;
 
 		this.mayorshipModel.items=j.user.mayor;
 		this.controller.modelChanged(this.mayorshipModel);
 	}else{
-		this.controller.get("mayorshipList").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' isn\'t the mayor of anything yet.</span></div></div>';
+		this.controller.get("mayor-notice").innerHTML=j.user.firstname+' isn\'t the mayor of anything yet.';
+		this.controller.get("mayor-notice").show();
+		this.controller.get("mayorshipList").hide();
 		this.controller.get("mayorcount").innerHTML="0";	
 	}
 
 
 	//user's badges
-	if(j.user.badges != null) {
+	if(j.user.badges != null && j.user.badges != undefined && j.user.badges.length>0) {
 		this.controller.get("badgecount").innerHTML=j.user.badges.length;
 		var o='';
 		o += '<table border=0 cellspacing=0 cellpadding=2 width="100%">';
@@ -357,9 +413,25 @@ Mojo.Log.error("handled pings");
 			if(id==1) {
 				o += '<tr>';
 			}
-			o += '<td align="center" width="25%" class="medium-text"><img data="'+j.user.badges[m].description+'" id="badge-'+m+'" src="'+j.user.badges[m].icon+'" width="48" height="48"/><br/>'+j.user.badges[m].name+'</td>';
+			
+			//pick a random class for the badge
+			var classes=['paperclip','tape','sticker'];
+			var rn=Math.floor(Math.random()*3);
+			var bclass=classes[rn];
+			
+			var imgclasses=['slight-left','left','slight-right','right'];
+			var rn=Math.floor(Math.random()*4);
+			var iclass=imgclasses[rn];
+
+			var peelclasses=['slight-left','left','slight-right','right'];
+			var rn=Math.floor(Math.random()*4);
+			var pclass=peelclasses[rn];
+			
+			
+			//o += '<td align="center" width="25%" class="medium-text"><img data="'+j.user.badges[m].description+'" id="badge-'+m+'" src="'+j.user.badges[m].icon+'" width="48" height="48"/><br/>'+j.user.badges[m].name+'</td>';
+			o+='<div class="badge sticker"><div class="badgeoverlay '+pclass+'"></div><div class="badgecontent"><img data="'+j.user.badges[m].description+'" id="badge-'+m+'" src="'+j.user.badges[m].icon+'" width="48" height="48" class="'+iclass+'"/><br/>'+j.user.badges[m].name+'</div></div>';
 			if(id==4) {
-				o += '</tr>';
+				o += '<br class="breaker-small">';
 				id=0;
 			}
 		}
@@ -371,7 +443,9 @@ Mojo.Log.error("handled pings");
 			Mojo.Event.listen(this.controller.get('badge-'+b),Mojo.Event.tap, this.showBadgeTip.bind(this));
 		}
 	}else{
-		this.controller.get("badges-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' doesn\'t have any badges in '+credentials.city+' yet.</span></div></div>';
+		//this.controller.get("badges-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' doesn\'t have any badges in '+credentials.city+' yet.</span></div></div>';
+		this.controller.get("badges-notice").innerHTML=j.user.firstname+' doesn\'t have any badges yet.';
+		this.controller.get("badges-notice").show();
 		this.controller.get("badgecount").innerHTML="0";	
 	}
 
@@ -395,33 +469,41 @@ UserInfoAssistant.prototype.getUserInfoFailed = function(response) {
 
 
 UserInfoAssistant.prototype.showMayorInfo = function(event) {
+	this.cmdMenuModel.items[0].toggleCmd="";
+	this.controller.modelChanged(this.cmdMenuModel);
+
 	this.controller.get("uinfo").hide();
 	this.controller.get("uhistory").hide();
 	this.controller.get("ubadges").hide();
 	this.controller.get("ufriends").hide();
 	this.controller.get("ufriendsresults").hide();
 	this.controller.get("mayorof").show();
-	this.tabModel.value=0;
+	//this.tabModel.value=0;
 	this.controller.modelChanged(this.tabModel);
 }
 UserInfoAssistant.prototype.showBadgeInfo = function(event) {
+	this.cmdMenuModel.items[0].toggleCmd="";
+	this.controller.modelChanged(this.cmdMenuModel);
+
 	this.controller.get("uinfo").hide();
 	this.controller.get("uhistory").hide();
 	this.controller.get("ubadges").show();
 	this.controller.get("mayorof").hide();
 	this.controller.get("ufriends").hide();
 	this.controller.get("ufriendsresults").hide();
-	this.tabModel.value=0;
+	//this.tabModel.value=0;
 	this.controller.modelChanged(this.tabModel);
 }
-UserInfoAssistant.prototype.handleTabs = function(event) {
+UserInfoAssistant.prototype.handleTabs = function(what) {
 	this.controller.get("uinfo").hide();
 	this.controller.get("uhistory").hide();
 	this.controller.get("ubadges").hide();
 	this.controller.get("mayorof").hide();
 	this.controller.get("ufriends").hide();
 	this.controller.get("ufriendsresults").hide();
-	switch(this.tabModel.value){
+	var scroller=this.controller.getSceneScroller();
+	scroller.mojo.revealTop();
+	switch(what){
 		case 1: //history
 			this.controller.get("uhistory").show();			
 			break;
@@ -467,19 +549,19 @@ UserInfoAssistant.prototype.showBadgeTip = function(event){
 }
 
 UserInfoAssistant.prototype.showFriends = function(){
+
 		this.controller.get("userSpinner").mojo.start();
 		this.controller.get("userSpinner").show();
 
-		var url = 'http://api.foursquare.com/v1/friends.json';
-		auth = _globals.auth;
 		var u=this.uid || _globals.uid;
-		var request = new Ajax.Request(url, {
-		   method: 'get',
-		   evalJSON: 'force',
-		   requestHeaders: {Authorization: auth}, 
-		   parameters: {uid:u},
-		   onSuccess: this.getFriendsSuccess.bind(this),
-		   onFailure: this.getFriendsFailed.bind(this)
+
+		 
+		 foursquareGet(this,{
+		 	endpoint: 'friends.json',
+		 	requiresAuth: true,
+		 	parameters: {uid:u},
+			onSuccess: this.getFriendsSuccess.bind(this),
+		    onFailure: this.getFriendsFailed.bind(this)		 	
 		 });
 }
 UserInfoAssistant.prototype.getFriendsSuccess = function(response) {
@@ -505,15 +587,12 @@ Mojo.Log.error(response.responseText);
 	
 	//load pending friends
 	if(!this.fromFriends){
-		var url = 'http://api.foursquare.com/v1/friend/requests.json';
-		auth = _globals.auth;
-		var request = new Ajax.Request(url, {
-		   method: 'get',
-		   evalJSON: 'force',
-		   requestHeaders: {Authorization: auth}, 
-		   parameters: {},
-		   onSuccess: this.requestFriendsSuccess.bind(this),
-		   onFailure: this.getFriendsFailed.bind(this)
+		 
+		 foursquareGet(this,{
+		 	endpoint: 'friend/requests.json',
+		 	requiresAuth: true,
+			onSuccess: this.requestFriendsSuccess.bind(this),
+		    onFailure: this.getFriendsFailed.bind(this)
 		 });
 	}else{
 		this.controller.get("userSpinner").hide();
@@ -628,6 +707,76 @@ UserInfoAssistant.prototype.infoTapped = function(event) {
 		case "pings":
 			this.setPings();
 			break;
+		case "twitter":
+			switch(_globals.twitter){
+				case "web":
+					this.controller.serviceRequest('palm://com.palm.applicationManager', {
+						 method: 'open',
+						 parameters: {
+							 target: event.item.url
+						 }
+					});
+					break;				
+				case "badkitty":
+				   try{
+				      this.controller.serviceRequest("palm://com.palm.applicationManager", {
+				         method: 'launch',
+				         parameters: {
+				            id: 'com.superinhuman.badkitty',
+				            params: {action: 'user', name: event.item.username}
+				         },
+				         onSuccess:function(){
+				            /*
+				              INSERT ANY CODE YOU WANT EXECUTED UPON SUCCESS OF LAUNCHING BADKITTY
+				            */
+				         }.bind(this),
+				         onFailure:function(){
+				            this.controller.serviceRequest('palm://com.palm.applicationManager', {
+				                method:'open',
+				                   parameters:{
+				                   target: event.item.url
+				                        }
+				             });
+				         }.bind(this)
+				      })
+				   }catch(e){
+				      /*
+				       INSERT ANY ERROR HANDLING CODE HERE
+				     */
+				   }
+				
+					break;
+				case "tweetme":
+				   try{
+				      this.controller.serviceRequest("palm://com.palm.applicationManager", {
+				         method: 'launch',
+				         parameters: {
+				            id: 'com.catalystmediastudios.tweetme',
+				            params: {action: 'user', name: event.item.username}
+				         },
+				         onSuccess:function(){
+				            /*
+				              INSERT ANY CODE YOU WANT EXECUTED UPON SUCCESS OF LAUNCHING TWEETME
+				            */
+				         }.bind(this),
+				         onFailure:function(){
+				            this.controller.serviceRequest('palm://com.palm.applicationManager', {
+				                method:'open',
+				                   parameters:{
+				                   target: event.item.url
+				                        }
+				             });
+				         }.bind(this)
+				      })
+				   }catch(e){
+				      /*
+				       INSERT ANY ERROR HANDLING CODE HERE
+				     */
+				   }
+				
+					break;
+			}
+			break;
 	}
 }
 UserInfoAssistant.prototype.setPings = function(event) {
@@ -699,14 +848,11 @@ UserInfoAssistant.prototype.addFailed = function(response) {
 
 
 UserInfoAssistant.prototype.getHistory = function(event) {
-	var url = 'http://api.foursquare.com/v1/history.json';
-	var request = new Ajax.Request(url, {
-	   method: 'post',
-	   evalJSON: 'force',
-	   requestHeaders: {Authorization:_globals.auth}, 
-	   parameters: {},
-	   onSuccess: this.historySuccess.bind(this),
-	   onFailure: this.historyFailed.bind(this)
+	 foursquareGet(this, {
+	 	endpoint: 'history.json',
+	 	requiresAuth: true,
+	    onSuccess: this.historySuccess.bind(this),
+	    onFailure: this.historyFailed.bind(this)
 	 });
 }
 
@@ -769,7 +915,7 @@ UserInfoAssistant.prototype.searchFriends = function(how,query) {
 	var url = 'http://api.foursquare.com/v1/findfriends/by'+how+'.json';
 	this.query=query;
 	this.how=how;
-	auth = _globals.auth;
+/*	auth = _globals.auth;
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
@@ -777,6 +923,14 @@ UserInfoAssistant.prototype.searchFriends = function(how,query) {
 	   parameters: what,
 	   onSuccess: this.searchFriendsSuccess.bind(this),
 	   onFailure: this.getFriendsFailed.bind(this)
+	 });*/
+	 
+	 foursquareGet(this, {
+	 	endpoint: 'findfriends/by'+how+'.json',
+	 	requiresAuth: true,
+	 	parameters: what,
+ 	    onSuccess: this.searchFriendsSuccess.bind(this),
+	    onFailure: this.getFriendsFailed.bind(this)
 	 });
 
 	
@@ -847,7 +1001,7 @@ UserInfoAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Prefs":
-					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.zoomFade},this);
                 	break;
                 case "do-Refresh":
 					this.controller.get("userInfo").innerHTML="";
@@ -863,6 +1017,15 @@ UserInfoAssistant.prototype.handleCommand = function(event) {
                 	_globals.checkUpdate(this);
                 	break;
       			case "do-Nothing":
+      				break;
+      			case "show-Info":
+      				this.handleTabs(3);
+      				break;
+      			case "show-Friends":
+      				this.handleTabs(2);
+      				break;
+      			case "show-History":
+      				this.handleTabs(1);
       				break;
             }
             var scenes=this.controller.stageController.getScenes();

@@ -39,7 +39,7 @@ AddTipDialogAssistant.prototype.activate = function() {
 
 AddTipDialogAssistant.prototype.tipokTapped = function() {
 Mojo.Log.error("oktapped");
-		var url = 'http://api.foursquare.com/v1/addtip.json';
+/*		var url = 'http://api.foursquare.com/v1/addtip.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
@@ -53,6 +53,19 @@ Mojo.Log.error("oktapped");
 			},
 			onSuccess: this.tipSuccess.bind(this),
 			onFailure: this.tipFailed.bind(this)
+		});*/
+		
+		foursquarePost(this.sceneAssistant,{
+			endpoint: 'addtip.json',
+			requiresAuth: true,
+			parameters: {
+				vid: this.vid,
+				text: this.tipModel.value,
+				type: this.type
+			},
+			onSuccess: this.tipSuccess.bind(this),
+			onFailure: this.tipFailed.bind(this)
+			
 		});
 }
 

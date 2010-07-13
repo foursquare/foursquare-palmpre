@@ -16,6 +16,8 @@ function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps,q) {
 
 
 NearbyVenuesMapAssistant.prototype.setup = function() {
+	NavMenu.setup(this,{buttons: 'navOnly'});
+
     var appController = Mojo.Controller.getAppController();
   	var cardStageController = appController.getStageController("mainStage");
 	var doc=cardStageController.document;
@@ -47,6 +49,7 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
     Mojo.Event.listen(this.controller.document, 'gesturechange', this.handleGestureChange.bindAsEventListener(this), false);
     Mojo.Event.listen(this.controller.document, 'gestureend', this.handleGestureEnd.bindAsEventListener(this), false);
 	Mojo.Event.listen(this.controller.get('vmenu'),Mojo.Event.tap, this.showMenu.bind(this));
+	Mojo.Event.listen(this.controller.get("map_info"),Mojo.Event.tap, this.showVenueInfo.bind(this));
 
 	_globals.ammodel.items[0].disabled=true;
 	this.controller.modelChanged(_globals.ammodel);
@@ -57,14 +60,17 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
 	this.origZoom=15;
 }
 
-NearbyVenuesMapAssistant.prototype.handleGestureStart = function(event) {
-        this.origZoom = this.zoom;
-        this.inGesture = 1;
-		this.cntr=this.map.getCenter();
+NearbyVenuesMapAssistant.prototype.handleGestureStart = function(e) {
+//        this.origZoom = this.zoom;
+//        this.inGesture = 1;
+//		this.cntr=this.map.getCenter();
+	this.map.setOptions({draggable:false});
+	this.previousScale=e.scale;
+
 
 }
-NearbyVenuesMapAssistant.prototype.handleGestureChange = function(event) {
-	    s = event.scale;
+NearbyVenuesMapAssistant.prototype.handleGestureChange = function(e) {
+/*	    s = event.scale;
         if (s>2) s=2;
         if (s<0.5) s=0.5;
         s2 = 2*Math.log(s)/Math.log(2);
@@ -73,19 +79,29 @@ NearbyVenuesMapAssistant.prototype.handleGestureChange = function(event) {
         if (this.zoom < 7) this.zoom = 7;
         this.map.setZoom(Math.round(this.zoom));
         this.map.panTo(this.cntr);
-
+*/
+	e.stop();
+	var d=this.previousScale-e.scale;
+	if(Math.abs(d)>0.25){
+		var z=this.map.getZoom()+(d>0?-1:+1);
+		this.map.setZoom(z);
+		this.previousScale=e.scale;
+	}
 }
-NearbyVenuesMapAssistant.prototype.handleGestureEnd = function(event) {
-        this.origZoom = this.zoom;
+NearbyVenuesMapAssistant.prototype.handleGestureEnd = function(e) {
+/*        this.origZoom = this.zoom;
         this.inGesture = 0;
         this.map.setZoom(Math.round(this.zoom));
-        this.map.panTo(this.cntr);
+        this.map.panTo(this.cntr);*/
+        
+	e.stop();
+	this.map.setOptions({draggable:true});     
 }
 
 
 NearbyVenuesMapAssistant.prototype.showVenueInfo = function(event) {
-	var v=event.target.readAttribute("data");
-	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.venues[v],this.username,this.password,this.uid,false,this,true);
+	var v=this.controller.get("map_info").readAttribute("data");
+	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade, disableSceneScroller: true},this.venues[v],this.username,this.password,this.uid,false,this,true);
 }
 
 
@@ -177,8 +193,17 @@ NearbyVenuesMapAssistant.prototype.attachBubble = function(marker,i) {
       });
   
 	google.maps.event.addListener(marker, 'click', function() {
+			 var html='<div class="mi-left-thin"><img src="'+this.venues[i].primarycategory.iconurl+'" width="32" height="32"></div>';
+			 html+='<div class="mi-right"><b>'+this.venues[i].name+'</b><br/>'+this.venues[i].address+'</div>';
+
+			 this.controller.get("map_info").innerHTML=html;
+			 this.controller.get("map_info").writeAttribute("data",i);
+			 this.controller.get("map_info").style.opacity=1;
+			 this.controller.get("map_info").show();
+			 window.clearTimeout(this.infoTimer);
+			 this.infoTimer=window.setTimeout(function(){this.fadeInfo();}.bind(this),5000);
 		
-    	this.infowindows[i].open(this.map,marker);
+/*    	this.infowindows[i].open(this.map,marker);*/
 	}.bind(this));
 	google.maps.event.addListener(this.infowindows[i],"domready",function(){	
 		Mojo.Event.listen(this.controller.get('iw-'+this.venues[i].id),Mojo.Event.tap, this.showVenueInfo.bind(this));
@@ -187,6 +212,21 @@ NearbyVenuesMapAssistant.prototype.attachBubble = function(marker,i) {
 }
 
 
+NearbyVenuesMapAssistant.prototype.fadeInfo = function(){
+	Mojo.Animation.animateStyle(this.controller.get("map_info"),'opacity','bezier',{from:100,
+																	to:0,
+																	duration:1,
+																	curve:Mojo.Animation.easeIn,
+																	styleSetter:function(value){
+																		this.controller.get("map_info").style.opacity=value/100;
+																	
+																	}.bind(this),
+																	onComplete:function(el){
+																		el.hide();
+																	}
+																	
+																	});
+};
 
 
 
@@ -242,29 +282,34 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
                 	break;
 				case "nearby-venues":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,false,this.query);
+					this.controller.stageController.popScene();
 					break;
 				case "venue-map":
 					break;
 				case "do-Venues":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,uid);
+					this.controller.stageController.popScene();
 					break;
+				case "do-Profile":
                 case "do-Badges":
                 	var thisauth=_globals.auth;
+                	//this.controller.stageController.popScene();
 					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
 				case "do-Friends":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
+					this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
 					break;
                 case "do-Tips":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-About":
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
@@ -277,7 +322,11 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
                 	break;
                 case "do-Shout":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "toggleMenu":
+                	NavMenu.toggleMenu();
                 	break;
             }
         }

@@ -11,35 +11,47 @@ function MainAssistant(expressLogin,credentials,fp) {
 		   	this.password=this.credentials.password;
 		   	this.auth=make_base_auth(this.username,this.password);
 		   }
-		   Mojo.Log.error("auth="+this.auth);
+		//   Mojo.Log.error("auth="+this.auth);
 	   }
 	   
 	   this.gotGPS=false;
 	   this.loggedIn=false;
 	   _globals.firstLoad=false;
+	   this.wrongcreds=false;
 	   
 }
 
 MainAssistant.prototype.setup = function() {
 	_globals.mainLoaded=true;
-	if (this.expressLogin) {
-		Mojo.Log.error("expresslogin");
-		this.controller.get("loginfields").style.visibility="hidden";
-		this.controller.get("main").removeClassName("palm-hasheader");
-		this.controller.get("message").style.marginTop="-70px";
-		this.controller.get("main").style.background="url(SPLASH_boy_transparent.png) no-repeat left top";
-
-		this.login(this.username,this.password);
-	}
+	
+	
+ 
+ 
 	this.controller.setupWidget('username', this.attributes = {hintText:'Email/Phone',textCase: Mojo.Widget.steModeLowerCase}, this.usernameModel = {value:'', disabled:false});
 	this.controller.setupWidget('password', this.attributes = {hintText:'Password'}, this.passwordModel = {value:'', disabled:false});
 	
-	this.controller.setupWidget('goLogin', this.attributes = {}, this.loginBtnModel = {label:'Log In', disabled:false});
+	this.controller.setupWidget('goLogin', this.attributes = {type:Mojo.Widget.activityButton}, this.loginBtnModel = {label:'Log In', disabled:false});
 	this.controller.setupWidget('goSignup', this.attributes = {}, this.signupBtnModel = {label:'Need an account? Sign up!', disabled:false});
 	
 	Mojo.Event.listen(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTapped.bind(this));
 	Mojo.Event.listen(this.controller.get("goSignup"), Mojo.Event.tap, this.onSignupTapped.bind(this));
     this.controller.document.addEventListener("keyup", this.keyDownHandler.bind(this), true);
+
+		logthis("hasweb="+_globals.hasWeb);
+ 	//if(_globals.hasWeb=="true"){
+		if (this.expressLogin) {
+			//Mojo.Log.error("expresslogin");
+			this.controller.get("loginfields").style.visibility="hidden";
+			this.controller.get("main").removeClassName("palm-hasheader");
+			this.controller.get("message").style.marginTop="-70px";
+			this.controller.get("main").style.background="url(SPLASH_boy_transparent.png) no-repeat left top";
+	
+			this.login(this.username,this.password);
+		}     	
+ 	//}else{
+ 	//	this.loginRequestFailed({},false,true);
+ 	//}
+
 }
 
 MainAssistant.prototype.onLoginTapped = function(event){
@@ -87,7 +99,12 @@ MainAssistant.prototype.login = function(uname, pass){
  
 	var url = "http://api.foursquare.com/v1/user.json";
 	//var url="http://192.168.1.141/user.json"; //use this to test server being down
-	auth = (this.expressLogin)? _globals.auth: make_base_auth(uname, pass);
+	if(this.wrongcreds){
+		auth=make_base_auth(uname, pass);
+	}else{
+		auth = (this.expressLogin)? _globals.auth: make_base_auth(uname, pass);
+	}
+	
 	//this.timeout=this.controller.window.setTimeout(this.connectionTimedOut.bindAsEventListener(this),5000);
 	
 	this.controller.get('signupbutton').hide();
@@ -106,7 +123,7 @@ MainAssistant.prototype.login = function(uname, pass){
 		   			request.transport.abort();
 		   			this.loginRequestFailed(request.transport,true);	
 		   		}			
-			}.bind(this),10000);
+			}.bind(this),15000);
 	   }.bind(this)
 	 });
 }
@@ -114,7 +131,7 @@ MainAssistant.prototype.login = function(uname, pass){
 var userData;
 
 MainAssistant.prototype.loginRequestSuccess = function(response) {
-logthis("complete: "+response.status);
+//logthis("complete: "+response.status);
 //logthis(Object.toJSON(response.responseJSON.error));
 	if(response.status!=0){
 		if(response.responseJSON.error==undefined){
@@ -156,11 +173,11 @@ logthis("complete: "+response.status);
 					_globals.firstLoad=true;
 					this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
 				}else{
-					Mojo.Log.error("waiting on GPS");
+					//Mojo.Log.error("waiting on GPS");
 					this.gpscheck=this.controller.window.setInterval(function(){
-						Mojo.Log.error("checking gps");
+						//Mojo.Log.error("checking gps");
 						if(_globals.gotGPS){
-							Mojo.Log.error("got gps finally!");
+							//Mojo.Log.error("got gps finally!");
 							_globals.firstLoad=true;
 							this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
 						}
@@ -170,11 +187,11 @@ logthis("complete: "+response.status);
 			
 			}
 		}else{
-			logthis("resp="+response.responseText);
+			//logthis("resp="+response.responseText);
 			this.loginRequestFailed(response,true);
 		}
 	}else{
-			logthis("resp2="+response.responseText);
+			//logthis("resp2="+response.responseText);
 		this.loginRequestFailed(response,true);
 	}
 }
@@ -182,9 +199,15 @@ MainAssistant.prototype.connectionTimedOut = function() {
 	//this.request.abort();
 };
 
-MainAssistant.prototype.loginRequestFailed = function(response,timeout) {
-	logthis("resp3="+response.responseText);
+MainAssistant.prototype.loginRequestFailed = function(response,timeout,noConnection) {
+	//logthis("resp3="+response.responseText);
 	auth = undefined;
+	try{
+		this.controller.get('goLogin').mojo.deactivate();
+	}
+	catch(e){
+		
+	}
 	this.controller.get('main').style.background="";
 	this.controller.get("loginfields").style.visibility="visible";
 	var msg="";
@@ -192,10 +215,13 @@ MainAssistant.prototype.loginRequestFailed = function(response,timeout) {
 	if(response.responseJSON != undefined){
 		if(response.responseJSON.ratelimited != undefined) {
 			msg="Rate-limited. Try again later.";
+			this.wrongcreds=false;
 		}else if(response.responseJSON.unauthorized != undefined){
 			msg="Whoops! Wrong username or password!";
 			resetcredentials=false;
+			this.wrongcreds=true;
 		}else{
+			this.wrongcreds=false;
 			msg='Couldn\'t log you in for some reason. Try again later.';
 		}
 	}
@@ -213,7 +239,12 @@ MainAssistant.prototype.loginRequestFailed = function(response,timeout) {
 	}
 	
 	if(timeout){
+		this.wrongcreds=false;
 		msg='Foursquare appears to be down. Try again later.<br/><a href="http://m.twitter.com/foursquare">Check @foursquare on Twitter for Status</a>';
+	}
+	if(noConnection){
+		this.wrongcreds=false;
+		msg='Your phone doesn\'t have an active Internet connection.';
 	}
 	this.controller.window.clearInterval(this.gpscheck);
 	this.controller.get('message').innerHTML = "<br/><br/>"+msg;

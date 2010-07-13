@@ -1,12 +1,12 @@
-<div id="addvenue-main" class="palm-hasheader">
+<div id="main" class="no-palm-hasheader fsq-hasheader">
 	<div class="thin-header-redux" style="z-index: 9999;">
 		<div class="letterpress">
-		<div class="thin-blue-header">ADD VENUE</div>
+		<div class="thin-blue-header" id="addvenue-header">ADD VENUE</div>
 		</div>
 	</div>
 
 	<br class="breaker-small"/>
-	<div class="fsq-spacer">&nbsp;</div>
+	<div x-mojo-element="Button" class="palmbutton primary" id="searchGoogle"></div>
 	<div class="palm-group unlabeled" id='venue'>
 		<div class="palm-list">
 	   		<div class="palm-row first">
@@ -87,11 +87,14 @@
 		</div>
 	</div>
 
+	<div id="map_canvas" class="small-map">	</div>
+	<div class="small-map-info">Tap the map to adjust the location of the venue</div>
 
 
 
-	<div style="font-size: 14px; padding: 7px;">Adding a non-US venue? Enter everything except for the address, state, and zip and Foursquare will fill in the rest using your current location.</div>
+	<div class="pusheddown" style="font-size: 14px; padding: 7px;">Adding a non-US venue? Enter everything except for the address, state, and zip and Foursquare will fill in the rest using your current location.</div>
 			<br/>
 	<div x-mojo-element="Button" class="palmbutton primary addtipok" id="okButton"></div>
 	<div x-mojo-element="Button" class="palmbutton negative addtipcancel" id="cancelButton"></div>
 </div>
+<div class="innershadow"></div>

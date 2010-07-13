@@ -26,6 +26,8 @@ function FriendsListAssistant(a, ud, un, pw,i,la,lo,ps,ss,what) {
 }
 
 FriendsListAssistant.prototype.setup = function() {
+	NavMenu.setup(this, {lastCommand:'do-Friends'});
+
 	zBar.activeScene=this;
 	this.textFieldAtt = {
 			hintText: 'Find some friends!',
@@ -149,13 +151,31 @@ FriendsListAssistant.prototype.setup = function() {
              spinning: true 
          });
 
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+  /*  this.controller.setupWidget(Mojo.Menu.commandMenu,
     	this.attributes = {
 	        spacerHeight: 0,
         	menuClass: 'fsq-fade'
     	},
 	    _globals.cmmodel
-	);
+	);*/
+
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    	this.attributes = {
+	        spacerHeight: 0,
+        	menuClass: 'fsq-fade'
+    	},
+		{
+          	visible: true,
+        	items: [ 
+                 { iconPath: "images/map-pin.png", command: "friend-map"},
+                 {},
+                 {items: [
+	                /* { icon: "search", command: "do-Search"},*/
+    	             { icon: "refresh", command: "do-Refresh"}
+    	         ]}
+                 
+                 ]
+    });
 
     
     _globals.ammodel.items[0].disabled=false;
@@ -184,7 +204,7 @@ FriendsListAssistant.prototype.getFriends = function() {
 	if(_globals.friendList==undefined || _globals.reloadFriends==true) {
 		_globals.reloadFriends=false;
 		_globals.friendList=undefined;
-		var url = 'http://api.foursquare.com/v1/friends.json';
+/*		var url = 'http://api.foursquare.com/v1/friends.json';
 		auth = _globals.auth;
 		var request = new Ajax.Request(url, {
 		   method: 'get',
@@ -193,6 +213,12 @@ FriendsListAssistant.prototype.getFriends = function() {
 		   parameters: {},
 		   onSuccess: this.getFriendsSuccess.bind(this),
 		   onFailure: this.getFriendsFailed.bind(this)
+		 });*/
+		 foursquareGet(this, {
+		 	endpoint: 'friends.json',
+		 	requiresAuth: true,
+		   onSuccess: this.getFriendsSuccess.bind(this),
+		   onFailure: this.getFriendsFailed.bind(this)		 	
 		 });
 	}else{
 		if(this.showList){
@@ -664,16 +690,13 @@ FriendsListAssistant.prototype.getFeed = function(event) {
 	if(this.feedList==undefined) {
 		_globals.reloadFriends=false;
 		_globals.friendList=undefined;
-	var url = 'http://api.foursquare.com/v1/checkins.json';
-	auth = _globals.auth;
-	var request = new Ajax.Request(url, {
-	   method: 'get',
-	   evalJSON: 'force',
-	   requestHeaders: {Authorization: auth},
-	   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
-	   onSuccess: this.feedSuccess.bind(this),
-	   onFailure: this.getFriendsFailed.bind(this)
-	 });
+	 	foursquareGet(this, {
+	 		endpoint: 'checkins.json',
+	 		requiresAuth: true,
+		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
+		   onSuccess: this.feedSuccess.bind(this),
+		   onFailure: this.getFriendsFailed.bind(this)	 		
+	 	});
 	}else{
 		if(this.showList){
 			var l=_globals.friendList;
@@ -830,7 +853,7 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 					this.controller.modelChanged(this.drawerModel);
                 	break;
 				case "friend-map":
-					this.controller.stageController.swapScene({name: "friends-map", transition: Mojo.Transition.crossFade},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this);
+					this.controller.stageController.pushScene({name: "friends-map", transition: Mojo.Transition.crossFade,disableSceneScroller:true},this.lat,this.long,this.resultsModel.items,this.username,this.password,this.uid,this);
 					break;
 				case "friends-list":
 					this.controller.get("drawerId").mojo.setOpenState(false);
@@ -843,13 +866,14 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 					break;
 				case "do-Friends":
 					break;
+				case "do-Profile":
                 case "do-Badges":
                 	var thisauth=auth;
-					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade},thisauth,"");
                 	break;
                 case "do-Shout":
                 	var thisauth=auth;
-					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					this.controller.stageController.pushScene({name: "shout", transition: Mojo.Transition.zoomFade},thisauth,"",this);
                 	break;
                 case "do-Tips":
                 	var thisauth=auth;
@@ -863,21 +887,29 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Prefs":
-					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.zoomFade},this);
                 	break;
                 case "do-Refresh":
-                	this.controller.get("spinnerId").mojo.start();
-					this.controller.get("spinnerId").show();
-					this.controller.get("resultListBox").style.display = 'none';
                 	_globals.friendList=undefined;
-					this.getFriends();
+					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid,this.lat,this.long,this);
                 	break;
                 case "do-Update":
                 	_globals.checkUpdate(this);
                 	break;
       			case "do-Nothing":
       				break;
+                case "toggleMenu":
+                	NavMenu.toggleMenu();
+                	break;
+                case "gototop":
+					var scroller=this.controller.getSceneScroller();
+					scroller.mojo.scrollTo(0,0,true);
+					break;
             }
+        }else if(event.type===Mojo.Event.forward){
+           	var thisauth=auth;
+			this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
+
         }
     }
 
@@ -886,6 +918,7 @@ FriendsListAssistant.prototype.doShout = function(event) {
 }
 
 FriendsListAssistant.prototype.activate = function(event) {
+	NavMenu.setThat(this);
     this.controller.get("sendField").mojo.blur();
 	this.controller.window.setTimeout(function(){_globals.GPS.stop();}.bind(this),5000);
 

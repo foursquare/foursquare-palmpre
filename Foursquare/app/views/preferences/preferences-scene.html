@@ -1,6 +1,6 @@
 
 
-<div id="prefs-main" class="palm-hasheader">
+<div id="main" class="no-palm-hasheader fsq-hasheader">
 	<div class="thin-header-redux" style="z-index: 99999">
 		<div class="letterpress">
 		<div class="thin-blue-header">PREFERENCES & ACCOUNTS</div>
@@ -8,9 +8,8 @@
 	</div>
 
 	<br class="breaker-small"/>
-	<br><br>
 
-	<div class="grey-bg">
+	<div class="grey-bg" id="prefs-bg">
 		<div class="palm-group">
 			<div class="palm-group-title" x-mojo-loc=''>Accounts</div>
 			<!--<div x-mojo-element="Button" id="goLogin" class="fsq-button" style="display: none;"></div>-->
@@ -36,6 +35,11 @@
 						<div x-mojo-element="CheckBox" id="chkNotifications" class="checkboxClass left" name="checkboxName"></div>			
 					</div>
 				</div>
+	   			<div class="palm-row" x-mojo-tap-highlight="true">
+					<div class="palm-row-wrapper">
+						<div x-mojo-element="ListSelector" id="autoclose" class="listselectorClass" name="listselectorName"></div>
+					</div>
+				</div>
 				<div class="palm-row" id="alert-row" x-mojo-tap-highlight='momentary'>
 					<div class="palm-row-wrapper">
 						<div id="alert-type" x-mojo-element="ListSelector"></div>
@@ -51,6 +55,18 @@
 				</div>
 			</div>
 		</div>
+
+		<div class="palm-group">
+			<div class="palm-group-title" x-mojo-loc=''>Twitter App</div>
+			<div class="palm-list">
+	   			<div class="palm-row single" x-mojo-tap-highlight="true">
+					<div class="palm-row-wrapper">
+						<div x-mojo-element="ListSelector" id="twitter" class="listselectorClass" name="listselectorName"></div>
+					</div>
+				</div>
+			</div>		
+		</div>
+
 
 		<div class="palm-group" id="slidergroup">
 			<div class="palm-group-title" x-mojo-loc=''>GPS Accuracy</div>
@@ -93,6 +109,24 @@
 			</div>		
 		</div>
 
+		<div class="palm-group">
+			<div class="palm-group-title" x-mojo-loc=''>Send Anonymous Statistics</div>
+			<div class="palm-list">
+	   			<div class="palm-row first">
+					<div class="palm-row-wrapper">
+						<div class="small-text inrow">The app sends anonymous statistics (phone model, webOS version, country, and carrier name) to Metrix. These statistics are only viewable by the developer (Zhephree) for purposes of understanding who the userbase is and how many users we have. This makes development better and the app better. You have the option of not sending these statistics, but they'd be a big help to us!</div>
+					</div>
+				</div>
+	   			<div class="palm-row last" x-mojo-tap-highlight="true">
+					<div class="palm-row-wrapper">
+						<div x-mojo-element="ListSelector" id="sendstats" class="listselectorClass" name="listselectorName"></div>
+					</div>
+				</div>
+			</div>		
+		</div>
+
+
+
 	<!--	<div class="palm-group" style="display: none;">
 			<div class="palm-group-title" x-mojo-loc=''>Flickr Account</div>
 			<div x-mojo-element="Button" id="goFlickr" class="fsq-button"></div>
@@ -102,3 +136,4 @@
 	</div>
 
 </div>
+<div class="innershadow"></div>

@@ -9,7 +9,7 @@ function MetaListAssistant(w,la,lo,a,c,s) {
 
 MetaListAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
-		
+		NavMenu.setup(this,{buttons:'empty'});
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
 	
 	/* setup widgets here */

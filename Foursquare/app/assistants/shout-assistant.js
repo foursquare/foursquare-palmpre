@@ -1,8 +1,28 @@
-function ShoutAssistant(a) {
+function ShoutAssistant(a,u,ps) {
 	   this.auth=a;
+	   this.urllen=0;
+	   this.prevScene=ps;
+	   this.uploading=false;
 }
 
 ShoutAssistant.prototype.setup = function() {
+	this.imageHosts=[
+                {label: "Flickr", value: "flickr", urlLen:23},
+                {label: "TweetPhoto", value: "tweetphoto", urlLen: 18},
+                {label: "Pikchur", value: "pikchur", urlLen: 16},
+                {label: "FSPic", value: "fspic", urlLen: 20}
+            ];
+    this.videoHosts=[
+                {label: "Pikchur", value: "pikchur", urlLen: 16}
+            ];
+
+	this.urlLengths={
+		"flickr":24,
+		"tweetphoto": 19,
+		"pikchur":17,
+		"fspic": 21
+	};
+
   this.controller.setupWidget("okButtonShout",
     this.attributes = {type : Mojo.Widget.activityButton},
     this.OKButtonModel = {
@@ -15,6 +35,7 @@ ShoutAssistant.prototype.setup = function() {
   Mojo.Event.listen(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
   Mojo.Event.listen(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
   Mojo.Event.listen(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
+  Mojo.Event.listen(this.controller.document, "keyup", this.shoutKeyPress.bindAsEventListener(this));
 
   
   	this.cookieData=new Mojo.Model.Cookie("credentials");
@@ -56,21 +77,14 @@ ShoutAssistant.prototype.setup = function() {
 	_globals.lasthost=(lh)? lh.photohost: "pikchur";
   
     this.controller.setupWidget("photohostList",
-        this.phAttributes = {
-            choices: [
-                {label: "Flickr", value: "flickr"},
-                {label: "TweetPhoto", value: "tweetphoto"},
-                {label: "Pikchur", value: "pikchur"},
-                {label: "FSPic", value: "fspic"}
-
-            ]},
-        this.phModel = {
+    	this.phAttributes = {},
+    	this.phModel = {
+        	choices: this.imageHosts,
             value: _globals.lasthost,
             disabled: false
         }
     ); 
-	
-	Mojo.Event.listen(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost);
+
 	this.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
 
 	_globals.ammodel.items[0].disabled=true;
@@ -114,18 +128,69 @@ ShoutAssistant.prototype.setup = function() {
 			this.controller.get('share-twitter').addClassName("pressed");		
 		}
 	}.bindAsEventListener(this));
+	
+	
+	Mojo.Event.listen(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost.bind(this));
+
+	NavMenu.setup(this,{buttons:'navOnly'});
+
 
 }
 
 ShoutAssistant.prototype.activate = function(event) {
+	/*NavMenu.setThat(this);*/
 	this.controller.get('shout').mojo.focus();
 }
+
+ShoutAssistant.prototype.shoutKeyPress = function(event) {
+logthis("keypress");
+	if(this.hasPhoto){
+	}
+	try{
+		var charsLeft=140-this.urllen-this.controller.get("shout").mojo.getValue().length;
+		
+		this.controller.get("charCount").innerHTML=charsLeft;
+		if(charsLeft<0){
+			if(!this.controller.get("charCount").hasClassName("negative")){
+				this.controller.get("charCount").addClassName("negative");
+			}
+		}else{
+			if(this.controller.get("charCount").hasClassName("negative")){
+				this.controller.get("charCount").removeClassName("negative");
+			}	
+		}
+	}catch(e){
+	
+	}
+};
+ShoutAssistant.prototype.handleCommand = function(event) {
+	if(event.type===Mojo.Event.back){
+		if( this.uploading==true){
+			event.preventDefault();
+			event.stop();				
+			this.controller.showAlertDialog({
+				onChoose: function(value) {
+					if(value=="yes"){
+						this.controller.stageController.popScene();
+					}
+				}.bind(this),
+				title: $L("Cancel Upload?"),
+				message: $L("Your media file is still uploading. Do you want to cancel uploading and the check-in?"),
+				choices:[
+					{label:$L('Yeah'), value:"yes", type:'primary'},
+					{label:$L('No!'), value:"no", type:'negative'}
+				]
+			});
+		}
+	}
+};
 
 ShoutAssistant.prototype.okTappedShout = function() {
 	if (_globals.auth) {
 		//before doing the actual shout, see if we have a photo. if so, handle that
 		if(this.hasPhoto){
-			Mojo.Controller.getAppController().showBanner("Uploading photo...", {source: 'notification'});
+			this.uploading=true;
+			Mojo.Controller.getAppController().showBanner("Uploading media...", {source: 'notification'});
 			switch(this.phModel.value){
 				case "flickr":
 					var ptitle=this.tipModel.value;
@@ -367,6 +432,7 @@ ShoutAssistant.prototype.getTheHeaders =function(r){
 }
 
 ShoutAssistant.prototype.doShout = function(extra) {
+	this.uploading=false;
 	extra=(extra==undefined)? "": extra;
 		var url = 'http://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
@@ -533,51 +599,79 @@ ShoutAssistant.prototype.handleCommand = function(event) {
             switch (event.command) {
 				case "do-Venues":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid);
+                	this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid);
 					break;
 				case "do-Friends":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
+                	
+					this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
 					break;
+				case "do-Profile":
                 case "do-Badges":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Tips":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Shout":
                 	break;
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-About":
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Prefs":
-					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.zoomFade},this);
                 	break;
                 case "do-Update":
                 	_globals.checkUpdate(this);
                 	break;
                 case "do-Nothing":
                 	break;
+                case "toggleMenu":
+                	NavMenu.toggleMenu();
+                	break;
             }
         }
     }
 
 ShoutAssistant.prototype.attachImage = function(event) {
-	Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image'],'defaultKind':'image','onSelect':function(fn){
+	Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image','video'],'defaultKind':'image','onSelect':function(fn){
 		this.fileName=fn.fullPath;
 		this.hasPhoto=true;
-		var icon="/var/luna/data/extractfs"+encodeURIComponent(this.fileName)+":0:0:150:150:2"
-
+		if(fn.attachmentType=="image"){
+			var icon="/var/luna/data/extractfs"+encodeURIComponent(this.fileName)+":0:0:150:150:2"
+			this.phModel.choices=this.imageHosts;
+			this.urllen=this.urlLengths[this.phModel.value];	
+		}else{
+			var icon=fn.iconPath;
+			this.phModel.choices=this.videoHosts;	
+			this.urllen=this.urlLengths[this.phModel.value];	
+		}
+		var charsLeft=140-this.urllen-this.controller.get("shout").mojo.getValue().length;
+		this.controller.get("charCount").innerHTML=charsLeft;
+		this.controller.modelChanged(this.phModel);
 		this.controller.get("img").src=icon;
 		this.controller.get("img-preview").show();
 		this.controller.get("photohostList").show();
-		this.controller.get("listborder").show();
+		if(charsLeft<0){
+			if(!this.controller.get("charCount").hasClassName("negative")){
+				this.controller.get("charCount").addClassName("negative");
+			}
+		}else{
+			if(this.controller.get("charCount").hasClassName("negative")){
+				this.controller.get("charCount").removeClassName("negative");
+			}	
+		}
+//		this.controller.get("listborder").show();
 	}.bind(this)},this.controller.stageController);
 }
 
@@ -588,13 +682,31 @@ ShoutAssistant.prototype.removeImage = function(event) {
 	this.controller.get("img-preview").hide();
 	this.controller.get("shout").mojo.focus();
 	this.controller.get("photohostList").hide();
-	this.controller.get("listborder").hide();
+	this.urllen=0;
+	var charsLeft=140-this.urllen-this.controller.get("shout").mojo.getValue().length;
+	this.controller.get("charCount").innerHTML=charsLeft;
+//	this.controller.get("listborder").hide();
+	if(charsLeft<0){
+		if(!this.controller.get("charCount").hasClassName("negative")){
+			this.controller.get("charCount").addClassName("negative");
+		}
+	}else{
+		if(this.controller.get("charCount").hasClassName("negative")){
+			this.controller.get("charCount").removeClassName("negative");
+		}	
+	}
 
 }
 
 
 ShoutAssistant.prototype.handlePhotohost = function(event) {
+logthis("changed");
 		var ph=this.phModel.value;
+		this.urllen=this.urlLengths[this.phModel.value];	
+		var charsLeft=140-this.urllen-this.controller.get("shout").mojo.getValue().length;
+		this.controller.get("charCount").innerHTML=charsLeft;
+
+		
 		this.cookieData=new Mojo.Model.Cookie("photohost");
 		this.cookieData.put(
 			{"photohost":ph}

@@ -14,6 +14,11 @@ function DashboardAssistant(feedlist) {
     }
     Mojo.Log.error("this.message="+this.message);
     this.count = this.list.length;
+    
+	this.autoclose=new Mojo.Model.Cookie("autoclose");
+	var un=this.autoclose.get();
+	_globals.autoclose=(un)? un.autoclose: "never";
+
 }
  
 DashboardAssistant.prototype.setup = function() {
@@ -30,6 +35,12 @@ DashboardAssistant.prototype.setup = function() {
     this.deactivateStageHandler = this.deactivateStage.bindAsEventListener(this);
     Mojo.Event.listen(this.stageDocument, Mojo.Event.stageDeactivate,
         this.deactivateStageHandler);
+        
+    if(_globals.autoclose && _globals.autoclose!="never"){
+	    this.controller.window.setTimeout(function(){
+	    	this.controller.window.close();
+	    }.bind(this),_globals.autoclose);
+    }
 };
  
 DashboardAssistant.prototype.cleanup = function() {

@@ -1,7 +1,9 @@
-function PreferencesAssistant() {
+function PreferencesAssistant(ps) {
+	this.prevScene=ps;
 }
 
 PreferencesAssistant.prototype.setup = function() {
+	NavMenu.setup(this,{buttons:'navOnly'});
 
 	//this.controller.setupWidget('goLogin', this.accattributes = {}, this.loginBtnModel = {label:'Set up account...', disabled:false});
 	//this.controller.setupWidget('goFlickr', this.flickrattributes = {}, this.flickrBtnModel = {label:'Set Up Flickr Account', disabled:false});
@@ -9,7 +11,8 @@ PreferencesAssistant.prototype.setup = function() {
     	this.slideattributes = {
         	minValue: -1000,
 			maxValue: 0,
-        	round: true
+        	round: true,
+        	updateInterval: 0.5
 	    },
  
 		this.slidemodel = {
@@ -83,6 +86,52 @@ PreferencesAssistant.prototype.setup = function() {
         disabled: false
         }
     );
+
+    this.controller.setupWidget("sendstats",
+        this.statsattributes = {
+            choices: [
+                {label: "Sure! I'll Help!", value: "true"},
+                {label: "No, thanks.", value: "false"}
+                ]},
+
+        this.statsmodel = {
+        value: "true",
+        disabled: false
+        }
+    );
+    this.controller.setupWidget("autoclose",
+        this.autocloseattributes = {
+        	label: 'Auto-Close',
+            choices: [
+                {label: "Never", value: "never"},
+                {label: "5mins", value: 300000},
+                {label: "10mins", value: 600000},
+                {label: "15mins", value: 900000},
+                {label: "20mins", value: 1200000},
+                {label: "25mins", value: 1500000}
+                ]},
+
+        this.autoclosemodel = {
+        value: "never",
+        disabled: false
+        }
+    );
+
+    this.controller.setupWidget("twitter",
+        this.twitterattributes = {
+            choices: [
+                {label: "Web Browser", value: "web",secondaryIconPath: "images/web_32.png"},
+                {label: "Bad Kitty", value: "badkitty",secondaryIconPath: "images/bad_kitty_32.png"},
+                {label: "TweetMe", value: "tweetme",secondaryIconPath: "images/tweetme_32.png"}
+                ]},
+
+        this.twittermodel = {
+        value: "web",
+        disabled: false
+        }
+    );
+
+
     this.controller.setupWidget("houses",
         this.housesattributes = {
             choices: [
@@ -120,6 +169,9 @@ PreferencesAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSlider.bind(this));
 	Mojo.Event.listen(this.controller.get("numVenuesPicker"), Mojo.Event.propertyChange, this.handleNumPicker.bind(this));
 	Mojo.Event.listen(this.controller.get("units"), Mojo.Event.propertyChange, this.handleUnits.bind(this));
+	Mojo.Event.listen(this.controller.get("sendstats"), Mojo.Event.propertyChange, this.handleStats.bind(this));
+	Mojo.Event.listen(this.controller.get("autoclose"), Mojo.Event.propertyChange, this.handleAutoclose.bind(this));
+	Mojo.Event.listen(this.controller.get("twitter"), Mojo.Event.propertyChange, this.handleTwitter.bind(this));
 	Mojo.Event.listen(this.controller.get("houses"), Mojo.Event.propertyChange, this.handleHouses.bind(this));
 	Mojo.Event.listen(this.controller.get("alert-type"), Mojo.Event.propertyChange, this.handleAlertType.bind(this));
 	Mojo.Event.listen(this.controller.get("chkNotifications"), Mojo.Event.propertyChange, this.handleNotifs.bind(this));
@@ -138,6 +190,22 @@ PreferencesAssistant.prototype.setup = function() {
 	this.unitsmodel.value=unitsval;
 	this.controller.modelChanged(this.unitsmodel);
 	this.handleUnits("setup-routine");
+
+	var statsval=(_globals.sendstats != undefined)? _globals.sendstats: true;
+	this.statsmodel.value=statsval;
+	this.controller.modelChanged(this.statsmodel);
+	this.handleStats("setup-routine");
+
+	var acval=(_globals.autoclose != undefined)? _globals.autoclose: "never";
+	this.autoclosemodel.value=acval;
+	this.controller.modelChanged(this.autoclosemodel);
+	this.handleAutoclose("setup-routine");
+
+
+	var twitterval=(_globals.twitter != undefined)? _globals.twitter: "web";
+	this.twittermodel.value=twitterval;
+	this.controller.modelChanged(this.twittermodel);
+	this.handleTwitter("setup-routine");
 
 	var housesval=(_globals.houses != undefined)? _globals.houses: "no";
 	this.housesmodel.value=housesval;
@@ -158,23 +226,27 @@ PreferencesAssistant.prototype.activate = function(event) {
 }
 PreferencesAssistant.prototype.handleSlider = function(event) {
 	if(event.type===Mojo.Event.propertyChange || event=="setup-routine") {
+		logthis("ok");
 		var v=this.slidemodel.value*-1; //make it positive
+		logthis("v="+v);
 		if(v==0) {
 			this.controller.get("gps-description").innerHTML="Don't Care";
 			this.controller.get("gps-longdesc").innerHTML="Accept the first GPS result regardless of how accurate it is.";
-		}else if(v>0 && v<150) {
+		}else if(v>0 && v<=150) {
 			this.controller.get("gps-description").innerHTML="Super Accurate (up to 150m)";
 			this.controller.get("gps-longdesc").innerHTML="Only accept results that are accurate up to 150 meters. Will probably be slow indoors.";
 			v=150;
-		}else if(v>150 && v<500) {
+		}else if(v>150 && v<=500) {
+			logthis("500'd frst");
 			this.controller.get("gps-description").innerHTML="Accurate (up to 500m)";
 			this.controller.get("gps-longdesc").innerHTML="Only accept results that are accurate up to 500 meters. May be slow indoors.";
+			logthis("500'd");
 			v=500;
-		}else if(v>500 && v<750) {
+		}else if(v>500 && v<=750) {
 			this.controller.get("gps-description").innerHTML="Mostly Accurate (up to 750m)";
 			this.controller.get("gps-longdesc").innerHTML="Only accept results that are accurate up to 750 meters. Will work most anywhere.";
 			v=750;
-		}else if(v>750 && v<1001) {
+		}else if(v>750 && v<=1001) {
 			this.controller.get("gps-description").innerHTML="Not So Accurate (up to 1000m)";
 			this.controller.get("gps-longdesc").innerHTML="Only accept results that are accurate up to 1000 meters. Might say you're several blocks away if cloudy or indoors.";
 			v=1001;
@@ -214,6 +286,40 @@ PreferencesAssistant.prototype.handleUnits = function(event) {
 			{"units":v}
 		)
 		_globals.units=v;
+	}
+}
+PreferencesAssistant.prototype.handleStats = function(event) {
+	if(event.type===Mojo.Event.propertyChange || event=="setup-routine") {
+		var v=this.statsmodel.value;
+				
+		this.cookieData=new Mojo.Model.Cookie("sendstats");
+		this.cookieData.put(
+			{"sendstats":v}
+		)
+		_globals.sendstats=v;
+	}
+}
+PreferencesAssistant.prototype.handleAutoclose = function(event) {
+	if(event.type===Mojo.Event.propertyChange || event=="setup-routine") {
+		var v=this.autoclosemodel.value;
+		logthis(v);
+				
+		this.cookieData=new Mojo.Model.Cookie("autoclose");
+		this.cookieData.put(
+			{"autoclose":v}
+		)
+		_globals.autoclose=v;
+	}
+}
+PreferencesAssistant.prototype.handleTwitter = function(event) {
+	if(event.type===Mojo.Event.propertyChange || event=="setup-routine") {
+		var v=this.twittermodel.value;
+				
+		this.cookieData=new Mojo.Model.Cookie("twitter");
+		this.cookieData.put(
+			{"twitter":v}
+		)
+		_globals.twitter=v;
 	}
 }
 PreferencesAssistant.prototype.handleHouses = function(event) {
@@ -334,7 +440,54 @@ PreferencesAssistant.prototype.onFlickrTapped = function() {
 
 PreferencesAssistant.prototype.deactivate = function(event) {
 }
-
+PreferencesAssistant.prototype.handleCommand = function(event) {
+        if (event.type === Mojo.Event.command) {
+            switch (event.command) {
+				case "do-Venues":
+                	var thisauth=_globals.auth;
+                	this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid);
+					break;
+				case "do-Friends":
+                	var thisauth=_globals.auth;
+                	
+					this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
+					break;
+				case "do-Profile":
+                case "do-Badges":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Tips":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Shout":
+                	break;
+                case "do-Leaderboard":
+                	var thisauth=_globals.auth;
+					this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-About":
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Prefs":
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Update":
+                	_globals.checkUpdate(this);
+                	break;
+                case "do-Nothing":
+                	break;
+                case "toggleMenu":
+                	NavMenu.toggleMenu();
+                	break;
+			}
+		}
+}
 PreferencesAssistant.prototype.cleanup = function(event) {
 	Mojo.Event.stopListening(this.controller.get("fsq-account-row"), Mojo.Event.tap, this.onLoginTapped.bind(this));
 	Mojo.Event.stopListening(this.controller.get("ringtone-select"), Mojo.Event.tap, this.chooseRingtone.bind(this));

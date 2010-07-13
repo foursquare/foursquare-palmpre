@@ -5,6 +5,8 @@ AboutAssistant.prototype.setup = function() {
 	this.controller.get("about-header").innerHTML="ABOUT FOURSQUARE v"+Mojo.appInfo.version;
 //	this.controller.get("about-main").style.background="#1e1e1e url(images/darker-bg.png) repeat left top";
 	//zBar.hideToolbar();
+	this.controller.document.getElementsByTagName("body")[0].style.background="url(../images/grey-bg.png) top left";
+	NavMenu.setup(this,{buttons:'empty'});
 
 }
 AboutAssistant.prototype.getUA = function(event) {

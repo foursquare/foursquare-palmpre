@@ -5,13 +5,62 @@ function AddVenueAssistant(a,ed,v) {
   
   if(ed) {
   	this.bl="Save";
+	this.lat=this.venue.geolat;
+	this.long=this.venue.geolong;
   }else{
   	this.bl="Add";
+    this.lat=_globals.lat;
+	this.long=_globals.long;
   }
   this.refresh=true;
+  	   _globals.curmap=this;
+
+  this.searchKey='ABQIAAAAfKBxdZJp1ib9EdLiKILvVxS4B8uQk1auvfDbWvr0_ixC2Gr77hQW9SPsdN9MwAhpcUfQWOQ0VzxxaA';
+  
+  this.categoryName="";
+  this.categoryIcon="";
+  if(ed){
+    if(this.venue.primarycategory.id){
+	for(var i =0; i<_globals.categories.length; i++){
+		if(_globals.categories[i].id==this.venue.primarycategory.id){
+			this.categoryName=_globals.categories[i].nodename;
+			this.categoryIcon=_globals.categories[i].iconurl;
+			break;
+		}
+		for(var s=0;s<_globals.categories[i].categories.length;s++){
+			if(_globals.categories[i].categories[s].id==this.venue.primarycategory.id){
+				this.categoryName=_globals.categories[i].categories[s].nodename;
+				this.categoryIcon=_globals.categories[i].categories[s].iconurl;
+				break;
+			}
+			
+			if(_globals.categories[i].categories[s].categories != undefined){
+				for(var t=0; t<_globals.categories[i].categories[s].categories.length; t++){
+					if(_globals.categories[i].categories[s].categories[t].id==this.venue.primarycategory.id){
+						this.categoryName=_globals.categories[i].categories[t].nodename;
+						this.categoryIcon=_globals.categories[i].categories[t].iconurl;
+						break;
+					}
+				}		
+			}
+		}
+	}
+	_globals.selectedCat=this.venue.primarycategory.id;
+	}
+  }
+	
+
+  
 }
+
 AddVenueAssistant.prototype.setup = function(widget) {
   this.widget = widget;
+
+	NavMenu.setup(this,{buttons:'empty'});
+    var script = document.createElement("script");
+    script.src = "http://maps.google.com/maps/api/js?sensor=true&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=mapLoaded";
+    script.type = "text/javascript";
+    document.getElementsByTagName("head")[0].appendChild(script);
 
   // Setup button and event handler
  /*   this.controller.setupWidget("setCategory",
@@ -21,6 +70,9 @@ AddVenueAssistant.prototype.setup = function(widget) {
       disabled: false
     }
   );*/
+  
+
+
   Mojo.Event.listen(this.controller.get('setCategory'), Mojo.Event.tap, this.categoryTapped.bindAsEventListener(this));
 
   this.controller.setupWidget("okButton",
@@ -40,16 +92,27 @@ AddVenueAssistant.prototype.setup = function(widget) {
     }
   );
   Mojo.Event.listen(this.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
+
+
+  this.controller.setupWidget("searchGoogle",
+    this.attributes = {type : Mojo.Widget.activityButton},
+    this.SearchButtonModel = {
+      buttonLabel: 'Search Google',
+      disabled: false
+    }
+  );
+  Mojo.Event.listen(this.controller.get('searchGoogle'), Mojo.Event.tap, this.searchTapped.bindAsEventListener(this));
+
   Mojo.Log.error("setup buttons");
 
   
-	this.controller.setupWidget('venue-name', this.nameAttributes = {hintText:'Venue Name',multiline:false,focus:true}, this.nameModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-address', this.addressAttributes = {hintText:'Address',multiline:false,focus:false}, this.addressModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-crossstreet', this.crossstreetAttributes = {hintText:'Cross Street',multiline:false,focus:false}, this.crossstreetModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-city', this.cityAttributes = {hintText:'City',multiline:false,focus:false}, this.cityModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-zip', this.zipAttributes = {hintText:'Zip',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.zipModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-phone', this.phoneAttributes = {hintText:'Phone',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.phoneModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-twitter', this.twitterAttributes = {hintText:'Twitter Username',multiline:false,focus:false}, this.twitterModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-name', this.nameAttributes = {hintText:'Type here to Google Search',multiline:false,focus:true}, this.nameModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-address', this.addressAttributes = {hintText:'',multiline:false,focus:false}, this.addressModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-crossstreet', this.crossstreetAttributes = {hintText:'',multiline:false,focus:false}, this.crossstreetModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-city', this.cityAttributes = {hintText:'',multiline:false,focus:false}, this.cityModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-zip', this.zipAttributes = {hintText:'',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.zipModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-phone', this.phoneAttributes = {hintText:'',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.phoneModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-twitter', this.twitterAttributes = {hintText:'',multiline:false,focus:false}, this.twitterModel = {value:'', disabled:false});
 
 
 	this.catsmainAttributes={choices:[{label:'',value:'-1'}]};
@@ -138,7 +201,90 @@ AddVenueAssistant.prototype.setup = function(widget) {
 	//zBar.hideToolbar();
 }
 
+
+AddVenueAssistant.prototype.initMap = function(event) {
+	var myOptions = {
+    	zoom: 15,
+	    center: new google.maps.LatLng(this.lat, this.long),
+    	mapTypeId: google.maps.MapTypeId.ROADMAP,
+    	draggable: true,
+    	mapTypeControl: false,
+    	navigationControl: false
+	  }
+	this.map = new google.maps.Map(this.controller.get("map_canvas"), myOptions);
+
+	this.setMarkers(this.map);
+}
+
+AddVenueAssistant.prototype.setMarkers = function(map){
+	this.cmarker = new google.maps.Marker({
+  		position: new google.maps.LatLng(this.lat,this.long),
+	  	map: map,
+	  	draggable: true
+	});
+	//cmarker.setDraggable(true);
+	
+	/*google.maps.event.addListener(cmarker, 'mousedown', 
+  		function(e) {
+			logthis("mousedown");
+			var scroller=this.controller.getSceneScroller();
+			scroller.mojo.setMode("horizontal");
+		}.bind(this)
+	);
+	google.maps.event.addListener(cmarker, 'mouseup', 
+  		function(e) {
+			logthis("mouseup");
+			var scroller=this.controller.getSceneScroller();
+			scroller.mojo.setMode("vertical");
+		}.bind(this)
+	);
+	google.maps.event.addListener(cmarker, "dragstart", 
+  		function(e) {
+			logthis("drag start");
+		}.bind(this)
+	);
+	google.maps.event.addListener(cmarker, 'drag', 
+  		function(e) {
+			logthis("dragging");
+		}.bind(this)
+	);*/
+	google.maps.event.addListener(this.map, 'click', 
+  		function(e) {
+			logthis("map clicked");
+			
+			var pos=e.latLng;
+			
+			this.cmarker.setPosition(pos);
+			
+			this.lat=pos.lat();
+			this.long=pos.lng();			
+
+			this.map.panTo(pos);
+		}.bind(this)
+	);
+
+
+	//this.controller.stageController.activeScene().disableSceneScroller = true;
+};
+
 AddVenueAssistant.prototype.activate = function() {
+/*	if (this.map === undefined) {
+		// Kick off google maps initialization
+		if(Maps==undefined){
+			if(!Maps.isLoaded()) {
+	//			this.spinnerModel.spinning = true;
+	//		    this.controller.modelChanged(this.spinnerModel);
+	
+	//		    this.controller.get("statusinfo").update("Loading Google Maps...");
+						
+				Maps.loadedCallback(this.initMap.bind(this));
+				initLoader();
+			}else{
+				this.initMap();
+			}
+		}
+	}*/
+
 	this.controller.get('venue-name').mojo.focus();
 	
 	//if we're proposing an edit to a venue, populate the fields
@@ -166,15 +312,20 @@ AddVenueAssistant.prototype.activate = function() {
 
 		this.statemodel.value=this.venue.state;
 		this.controller.modelChanged(this.statemodel);
+
+		this.controller.get("selectedCat").update('<img src="'+this.categoryIcon+'" align="top"/> '+this.categoryName);
+
 		
-		this.controller.get("addvenue-header").innerHTML="Edit Venue";
+		this.controller.get("addvenue-header").innerHTML="SUGGEST AN EDIT";
 		this.refresh=false;
+		
+		
 	}else{
 		Mojo.Log.error("trying to get addy...lat="+_globals.lat+", long="+_globals.long);
 		//try and get the reverse location...
 		this.controller.serviceRequest('palm://com.palm.location', {
 			method: "getReverseLocation",
-			parameters: {latitude: _globals.lat, longitude:_globals.long},
+			parameters: {latitude: this.lat, longitude:this.long},
 			onSuccess: this.gotLocation.bind(this),
 			onFailure: this.failedLocation.bind(this)
 		});
@@ -229,6 +380,7 @@ AddVenueAssistant.prototype.okTapped = function() {
 		if(!this.editing) {
 			pcat=_globals.selectedCat;
 			var url = 'http://api.foursquare.com/v1/addvenue.json';
+			var ep="addvenue.json";
 			var params={
 				name: this.nameModel.value,
 				address: this.addressModel.value,
@@ -243,7 +395,9 @@ AddVenueAssistant.prototype.okTapped = function() {
 				primarycategoryid: pcat
 			};
 		}else{
+			pcat=_globals.selectedCat;
 			var url = 'http://api.foursquare.com/v1/venue/proposeedit.json';
+			var ep="venue/proposeedit.json";
 			var params={
 				name: this.nameModel.value,
 				address: this.addressModel.value,
@@ -256,10 +410,11 @@ AddVenueAssistant.prototype.okTapped = function() {
 				twitter: this.twitterModel.value,
 				geolat: _globals.lat,
 				geolong: _globals.long,
-				vid: this.venue.id
+				vid: this.venue.id,
+				primarycategoryid: pcat
 			};
 		}
-		var request = new Ajax.Request(url, {
+		/*var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
 			requestHeaders: {
@@ -268,6 +423,15 @@ AddVenueAssistant.prototype.okTapped = function() {
 			parameters: params,
 			onSuccess: this.venueSuccess.bind(this),
 			onFailure: this.venueFailed.bind(this)
+		});*/
+		foursquarePost(this,{
+			endpoint: ep,
+			requiresAuth: true,
+			parameters: params,
+			onSuccess: this.venueSuccess.bind(this),
+			onFailure: this.venueFailed.bind(this),
+			ignoreErrors: true
+			
 		});
 }
 
@@ -363,6 +527,66 @@ AddVenueAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 		});
 }
 
+AddVenueAssistant.prototype.searchTapped = function(event) {
+		//logthis("q="+encodeURIComponent(this.nameModel.value));
+		//logthis("c="+_globals.lat+","+_globals.long);
+
+	if(this.nameModel.value.length>0){
+		var url = 'http://ajax.googleapis.com/ajax/services/search/local';
+		//logthis(url);
+		var request = new Ajax.Request(url, {
+			method: 'get',
+			evalJSON: 'force',
+			parameters: {
+				v: '1.0',
+				q: encodeURIComponent(this.nameModel.value),
+				rsz: 'small',
+				near: _globals.lat+","+_globals.long
+			},
+			onSuccess: this.googleSuccess.bind(this),
+			onFailure: this.googleFailed.bind(this)
+		});
+	}else{
+		this.controller.get("searchGoogle").mojo.deactivate();
+		Mojo.Controller.getAppController().showBanner("Enter a venue name to search", {source: 'notification'});		
+	}
+};
+
+AddVenueAssistant.prototype.googleSuccess = function(r){
+	//logthis("google ok");
+	//logthis(Object.toJSON(r.responseJSON));
+	this.controller.get("searchGoogle").mojo.deactivate();
+	var data=r.responseJSON.responseData;
+	if(data){
+		if(data.results){
+			if(data.results.length>0){
+				var vr=data.results[0];
+				logthis(vr.titleNoFormatting);
+				this.addressModel.value=vr.streetAddress;
+				this.controller.modelChanged(this.addressModel);
+				this.cityModel.value=vr.city;
+				this.controller.modelChanged(this.cityModel);
+				this.statemodel.value=vr.region;
+				this.controller.modelChanged(this.statemodel);
+				this.nameModel.value=vr.titleNoFormatting;
+				this.controller.modelChanged(this.nameModel);
+				
+				if(vr.phoneNumbers!=undefined){
+					this.phoneModel.value=vr.phoneNumbers[0].number.replace("(","").replace(")","").replace(" ","").replace("-","");
+					this.controller.modelChanged(this.phoneModel);
+				}
+			}
+		}
+	}
+}
+AddVenueAssistant.prototype.googleFailed = function(r){
+	this.controller.get("searchGoogle").mojo.deactivate();
+	Mojo.Controller.getAppController().showBanner("Error searching Google", {source: 'notification'});
+	logthis("google fail");
+	logthis(Object.toJSON(r.responseJSON));
+
+}
+
 AddVenueAssistant.prototype.checkInSuccess = function(response) {
 	Mojo.Log.error(response.responseText);
 	
@@ -381,7 +605,38 @@ AddVenueAssistant.prototype.checkInFailed = function(response) {
 
 AddVenueAssistant.prototype.venueFailed = function(response) {
 	Mojo.Log.error(response.responseText);
-	Mojo.Controller.getAppController().showBanner("Error saving your venue.", {source: 'notification'});
+	if(response.responseJSON.error != undefined){
+		switch(response.responseJSON.error){
+			case "Possible Duplicate Venue":
+				/*this.controller.showAlertDialog({
+					onChoose: function(value) {},
+					title: $L("Uh-oh!"),
+					message: $L("This looks like it might be a duplicate venue."),
+					choices:[
+						{label:$L('OK'), value:"OK", type:'primary'}
+					]
+				});*/
+				var vname=this.nameModel.value;
+				var dialog = this.controller.showDialog({
+					template: 'listtemplates/dupeVenue',
+					assistant: new DupeVenueAssistant(this,vname)
+				});
+
+				break;
+			default:
+				this.controller.showAlertDialog({
+					onChoose: function(value) {},
+					title: $L("Uh-oh!"),
+					message: $L(response.responseJSON.error),
+					choices:[
+						{label:$L('OK'), value:"OK", type:'primary'}
+					]
+				});
+				break;
+		}
+	}else{
+		Mojo.Controller.getAppController().showBanner("Error saving your venue.", {source: 'notification'});
+	}
 }
 AddVenueAssistant.prototype.cancelTapped = function() {
 	this.controller.stageController.popScene("add-venue");

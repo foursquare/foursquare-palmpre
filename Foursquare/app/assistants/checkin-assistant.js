@@ -1,9 +1,27 @@
 function CheckinAssistant(v) {
 	this.venue=v;
-	
+	this.urllen=0;
+	this.uploading=false;
 }
 
 CheckinAssistant.prototype.setup = function() {
+	NavMenu.setup(this,{buttons:'empty'});
+	this.imageHosts=[
+                {label: "Flickr", value: "flickr"},
+                {label: "TweetPhoto", value: "tweetphoto"},
+                {label: "Pikchur", value: "pikchur"},
+                {label: "FSPic", value: "fspic"}
+            ];
+    this.videoHosts=[
+                {label: "Pikchur", value: "pikchur"}
+            ];
+	this.urlLengths={
+		"flickr":24,
+		"tweetphoto": 19,
+		"pikchur":17,
+		"fspic": 21
+	};
+
   	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 	//var pings=(credentials.swf=="on")? '1': '0';
@@ -41,15 +59,9 @@ CheckinAssistant.prototype.setup = function() {
 		this.tipModel = {value:'', disabled:false}
 	);
     this.controller.setupWidget("photohostList",
-    	this.phAttributes = {
-        	choices: [
-                {label: "Flickr", value: "flickr"},
-                {label: "TweetPhoto", value: "tweetphoto"},
-                {label: "Pikchur", value: "pikchur"},
-                {label: "FSPic", value: "fspic"}
-
-            ]},
+    	this.phAttributes = {},
     	this.phModel = {
+        	choices: this.imageHosts,
             value: _globals.lasthost,
             disabled: false
         }
@@ -97,19 +109,46 @@ CheckinAssistant.prototype.setup = function() {
 
 	this.controller.get("checkin-info").update("<b>"+this.venue.name+"</b><br/>"+this.venue.address);
 	this.controller.get("photorow").hide();
-	Mojo.Event.listen(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost);
+	Mojo.Event.listen(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost.bind(this));
+	Mojo.Event.listen(this.controller.get("chkShowFriends"), Mojo.Event.propertyChange, this.handleCheckbox.bind(this));
 	Mojo.Event.listen(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
 	Mojo.Event.listen(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
 	Mojo.Event.listen(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
 	Mojo.Event.listen(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
 	Mojo.Event.listen(this.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
+	Mojo.Event.listen(this.controller.document, "keyup", this.shoutKeyPress.bindAsEventListener(this));
 
+};
+
+CheckinAssistant.prototype.handleCheckbox = function(event) {
+	if(this.sfmodel.value==0){
+		this.stt="0";
+		this.stf="0";
+		this.controller.get('share-facebook').removeClassName("pressed");
+		this.controller.get('share-twitter').removeClassName("pressed");
+	}
+};
+
+CheckinAssistant.prototype.shoutKeyPress = function(event) {
+	var charsLeft=140-this.urllen-this.controller.get("shout").mojo.getValue().length;
+	
+	this.controller.get("charCount").innerHTML=charsLeft;
+	if(charsLeft<0){
+		if(!this.controller.get("charCount").hasClassName("negative")){
+			this.controller.get("charCount").addClassName("negative");
+		}
+	}else{
+		if(this.controller.get("charCount").hasClassName("negative")){
+			this.controller.get("charCount").removeClassName("negative");
+		}	
+	}
 };
 
 CheckinAssistant.prototype.okTapped = function() {
 		//before doing the actual shout, see if we have a photo. if so, handle that
 		if(this.hasPhoto){
-			Mojo.Controller.getAppController().showBanner("Uploading photo...", {source: 'notification'});
+			this.uploading=true;
+			Mojo.Controller.getAppController().showBanner("Uploading media...", {source: 'notification'});
 			switch(this.phModel.value){
 				case "flickr":
 					var ptitle=this.tipModel.value;
@@ -337,17 +376,38 @@ CheckinAssistant.prototype.okTapped = function() {
 }
 
 CheckinAssistant.prototype.attachImage = function(event) {
-	Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image'],'defaultKind':'image','onSelect':function(fn){
-		Mojo.Log.error(Object.toJSON(fn));
+	Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image','video'],'defaultKind':'image','onSelect':function(fn){
+//		Mojo.Log.error(Object.toJSON(fn));
 		this.fileName=fn.fullPath;
 		this.hasPhoto=true;
-		var icon="/var/luna/data/extractfs"+encodeURIComponent(this.fileName)+":0:0:150:150:2"
-		Mojo.Log.error(icon);
+		if(fn.attachmentType=="image"){
+			var icon="/var/luna/data/extractfs"+encodeURIComponent(this.fileName)+":0:0:150:150:2"
+			this.phModel.choices=this.imageHosts;
+		}else{
+			var icon=fn.iconPath;
+			this.phModel.choices=this.videoHosts;
+		}
+		this.controller.modelChanged(this.phModel);
+//		Mojo.Log.error(icon);
 		this.controller.get("img").src=icon;
 		this.controller.get("img-preview").show();
 		this.controller.get("photorow").show();
-		this.controller.get("listborder").show();
+		//this.controller.get("listborder").show();
 		this.controller.get("shout").mojo.focus();
+		
+		this.urllen=this.urlLengths[this.phModel.value];	
+		var charsLeft=140-this.urllen-this.controller.get("shout").mojo.getValue().length;
+		this.controller.get("charCount").innerHTML=charsLeft;
+		if(charsLeft<0){
+			if(!this.controller.get("charCount").hasClassName("negative")){
+				this.controller.get("charCount").addClassName("negative");
+			}
+		}else{
+			if(this.controller.get("charCount").hasClassName("negative")){
+				this.controller.get("charCount").removeClassName("negative");
+			}	
+		}
+
 	}.bind(this)},this.controller.stageController);
 }
 
@@ -358,12 +418,25 @@ CheckinAssistant.prototype.removeImage = function(event) {
 	this.controller.get("img-preview").hide();
 	this.controller.get("shout").mojo.focus();
 	this.controller.get("photorow").hide();
-	this.controller.get("listborder").hide();
+	//this.controller.get("listborder").hide();
+	this.urllen=0;
+	var charsLeft=140-this.urllen-this.controller.get("shout").mojo.getValue().length;
+	this.controller.get("charCount").innerHTML=charsLeft;
+	if(charsLeft<0){
+		if(!this.controller.get("charCount").hasClassName("negative")){
+			this.controller.get("charCount").addClassName("negative");
+		}
+	}else{
+		if(this.controller.get("charCount").hasClassName("negative")){
+			this.controller.get("charCount").removeClassName("negative");
+		}	
+	}
 
 }
 
 CheckinAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 	if (_globals.auth) {
+		this.uploading=false;
 		_globals.swf=sf;
 		this.cookieData=new Mojo.Model.Cookie("credentials");
 		this.cookieData.put({
@@ -379,13 +452,10 @@ CheckinAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 		});
 		sf=(sf==0)? 1: 0;
 
-		var url = 'http://api.foursquare.com/v1/checkin.json';
-		var request = new Ajax.Request(url, {
-			method: 'post',
-			evalJSON: 'true',
-			requestHeaders: {
-				Authorization: _globals.auth
-			},
+		
+		foursquarePost(this, {
+			endpoint: 'checkin.json',
+			requiresAuth: true,
 			parameters: {
 				vid: id,
 				shout: s,
@@ -395,6 +465,7 @@ CheckinAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 			},
 			onSuccess: this.checkInSuccess.bind(this),
 			onFailure: this.checkInFailed.bind(this)
+			
 		});
 	} else {
 	}
@@ -413,6 +484,27 @@ CheckinAssistant.prototype.checkInFailed = function(response) {
 	Mojo.Log.error('Check In Failed: ' + repsonse.responseText);
 	Mojo.Controller.getAppController().showBanner("Error checking in!", {source: 'notification'});
 }
+CheckinAssistant.prototype.handleCommand = function(event) {
+	if(event.type===Mojo.Event.back){
+		if( this.uploading==true){
+			event.preventDefault();
+			event.stop();				
+			this.controller.showAlertDialog({
+				onChoose: function(value) {
+					if(value=="yes"){
+						this.controller.stageController.popScene();
+					}
+				}.bind(this),
+				title: $L("Cancel Upload?"),
+				message: $L("Your media file is still uploading. Do you want to cancel uploading and the check-in?"),
+				choices:[
+					{label:$L('Yeah'), value:"yes", type:'primary'},
+					{label:$L('No!'), value:"no", type:'negative'}
+				]
+			});
+		}
+	}
+};
 
 
 CheckinAssistant.prototype.base58_encode = function(num) {
@@ -518,6 +610,10 @@ CheckinAssistant.prototype.escape_utf8= function(data, url) {
 
 CheckinAssistant.prototype.handlePhotohost = function(event) {
 		var ph=this.phModel.value;
+		this.urllen=this.urlLengths[this.phModel.value];	
+		var charsLeft=140-this.urllen-this.controller.get("shout").mojo.getValue().length;
+		this.controller.get("charCount").innerHTML=charsLeft;
+
 		this.cookieData=new Mojo.Model.Cookie("photohost");
 		this.cookieData.put(
 			{"photohost":ph}

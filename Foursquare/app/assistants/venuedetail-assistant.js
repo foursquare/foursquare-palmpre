@@ -1,4 +1,4 @@
-function VenuedetailAssistant(venue,u,p,i,fui,ps,fm) {
+function VenuedetailAssistant(venue,u,p,i,fui,ps,fm,fl) {
 	   this.venue=venue;
 	   this.username=_globals.username;
 	   this.password=_globals.password;
@@ -8,6 +8,7 @@ function VenuedetailAssistant(venue,u,p,i,fui,ps,fm) {
 	   this.vgeolong=this.venue.geolong;
 	   this.prevScene=ps;
 	   this.fromMap=fm;
+	   this.fromLaunch=fl;
 }
 
 VenuedetailAssistant.prototype.setup = function() {
@@ -146,7 +147,7 @@ VenuedetailAssistant.prototype.setup = function() {
 	this.controller.setupWidget('results-meta-list', 
 					      {itemTemplate:'listtemplates/overlayItems'},
 					      this.resultsModel);
-    this.controller.setupWidget("tabButtons",
+/*    this.controller.setupWidget("tabButtons",
         this.tabAttributes = {
             choices: [
                 {label: "Details", value: 1},
@@ -158,7 +159,31 @@ VenuedetailAssistant.prototype.setup = function() {
             value: 1,
             disabled: false
         }
-    );
+    );*/
+    
+    this.controller.setupWidget(Mojo.Menu.commandMenu,
+    	this.attributes = {
+	        spacerHeight: 0,
+        	menuClass: 'fsq-fade'
+    	},
+		{
+          	visible: true,
+        	items: [ 
+                 {
+                 items: [
+	                /* { icon: "search", command: "do-Search"},*/
+	                	{},
+    	             { label: "Details", command: "show-Details"},
+    	             { label: "People", command: "show-People"},
+    	             { label: "Tips", command: "show-Tips"},
+    	             {}
+    	         ],
+    	         toggleCmd: 'show-Details'
+    	         }
+                 
+                 ]
+    });
+    
 		this.infoModel = {items: [], listTitle: $L('Info')};
     
 	// Set up the attributes & model for the List widget:
@@ -170,20 +195,9 @@ VenuedetailAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("checkinButton"),Mojo.Event.tap,this.promptCheckin.bind(this));
 	Mojo.Event.listen(this.controller.get("buttonAddTip"),Mojo.Event.tap, this.handleAddTip.bind(this));
 	Mojo.Event.listen(this.controller.get("buttonAddTodo"),Mojo.Event.tap, this.handleAddTodo.bind(this));
-//	Mojo.Event.listen(this.controller.get("buttonMarkClosed"),Mojo.Event.tap, this.handleMarkClosed.bind(this));
-//	Mojo.Event.listen(this.controller.get("buttonProposeEdit"),Mojo.Event.tap, this.handleProposeEdit.bind(this));
-//	Mojo.Event.listen(this.controller.get("mayorDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-//	Mojo.Event.listen(this.controller.get("tipsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-//	Mojo.Event.listen(this.controller.get("specialsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-//	Mojo.Event.listen(this.controller.get("tagsDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-//	Mojo.Event.listen(this.controller.get("infoDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-	//Mojo.Event.listen(this.controller.get("mapDivider"),Mojo.Event.tap, this.handleDividerTap.bind(this));
-	//Mojo.Event.listen(this.controller.get("flickr-button"),Mojo.Event.tap, this.showFlickr.bind(this));
-	//Mojo.Event.listen(this.controller.get("banks-button"),Mojo.Event.tap, this.showBanks.bind(this));
-	//Mojo.Event.listen(this.controller.get("parking-button"),Mojo.Event.tap, this.showParking.bind(this));
  	Mojo.Event.listen(this.controller.get("venueMap"),Mojo.Event.tap, this.showGoogleMaps.bind(this));
 	Mojo.Event.listen(this.controller.get("overlay-closer"),Mojo.Event.tap, function(){this.controller.get("docheckin-fields").hide();this.controller.get("overlay-content").innerHTML="";this.controller.get("meta-overlay").hide();}.bind(this));
-	Mojo.Event.listen(this.controller.get("tabButtons"), Mojo.Event.propertyChange, this.swapTabs.bind(this));
+	//Mojo.Event.listen(this.controller.get("tabButtons"), Mojo.Event.propertyChange, this.swapTabs.bind(this));
 	Mojo.Event.listen(this.controller.get('infoList'),Mojo.Event.listTap, this.infoTapped.bindAsEventListener(this));
 
 	this.controller.get("meta-overlay").hide();
@@ -204,9 +218,9 @@ function make_base_auth(user, pass) {
   return "Basic " + hash;
 }
 
-VenuedetailAssistant.prototype.swapTabs = function(event) {
+VenuedetailAssistant.prototype.swapTabs = function(what) {
 	this.controller.get("detailScroller").mojo.revealTop();
-	switch(this.tabModel.value){
+	switch(what){
 		case 1:
 			this.controller.get("people-group").hide();
 			this.controller.get("tips-group").hide();
@@ -234,9 +248,8 @@ VenuedetailAssistant.prototype.showGoogleMaps = function() {
 }
 
 VenuedetailAssistant.prototype.getVenueInfo = function() {
-	var url = 'http://api.foursquare.com/v1/venue.json';
+/*	var url = 'http://api.foursquare.com/v1/venue.json';
 	auth = _globals.auth;
-	Mojo.Log.error("un="+this.username);
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
@@ -244,6 +257,14 @@ VenuedetailAssistant.prototype.getVenueInfo = function() {
 	   parameters: {vid:this.venue.id},
 	   onSuccess: this.getVenueInfoSuccess.bind(this),
 	   onFailure: this.getVenueInfoFailed.bind(this)
+	 });*/
+	 
+	 foursquareGet(this, {
+	 	endpoint: 'venue.json',
+	 	requiresAuth: true,
+  	    parameters: {vid:this.venue.id},
+	    onSuccess: this.getVenueInfoSuccess.bind(this),
+	    onFailure: this.getVenueInfoFailed.bind(this)
 	 });
 }
 function trim(stringToTrim) {
@@ -316,14 +337,76 @@ VenuedetailAssistant.prototype.infoTapped = function(event) {
 		case "parking":
 			this.showParking();
 			break;
+		case "twitter":
+			switch(_globals.twitter){
+				case "web":
+					this.controller.serviceRequest('palm://com.palm.applicationManager', {
+						 method: 'open',
+						 parameters: {
+							 target: event.item.url
+						 }
+					});
+					logthis("Web");
+					break;				
+				case "badkitty":
+					logthis("badkitty");
+				   try{
+				      this.controller.serviceRequest("palm://com.palm.applicationManager", {
+				         method: 'launch',
+				         parameters: {
+				            id: 'com.superinhuman.badkitty',
+				            params: {action: 'user', name: event.item.username}
+				         },
+				         onSuccess:function(){
+				         }.bind(this),
+				         onFailure:function(){
+				            this.controller.serviceRequest('palm://com.palm.applicationManager', {
+				                method:'open',
+				                   parameters:{
+				                   target: event.item.url
+				                        }
+				             });
+				         }.bind(this)
+				      })
+				   }catch(e){
+				   }
+				
+					break;
+				case "tweetme":
+					logthis("tweetme");
+				   try{
+				      this.controller.serviceRequest("palm://com.palm.applicationManager", {
+				         method: 'launch',
+				         parameters: {
+				            id: 'com.catalystmediastudios.tweetme',
+				            params: {action: 'user', name: event.item.username}
+				         },
+				         onSuccess:function(){
+				         }.bind(this),
+				         onFailure:function(){
+				            this.controller.serviceRequest('palm://com.palm.applicationManager', {
+				                method:'open',
+				                   parameters:{
+				                   target: event.item.url
+				                        }
+				             });
+				         }.bind(this)
+				      })
+				   }catch(e){
+				   }
+				
+					break;
+			}
+			break;
 	}
 }
 
 
 
 VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
+	logthis("success");
 	var th=this;
-	
+	//logthis("num specials="+response.responseJSON.venue.specials.length);
 	this.controller.get("vcategory").innerHTML=(response.responseJSON.venue.primarycategory)? 
 		'<img src="'+response.responseJSON.venue.primarycategory.iconurl+'"><br/>'+response.responseJSON.venue.primarycategory.nodename: '';
 	
@@ -335,9 +418,22 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	this.vcity=response.responseJSON.venue.city;
 	this.vstate=response.responseJSON.venue.state;
 	
+	if(this.fromLaunch){
+		this.controller.get("checkinVenueName").innerHTML=response.responseJSON.venue.name;
+		this.controller.get("checkinVenueAddress").innerHTML=response.responseJSON.venue.address;
+		if (response.responseJSON.venue.crossstreet) {
+			this.controller.get("checkinVenueAddress").innerHTML += " ("+response.responseJSON.venue.crossstreet+")";
+		}
+	
+		var query=encodeURIComponent(response.responseJSON.venue.address+' '+response.responseJSON.venue.city+', '+response.responseJSON.venue.state);
+		this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA"
+	
+	}
+	
+	
 	Mojo.Log.error("vadd=%i, vcity=%i, vstate=%i",this.vaddress,this.vcity,this.vstate);
 	
-	if (response.responseJSON.venue.crossstreet && !this.venue.crossstreet) {
+	if (response.responseJSON.venue.crossstreet && !this.venue.crossstreet && !this.fromLaunch) {
 	 this.controller.get("checkinVenueAddress").innerHTML += " ("+response.responseJSON.venue.crossstreet+")";
 	}
 	if(this.controller.get("venueMap").src!="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA") {
@@ -398,8 +494,14 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		this.nomayor=true;
 	}
 	
+	//						cardStageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade},{id:launchParams.venue},_globals.username,_globals.password,_globals.uid,false,undefined,undefined,this,false,true);
+
+	
 		//specials!
 	if(response.responseJSON.venue.specials != undefined) {
+		var nearbyShown=false;
+		this.nearbys=[];
+		var lastHereSpecial=0;
 		for(var b = 0; b < response.responseJSON.venue.specials.length;b++) {
 			var special_type=response.responseJSON.venue.specials[b].type;
 			var special_msg=response.responseJSON.venue.specials[b].message;
@@ -427,28 +529,43 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 					break;
 			}
 			var special_venue="";
-			
-			if(response.responseJSON.venue.specials[b].venue != undefined) { //not at this venue, but nearby
-			}
+
 			if(special_kind=="nearby"){
 				spt=spt+" Nearby";
 				special_venue="@ "+response.responseJSON.venue.specials[b].venue.name;
 				this.controller.get("nearbySpecials").hide();
-				this.controller.get("nearby-special").show();
-				Mojo.Event.listen(this.controller.get("nearby-special"),Mojo.Event.tap,function(){
-					this.controller.get("nearbySpecials").toggle();
-				}.bind(this));
-				Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
+				if(!nearbyShown){
+					this.controller.get("nearby-special").show();
+					Mojo.Event.listen(this.controller.get("nearby-special"),Mojo.Event.tap,function(){
+						this.controller.get("nearbySpecials").toggle();
+					}.bind(this));
+					Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
+					nearbyShown=true;
+				}
+				
+				this.controller.get('nearbySpecials').innerHTML += '<div class="checkin-special" id="special'+response.responseJSON.venue.specials[b].id+'"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
+				
+				this.vv=response.responseJSON.venue.specials[b].venue;
+				this.nearbys.push({id: response.responseJSON.venue.specials[b].id, venue:response.responseJSON.venue.specials[b].venue});
+				
 
-				this.controller.get('nearbySpecials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
 			}else{
-				this.controller.get("venueSpecials").show();
-				this.controller.get('venueSpecials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';			
+				if(response.responseJSON.venue.specials[b].id!=lastHereSpecial){
+					this.controller.get("venueSpecials").show();
+					this.controller.get('venueSpecials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';			
+					lastHereSpecial=response.responseJSON.venue.specials[b].id;
+				}
 			}
 			//spt="Mayor Special";
 			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
 			//special_venue="@ Venue Name (123 Venue St.)";
 		}
+		for(var g=0;g<this.nearbys.length;g++){
+				Mojo.Event.listen(this.controller.get('special'+this.nearbys[g].id),Mojo.Event.tap,function(e,g){
+					this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade},this.nearbys[g].venue,_globals.username,_globals.password,_globals.uid,false,undefined,undefined,this,false,true);
+				}.bindAsEventListener(this,g));		
+		}
+
 	}else{
 		this.controller.get("snapSpecials").hide();
 	}
@@ -467,19 +584,40 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			var username=response.responseJSON.venue.tips[t].user.firstname+" "+tlname;
 			var photo=response.responseJSON.venue.tips[t].user.photo;
 			var uid=response.responseJSON.venue.tips[t].user.id;
+			if(response.responseJSON.venue.tips[t].created != undefined) {
+				var now = new Date;
+				var later = new Date(response.responseJSON.venue.tips[t].created);
+				var offset = later.getTime() - now.getTime();
+				var when=this.relativeTime(offset) + " ago";
+			}else{
+			   	var when="";
+			}
 
-			tips+='<div class="palm-row single aTip">';
+			/*tips+='<div class="palm-row single aTip">';
 			tips+='<img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="48" class="userLink friend-avatar" user="'+username+'" data="'+uid+'" style="display: block;float:left;"/>';
 			tips+='<div style="float:right;width:240px;margin-right: 4px;"><span class="venueTip" style="">'+tip+'</span><br/>';
 			tips+='<span class="venueTipUser userLink" user="'+username+'" data="'+uid+'" id="tip-name-'+uid+'-'+t+'" >by '+username+'</span>';
 			tips+='<br class="breaker"/><div class="tip-buttons" style="width:100%;margin:5px auto 5px -20px">';
 			tips+='<span class="vtip tipsave" id="tip-save-'+t+'" data="'+tipid+'">Save Tip</span> ';
 			tips+='<span class="vtip-black tipdone" id="tip-done-'+t+'" data="'+tipid+'">I\'ve Done This</span></div></div></div>'+"\n";
-			tips+='<br class="breaker"/>';
+			tips+='<br class="breaker"/>';*/
+			
+			var tipHash={
+				photo: photo,
+				uid: uid,
+				username: username,
+				tip: tip,
+				t: t,
+				tipid: tipid,
+				timeago: when
+			};
+			
+			tips+=Mojo.View.render({object: tipHash, template: 'listtemplates/vtipsitem'});
+			
 		}
 		this.controller.get("venueTips").update(tips);
 	}else{
-		var tips='<div class="venueTip" style="margin: 0px 7px;">No tips have been left here yet... lend a hand and leave one!</div>';
+		var tips='<div id="notice" style="margin-top: 75px">No tips have been left here yet.</div>';
 		this.controller.get("venueTips").update(tips);
 	}
 
@@ -507,7 +645,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			shout=shout.replace(urlmatch,'<a href="$1" class="listlink">$1</a>');
 
 
-			users+='<div class="palm-row single aTip">';
+/*			users+='<div class="palm-row single aTip">';
 			users+='<img src="'+photo+'" id="tip-pic-'+uid+'-'+t+'" width="48" class="userLink friend-avatar"  user="'+username+'" data="'+uid+'" style="display: block;float:left;"/>'; 
 			if(shout!=undefined && shout!=""){
 				users+='<div style="float:right;width:240px;margin-right: 4px;"><span class="venueTip">'+shout+'</span>';
@@ -515,7 +653,22 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			}else{
 				users+='<div style="float:right;width:240px;margin-right: 4px;">';
 				users+='<span class="venueTip fakelink userLink" data="'+uid+'" user="'+username+'" id="tip-name-'+uid+'-'+t+'" >'+username+'</span><br/><span class="venueTipUser">'+when+'</span></div></div>'+"\n";			
+			}*/
+			
+			var userHash={
+				photo: photo,
+				uid: uid,
+				t: t,
+				username: username,
+				timeago: when,
+				shout: shout
+			};
+			if(shout!=undefined && shout!=""){
+				users+=Mojo.View.render({object: userHash, template: 'listtemplates/whoshere-shout'});
+			}else{
+				users+=Mojo.View.render({object: userHash, template: 'listtemplates/whoshere'});			
 			}
+			
 		}
 		this.controller.get("venueUsers").update(users);
 	}else{
@@ -532,7 +685,8 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	var venuelinks=response.responseJSON.venue.links;
 		Mojo.Log.error("phone="+phone);
 
-
+	this.info=[];
+	
 	//venue category
 	if(response.responseJSON.venue.primarycategory){
 		var itm={};
@@ -606,8 +760,9 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		var itm={};
 		itm.icon="images/twitter_32.png";
 		itm.caption="Twitter ("+twitter+")";
-		itm.action="url";
-		itm.url='http://twitter.com/'+twitter;
+		itm.action="twitter";
+		itm.url='http://mobile.twitter.com/'+twitter;
+		itm.username=twitter;
 		itm.highlight="momentary";
 		this.info.push(itm);
 	}
@@ -688,34 +843,37 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	
 	
 	//attach events to any new user links
-	var userlinks=zBar.getElementsByClassName(".userLink",this.controller.get("main-venuedetail"));
+	//var userlinks=zBar.getElementsByClassName("userLink",this.controller.get("main-venuedetail"));
+	var userlinks=this.controller.get("main-venuedetail").querySelectorAll(".userLink");
 	this.userlinks=userlinks;
 	this.ulinks_len=userlinks.length;
 	for(var e=0;e<userlinks.length;e++) {
-		var eid=userlinks[e].id;
+		var eid=userlinks[e];
 		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo);
 		Mojo.Event.listen(this.controller.get(eid),Mojo.Event.tap,this.showUserInfo.bind(this));
 		Mojo.Log.error("#########added event to "+eid)
 	}
-		Mojo.Event.listen(this.controller.get("mayorAvatar"),Mojo.Event.tap,this.showUserInfo.bind(this));
+		//Mojo.Event.listen(this.controller.get("mayorAvatar"),Mojo.Event.tap,this.showUserInfo.bind(this));
 
 
 	//attach events to any new save tip links
-	var savetips=zBar.getElementsByClassName(".tipsave",this.controller.get("snapTips"));
+	//var savetips=zBar.getElementsByClassName("tipsave",this.controller.get("snapTips"));
+	var savetips=this.controller.get("snapTips").querySelectorAll(".tipsave");
 	this.savetips=savetips;
 	this.slinks_len=savetips.length;
 	for(var e=0;e<savetips.length;e++) {
-		var eid=savetips[e].id;
+		var eid=savetips[e];
 		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.tipTapped);
 		Mojo.Event.listen(this.controller.get(eid),Mojo.Event.tap,this.tipTapped.bind(this));
 		Mojo.Log.error("#########added event to "+eid)
 	}
 
-	var donetips=zBar.getElementsByClassName(".tipdone",this.controller.get("snapTips"));
+	//var donetips=zBar.getElementsByClassName("tipdone",this.controller.get("snapTips"));
+	var donetips=this.controller.get("snapTips").querySelectorAll(".tipdone");
 	this.dlinks_len=donetips.length;
 	this.donetips=donetips;
 	for(var e=0;e<donetips.length;e++) {
-		var eid=donetips[e].id;
+		var eid=donetips[e];
 		Mojo.Event.stopListening(this.controller.get(eid),Mojo.Event.tap,this.tipTapped);
 		Mojo.Event.listen(this.controller.get(eid),Mojo.Event.tap,this.tipTapped.bind(this));
 		Mojo.Log.error("#########added event to "+eid)
@@ -734,14 +892,6 @@ var checkinDialog;
 
 
 VenuedetailAssistant.prototype.promptCheckin = function(event) {
-/*	this.controller.get("overlay-title").innerHTML="Check-in";
-	this.controller.get("overlay-content").innerHTML="";
-	this.controller.get("docheckin-fields").show();
-	this.controller.get("results-meta-list").hide();
-	this.controller.get("meta-overlay").show();
-	this.controller.get("overlaySpinner").mojo.stop();
-	this.controller.get("overlaySpinner").hide();
-	window.setTimeout('this.controller.get("shout").mojo.focus();',300);*/
 	
 	this.controller.stageController.pushScene({name: "checkin", transition: Mojo.Transition.zoomFade},this.venue);
 
@@ -826,19 +976,6 @@ VenuedetailAssistant.prototype.markDuplicate = function() {
 }
 
 VenuedetailAssistant.prototype.showBanks = function(event) {
-/*	this.controller.get("meta-overlay").show();
-	this.controller.get("overlaySpinner").mojo.start();
-	this.controller.get("overlaySpinner").show();
-	this.controller.get("overlay-content").innerHTML="";
-	this.controller.get("overlay-title").innerHTML="Banks & ATMs";
-
-	var url='http://api.geoapi.com/v1/q?apikey=3KbTrN2r4h&q={%22lat%22:'+this.vgeolat+',%22lon%22:'+this.vgeolong+',%22entity%22:[{%22guid%22:null,%22name%22:null,%22geom%22:null,%22distance-from-origin%22:null,%22type%22:%22business%22,%22view.listing%22:{%22*%22:null,%22verticals%22:%22financial:banks%22}}],%22radius%22:%221km%22,%22limit%22:20}';
-	var request = new Ajax.Request(url, {
-			method: 'get',
-			evalJSON: 'true',
-			onSuccess: this.banksSuccess.bind(this),
-			onFailure: this.banksFailed.bind(this)
-	});*/
 	this.controller.stageController.pushScene("meta-list","banks",this.vgeolat,this.vgeolong,this.vaddress,this.vcity,this.vstate);
 }
 
@@ -886,19 +1023,6 @@ VenuedetailAssistant.prototype.banksFailed = function(response) {
 }
 
 VenuedetailAssistant.prototype.showParking = function(event) {
-/*	this.controller.get("meta-overlay").show();
-	this.controller.get("overlaySpinner").mojo.start();
-	this.controller.get("overlaySpinner").show();
-	this.controller.get("overlay-content").innerHTML="";
-	this.controller.get("overlay-title").innerHTML="Parking";
-
-	var url='http://api.geoapi.com/v1/q?apikey=3KbTrN2r4h&pretty=1&q={%22lat%22:'+this.vgeolat+',%22lon%22:'+this.vgeolong+',%22entity%22:[{%22guid%22:null,%22name%22:null,%22geom%22:null,%22distance-from-origin%22:null,%22type%22:%22business%22,%22view.listing%22:{%22*%22:null,%22verticals%22:%22tourist-center:parking%22}}],%22radius%22:%221km%22,%22limit%22:20}';
-	var request = new Ajax.Request(url, {
-			method: 'get',
-			evalJSON: 'true',
-			onSuccess: this.parkingSuccess.bind(this),
-			onFailure: this.parkingFailed.bind(this)
-	});*/
 	this.controller.stageController.pushScene("meta-list","parking",this.vgeolat,this.vgeolong,this.vaddress,this.vcity,this.vstate);
 
 }
@@ -947,19 +1071,6 @@ VenuedetailAssistant.prototype.parkingFailed = function(response) {
 
 
 VenuedetailAssistant.prototype.showFlickr = function(event) {
-	/*this.controller.get("meta-overlay").show();
-	this.controller.get("overlaySpinner").mojo.start();
-	this.controller.get("overlaySpinner").show();
-	this.controller.get("overlay-content").innerHTML="";
-	this.controller.get("results-meta-list").hide();
-
-	var url='http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key='+_globals.flickr_key+'&machine_tags=foursquare:venue="'+this.venue.id+'"&nojsoncallback=1&format=json';
-	var request = new Ajax.Request(url, {
-			method: 'get',
-			evalJSON: 'true',
-			onSuccess: this.flickrSuccess.bind(this),
-			onFailure: this.flickrFailed.bind(this)
-	});*/
 	this.controller.stageController.pushScene({name: "photos", transition: Mojo.Transition.zoomFade},this.venue);
 
 	
@@ -1263,211 +1374,12 @@ VenuedetailAssistant.prototype.showUserInfo = function(event) {
 	var uname=event.target.readAttribute("user");
 	
 
-	/*this.controller.get("meta-overlay").show();
-	this.controller.get("overlaySpinner").mojo.start();
-	this.controller.get("overlaySpinner").show();
-	this.controller.get("overlay-content").innerHTML="";
-	this.controller.get("overlay-title").innerHTML=uname;
-
-	var url='http://api.foursquare.com/v1/user.json';
-	var request = new Ajax.Request(url, {
-			method: 'get',
-			evalJSON: 'true',
-	   		requestHeaders: {Authorization:_globals.auth}, 
-	   		parameters: {uid: uid,badges: '1', mayor: '1'},
-			onSuccess: this.userSuccess.bind(this),
-			onFailure: this.userFailed.bind(this)
-	});*/
-	
 	this.controller.stageController.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,uid,this,true);
 
 
 }
-VenuedetailAssistant.prototype.userSuccess = function(response) {
-	this.controller.get("meta-overlay").show();
-	this.controller.get("overlaySpinner").mojo.stop();
-	this.controller.get("overlaySpinner").hide();
-
-	var j=response.responseJSON;
-	//user info
-	var pic='<img src="'+j.user.photo+'" width="75" height="75" class="friend-avatar blocky" />';
-	var lname=(j.user.lastname != undefined)? j.user.lastname: "";
-	var tw=(j.user.twitter != undefined)? '<span class="linefix"><img src="images/bird-light.png" width="16" height="16" /> <a class="vtag" href="http://twitter.com/'+j.user.twitter+'">'+j.user.twitter+'</a></span><br/>': "";
-	var fb=(j.user.facebook != undefined)? '<span class="linefix"><img src="images/facebook.png" width="16" height="16" /> <a class="vtag" href="http://facebook.com/profile.php?id='+j.user.facebook+'">Facebook Profile</a></span><br/>': "";
-	var ph=(j.user.phone != undefined)? '<span class="linefix"><img src="images/phone-light.png" width="16" height="16" /> <a class="vtag" href="tel://'+j.user.phone+'">'+j.user.phone+'</a></span><br/>': "";
-	var em=(j.user.email != undefined)? '<span class="linefix"><img src="images/mail-light.png" width="16" height="16" /> <a class="vtag" href="mailto:'+j.user.email+'">Send E-mail</a></span><br/>': "";
-	this.controller.get("overlay-content").innerHTML='';
-	if(j.user.checkin != undefined) {
-		var v=(j.user.checkin.venue != undefined)? " @ "+j.user.checkin.venue.name: "";
-		var s=(j.user.checkin.shout)? j.user.checkin.shout: "";
-		this.controller.get("overlay-content").innerHTML +='<div class="small-text italic">'+ s + v + '</div>';
-	}
-
-	
-	
-	this.cookieData=new Mojo.Model.Cookie("credentials");
-	var credentials=this.cookieData.get();
-	if(this.uid != j.user.id) { //only show friending options if it's not yourself
-	var friendstatus=(j.user.friendstatus != undefined)? j.user.friendstatus: "";
-
-	switch (friendstatus) {
-		case "friend":
-			var fs="You're friends!"
-			break;
-		case "pendingthem":
-			var fs='<img src="images/pending.png" width="108" height="42" data="'+j.user.id+'" id="pendingfriend" alt="Pending" />';
-			break;
-		case "pendingyou":
-			var fs='<img src="images/approve.png" width="108" height="42" data="'+j.user.id+'" id="approvefriend" alt="Approve" /> <img src="images/deny.png" width="108" height="42" id="denyfriend" data="'+j.user.id+'" alt="Deny" />';		
-			break;
-		default:
-			var fs='<img src="images/addfriend.png" width="108" height="42" data="'+j.user.id+'" id="addfriend" alt="Add Friend" />';					
-			break;
-	}
-	}else{
-		var fs="";
-	}	
-	
-	fs='<span id="friend_button">'+fs+'</span>';
-	
-	if(j.user.checkin != undefined) {
-		var v=(j.user.checkin.venue != undefined)? " @ "+j.user.checkin.venue.name: "";
-		var s=(j.user.checkin.shout)? j.user.checkin.shout: "";
-		var checkin = s + v;
-	}
-	var html=pic+'<div class="uinfo">'+em+ph+tw+fb+'</div>';
-	html+='<div class="breaker">'+fs+'</div>';
-	this.controller.get("overlay-content").innerHTML+=html;
-
-
-	//handling loading mayorship and badge info
-	if(j.user.badges != null) {
-		var o='';
-		o += '<table border=0 cellspacing=0 cellpadding=2 width="95%">';
-		o += '<tr><td></td><td></td><td></td></tr>';
-		var id=0
-		for(var m=0;m<j.user.badges.length;m++) {
-			id++;
-			
-			if(id==1) {
-				o += '<tr>';
-			}
-			o += '<td align="center" width="33%" class="medium-text"><img src="'+j.user.badges[m].icon+'" width="48" height="48"/><br/>'+j.user.badges[m].name+'</td>';
-			if(id==3) {
-				o += '</tr>';
-				id=0;
-			}
-		}
-		html=o+"</table>";
-	}else{
-		html='<div class="small-text">'+j.user.firstname+' doesn\'t have any badges yet.</div>';
-	}
-
-	this.controller.get("overlay-content").innerHTML+='<br/><b>Badges</b><br/>'+html;
-
-
-
-
-
-	if(j.user.mayor != null && j.user.mayor != undefined) {
-		var s=(j.user.mayor.length==1)? "":"s";
-		var mayor_title=j.user.mayor.length+" Mayorship"+s;
-
-		var mayorships="";
-		for (var m=0;m<j.user.mayor.length;m++) {
-			mayorships+=j.user.mayor[m].name+'<br/>';
-		}
-		html='<b>'+mayor_title+'</b><br/><div class="small-text">'+mayorships+'</div>';
-	}else{
-		html='<b>'+mayor_title+'</b><br/><div class="small-text">'+j.user.firstname+' isn\'t the mayor of anything yet.</div>';
-	}
-
-	this.controller.get("overlay-content").innerHTML+="<br/>"+html;
-	if(friendstatus=="pendingyou") {
-		Mojo.Event.listen(this.controller.get("approvefriend"),Mojo.Event.tap,this.approveFriend.bind(this));
-		Mojo.Event.listen(this.controller.get("denyfriend"),Mojo.Event.tap,this.denyFriend.bind(this));
-	}
-	if(friendstatus=="") {
-		Mojo.Log.error("added event to add friend "+this.controller.get("addfriend").readAttribute("data"));
-		Mojo.Event.listen(this.controller.get("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
-	}
-	
-}
-VenuedetailAssistant.prototype.userFailed = function(event) {
-}
 VenuedetailAssistant.prototype.activate = function(event) {
 	
-}
-
-VenuedetailAssistant.prototype.approveFriend = function(event) {
-
-	var url = 'http://api.foursquare.com/v1/friend/approve.json';
-	var request = new Ajax.Request(url, {
-	   method: 'post',
-	   evalJSON: 'force',
-	   requestHeaders: {Authorization:_globals.auth}, 
-	   parameters: {uid:event.target.getAttribute("data")},
-	   onSuccess: this.approveSuccess.bind(this),
-	   onFailure: this.approveFailed.bind(this)
-	 });
-}
-VenuedetailAssistant.prototype.approveSuccess = function(response) {
-	if(response.responseJSON.user != undefined) {
-		Mojo.Controller.getAppController().showBanner("Friend request approved!", {source: 'notification'});
-		this.controller.get("friend_button").innerHTML='You\'re Friends!';
-	}else{
-		Mojo.Controller.getAppController().showBanner("Error approving friend request", {source: 'notification'});
-	}
-}
-VenuedetailAssistant.prototype.approveFailed = function(response) {
-	Mojo.Controller.getAppController().showBanner("Error approving friend request", {source: 'notification'});
-}
-
-VenuedetailAssistant.prototype.denyFriend = function(event) {
-	var url = 'http://api.foursquare.com/v1/friend/deny.json';
-	var request = new Ajax.Request(url, {
-	   method: 'post',
-	   evalJSON: 'force',
-	   requestHeaders: {Authorization:_globals.auth},
-	   parameters: {uid:event.target.getAttribute("data")},
-	   onSuccess: this.denySuccess.bind(this),
-	   onFailure: this.denyFailed.bind(this)
-	 });
-}
-VenuedetailAssistant.prototype.denySuccess = function(response) {
-	if(response.responseJSON.user != undefined) {
-		Mojo.Controller.getAppController().showBanner("Friend request denied!", {source: 'notification'});
-		this.controller.get("friend_button").innerHTML='<img src="images/addfriend.png" width="100" height="35" id="addfriend" data="'+event.target.getAttribute("data")+'" alt="Add Friend" />';
-		Mojo.Event.listen(this.controller.get("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
-	}else{
-		Mojo.Controller.getAppController().showBanner("Error denying friend request", {source: 'notification'});
-	}
-}
-VenuedetailAssistant.prototype.denyFailed = function(response) {
-	Mojo.Controller.getAppController().showBanner("Error denying friend request", {source: 'notification'});
-}
-
-VenuedetailAssistant.prototype.addFriend = function(event) {
-	var url = 'http://api.foursquare.com/v1/friend/sendrequest.json';
-	var request = new Ajax.Request(url, {
-	   method: 'post',
-	   evalJSON: 'force',
-	   requestHeaders: {Authorization:_globals.auth}, 
-	   parameters: {uid:event.target.getAttribute("data")},
-	   onSuccess: this.addSuccess.bind(this),
-	   onFailure: this.addFailed.bind(this)
-	 });
-}
-VenuedetailAssistant.prototype.addSuccess = function(response) {
-	if(response.responseJSON.user != undefined) {
-		Mojo.Controller.getAppController().showBanner("Friend request sent!", {source: 'notification'});
-		this.controller.get("friend_button").innerHTML='<img src="images/pending.png" width="100" height="35" id="pendingfriend" alt="Pending" />';
-	}else{
-		Mojo.Controller.getAppController().showBanner("Error sending friend request", {source: 'notification'});
-	}
-}
-VenuedetailAssistant.prototype.addFailed = function(response) {
-	Mojo.Controller.getAppController().showBanner("Error sending friend request", {source: 'notification'});
 }
 
 
@@ -1514,6 +1426,15 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
                 	_globals.checkUpdate(this);
                 	break;
       			case "do-Nothing":
+      				break;
+      			case "show-Details":
+      				this.swapTabs(1);
+      				break;
+      			case "show-People":
+      				this.swapTabs(2);
+      				break;
+      			case "show-Tips":
+      				this.swapTabs(3);
       				break;
             }
         }else if(event.type===Mojo.Event.back && this.fromuserinfo!=true && this.fromMap!=true) {
@@ -1918,87 +1839,6 @@ VenuedetailAssistant.prototype.cancelTapped = function() {
 }
 
 
-VenuedetailAssistant.prototype.setupCheckin = function() {
-
-  this.controller.setupWidget("okButton",
-    this.attributes = {type : Mojo.Widget.activityButton},
-    this.OKButtonModel = {
-      buttonLabel: "Check-in",
-      disabled: false
-    }
-  );
-  Mojo.Event.listen(this.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
-
-  	this.cookieData=new Mojo.Model.Cookie("credentials");
-	var credentials=this.cookieData.get();
-	var pings=(credentials.ping=="on")? '1': '0';
-	var stt=(credentials.savetotwitter==true)? '1': '0';
-	var stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
-  
-  
-    this.controller.setupWidget("chkShowFriends",
-         this.sfattributes = {
-             trueValue: '1',
-             trueLabel: 'Yes',
-             falseValue: '0',
-             falseLabel: 'No'
-         },
-         this.sfmodel = {
-             value: pings,
-             disabled: false
-         });
-    this.controller.setupWidget("chkTwitter",
-         this.twattributes = {
-             trueValue: '1',
-             trueLabel: 'On',
-             falseLabel: 'Off',
-             falseValue: '0' 
-         },
-         this.twmodel = {
-             value: stt,
-             disabled: false
-         });
-    this.controller.setupWidget("chkFacebook",
-         this.fbattributes = {
-             trueValue: '1',
-             trueLabel: 'On',
-             falseLabel: 'Off',
-             falseValue: '0' 
-         },
-         this.fbmodel = {
-             value: stf,
-             disabled: false
-         });
-  
-	this.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true,focusMode:Mojo.Widget.focusSelectMode}, this.tipModel = {value:'', disabled:false});
-	
-	Mojo.Event.listen(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
-
-  		this.lhc=new Mojo.Model.Cookie("photohost");
-		var lh=this.lhc.get();
-		_globals.lasthost=(lh)? lh.photohost: "pikchur";
-  
-      this.controller.setupWidget("photohostList",
-        this.phAttributes = {
-            choices: [
-                {label: "Flickr", value: "flickr"},
-                {label: "TweetPhoto", value: "tweetphoto"},
-                {label: "Pikchur", value: "pikchur"},
-                {label: "FSPic", value: "fspic"}
-
-            ]},
-        this.phModel = {
-            value: _globals.lasthost,
-            disabled: false
-        }
-    ); 
-	  Mojo.Event.listen(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost);
-  this.controller.get("photohostList").hide();
-
-}
 
 
 

@@ -2,16 +2,18 @@ function LeaderboardAssistant() {
 }
 
 LeaderboardAssistant.prototype.setup = function() {
+	NavMenu.setup(this);
+
    	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
+/*    this.controller.setupWidget(Mojo.Menu.commandMenu,
     	this.attributes = {
 	        spacerHeight: 0,
         	menuClass: 'fsq-fade'
     	},
 	    _globals.cmmodel
-	);
+	);*/
 
 //	Mojo.Event.listen(this.controller.get('fmenu'),Mojo.Event.tap, this.showMenu.bind(this));
 
@@ -148,9 +150,10 @@ LeaderboardAssistant.prototype.handleCommand = function(event) {
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,_globals.username,_globals.password,_globals.uid,_globals.lat,_globals.long,this);
 					break;
+				case "do-Profile":
                 case "do-Badges":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade},thisauth,"",this);
                 	break;
                 case "do-Tips":
                 	var thisauth=_globals.auth;
@@ -158,13 +161,13 @@ LeaderboardAssistant.prototype.handleCommand = function(event) {
                 	break;
                 case "do-Shout":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					this.controller.stageController.pushScene({name: "shout", transition: Mojo.Transition.zoomFade},thisauth,"",this);
                 	break;
                 case "do-About":
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
                 	break;
                 case "do-Prefs":
-					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.zoomFade},this);
                 	break;
                 case "do-Refresh":
                 	break;
@@ -188,6 +191,9 @@ LeaderboardAssistant.prototype.handleCommand = function(event) {
 					//call the widget method for scrolling to the top
 					scroller.mojo.revealTop(0);
                 	$this.controller.get("#leaderboard td:nth-of-type(2)").addClassName("truncate");
+                	break;
+                case "toggleMenu":
+                	NavMenu.toggleMenu();
                 	break;
             }
         }

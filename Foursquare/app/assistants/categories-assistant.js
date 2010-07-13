@@ -1,5 +1,6 @@
 function CategoriesAssistant(ps) {
 	this.prevScene=ps;
+	this.lastLevel=-1;
 }
 
 CategoriesAssistant.prototype.setup = function() {
@@ -155,6 +156,9 @@ CategoriesAssistant.prototype.goBack = function(event) {
 			this.controller.get("categorySelect").hide();
 			this.controller.getSceneScroller().mojo.revealTop(0);
 			break;
+		case -1:
+			this.controller.stageController.popScene();
+			break;
 	}
 				
 };
@@ -166,7 +170,13 @@ CategoriesAssistant.prototype.useCat = function(event) {
 
 };
 
-
+CategoriesAssistant.prototype.handleCommand = function(event) {
+	if(event.type===Mojo.Event.back){
+		event.preventDefault();
+		event.stop();
+		this.goBack();
+	}
+};
 CategoriesAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
