@@ -1,6 +1,6 @@
 {
 	"id": "com.foursquare.foursquare",
-	"version": "1.5.0",
+	"version": "1.5.1",
 	"vendor": "foursquare",
 	"noWindow" : "true",
 	"timingEnabled": "true",
@@ -8,5 +8,6 @@
 	"main": "index.html",
 	"title": "foursquare",
 	"icon": "icon_64x64.png",
-	"splashBackground": "images/splash.png"
+	"splashBackground": "images/splash.png",
+	"keywords":["foursquare","4sq","map","places","restaurants","bars","food"]
 }

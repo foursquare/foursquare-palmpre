@@ -358,7 +358,7 @@ FriendsListAssistant.prototype.getFriendsInfo = function() {
 	if(this.onfriend < this.totalfriends){ //array is zero-based, so it'll never equal total number. 
 		
 		
-					var url = 'http://api.foursquare.com/v1/user.json';
+					var url = 'https://api.foursquare.com/v1/user.json';
 					auth = _globals.auth;
 					var theuser=this.friendList[this.onfriend].id;
 					var request = new Ajax.Request(url, {
@@ -462,7 +462,7 @@ FriendsListAssistant.prototype.onSearchTwitterFriends = function(event) {
 
 FriendsListAssistant.prototype.searchFriends = function(how) {
 	var what=(how=="twitter")? {}: {q: this.textModel.value};
-	var url = 'http://api.foursquare.com/v1/findfriends/by'+how+'.json';
+	var url = 'https://api.foursquare.com/v1/findfriends/by'+how+'.json';
 	auth = _globals.auth;
 	var request = new Ajax.Request(url, {
 	   method: 'get',
@@ -479,7 +479,7 @@ FriendsListAssistant.prototype.searchFriends = function(how) {
 FriendsListAssistant.prototype.onPendingFriends = function(event) {
 	if(this.requestList==undefined) {
 	
-	var url = 'http://api.foursquare.com/v1/friend/requests.json';
+	var url = 'https://api.foursquare.com/v1/friend/requests.json';
 	auth = _globals.auth;
 	var request = new Ajax.Request(url, {
 	   method: 'get',
@@ -885,6 +885,9 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
                 	break;
                 case "do-About":
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Donate":
+                	_globals.doDonate();
                 	break;
                 case "do-Prefs":
 					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.zoomFade},this);

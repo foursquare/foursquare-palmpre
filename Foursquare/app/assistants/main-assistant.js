@@ -43,7 +43,7 @@ MainAssistant.prototype.setup = function() {
 			//Mojo.Log.error("expresslogin");
 			this.controller.get("loginfields").style.visibility="hidden";
 			this.controller.get("main").removeClassName("palm-hasheader");
-			this.controller.get("message").style.marginTop="-70px";
+			//this.controller.get("message").style.marginTop="-70px";
 			this.controller.get("main").style.background="url(SPLASH_boy_transparent.png) no-repeat left top";
 	
 			this.login(this.username,this.password);
@@ -51,7 +51,7 @@ MainAssistant.prototype.setup = function() {
  	//}else{
  	//	this.loginRequestFailed({},false,true);
  	//}
-
+	_globals.gpsStatus=this.controller.get("gps-status");
 }
 
 MainAssistant.prototype.onLoginTapped = function(event){
@@ -97,7 +97,7 @@ MainAssistant.prototype.callInProgress = function(xmlhttp) {
 
 MainAssistant.prototype.login = function(uname, pass){
  
-	var url = "http://api.foursquare.com/v1/user.json";
+	var url = "https://api.foursquare.com/v1/user.json";
 	//var url="http://192.168.1.141/user.json"; //use this to test server being down
 	if(this.wrongcreds){
 		auth=make_base_auth(uname, pass);
@@ -109,7 +109,8 @@ MainAssistant.prototype.login = function(uname, pass){
 	
 	this.controller.get('signupbutton').hide();
 	
-	this.controller.get('message').innerHTML = '<br/><br/>Logging <b>'+uname+'</b> in to Foursquare... <div class="small-text">Getting location...</div>';
+	this.controller.get('message').innerHTML = 'Logging <b>'+uname+'</b> in to Foursquare...';
+	this.controller.get("gps-status").innerHTML="Getting location...";
 	
 	this.request = new Ajax.Request(url, {
 	   method: 'get',
@@ -138,7 +139,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 			this.controller.window.clearTimeout(this.timeout);
 			userData = response.responseJSON.user;
 			var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
-			this.controller.get('message').innerHTML = '<br/>' + disp;
+			this.controller.get('message').innerHTML = disp;
 			var uid=response.responseJSON.user.id;
 			var savetw=response.responseJSON.user.settings.sendtotwitter;
 			var savefb=response.responseJSON.user.settings.sendtofacebook;
@@ -182,7 +183,7 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 							this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
 						}
 					}.bind(this),200);
-					this.controller.get('message').innerHTML+='<div class="small-text">Getting location...</div>';
+					//this.controller.get('message').innerHTML+='<div class="small-text">Getting location...</div>';
 				}
 			
 			}
@@ -247,7 +248,8 @@ MainAssistant.prototype.loginRequestFailed = function(response,timeout,noConnect
 		msg='Your phone doesn\'t have an active Internet connection.';
 	}
 	this.controller.window.clearInterval(this.gpscheck);
-	this.controller.get('message').innerHTML = "<br/><br/>"+msg;
+	this.controller.get('message').innerHTML = ""+msg;
+	
 
 }
 
@@ -292,7 +294,7 @@ MainAssistant.prototype.activate = function(event) {
 
 
 MainAssistant.prototype.failedLocation = function(event) {
-	this.controller.get('message').innerHTML = 'failed to get location: ' + event.errorCode;
+	this.controller.get('gps-status').innerHTML = 'failed to get location: ' + event.errorCode;
 	Mojo.Log.error('failed to get location: ' + event.errorCode);
 	Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
 

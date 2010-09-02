@@ -29,7 +29,8 @@ _globals.ammodel = {
 		{label: "Preferences & Accounts", command: "do-Prefs"},
 		Mojo.Menu.editItem,
 		{label: "Check for Updates", command: "do-Update"},
-		{label: "About", command: "do-About"}
+		{label: "About", command: "do-About"},
+		{label: "DONATE",command: "do-Donate"}
 	]
 };
 _globals.amattributes = {

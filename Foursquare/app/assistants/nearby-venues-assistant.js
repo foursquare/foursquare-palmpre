@@ -461,7 +461,8 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,va
 	 	requiresAuth: true,
 	   parameters: {geolat:latitude, geolong:longitude, geohacc:hacc,geovacc:vacc, geoalt:alt, l:vlimit, q:query},
 	   onSuccess: this.nearbyVenueRequestSuccess.bind(this),
-	   onFailure: this.nearbyVenueRequestFailed.bind(this)	 	
+	   onFailure: this.nearbyVenueRequestFailed.bind(this)	,
+	   debug: true	
 	 });
 }
 
@@ -514,20 +515,26 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 			for(var g=0;g<response.responseJSON.groups.length;g++) {
 				var varray=response.responseJSON.groups[g].venues;
 				var grouping=response.responseJSON.groups[g].type;
+
+				varray.sort(function(a, b){return (a.distance - b.distance);});
+
 				for(var v=0;v<varray.length;v++) {
 					var tmp_venue=varray[v];
 					//this.venueList.push(varray[v]);
 					var dist=tmp_venue.distance;
+					var rawdist=tmp_venue.distance;
 					
 					if(_globals.units=="si") {					
 						var amile=0.000621371192;
 						dist=roundNumber(dist*amile,2);
 						var unit="";
 						if(dist==1){unit="Mi.";}else{unit="Mi.";}
-					}else{
+					}else if(_globals.units=="metric") {
 						dist=roundNumber(dist/1000,2);
 						var unit="";
 						if(dist==1){unit="KM";}else{unit="KM";}						
+					}else{
+						if(dist==1){unit="m";}else{unit="m";}						
 					}
 					
 					//handle people here
@@ -557,6 +564,7 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 					
 					tmp_venue.distance=dist;
 					tmp_venue.unit=unit;
+					tmp_venue.rawdistance=rawdist;
 					/*if(_globals.hiddenVenues.inArray(varray[v].id)){
 				  		//hide it!
 				  		this.venueList[this.venueList.length-1].grouping="Hidden";
@@ -599,7 +607,7 @@ NearbyVenuesAssistant.prototype.nearbyVenueRequestSuccess = function(response) {
 			}
 			this.lastId=this.venueList[this.venueList.length-1].id;
 		}
-		
+		logthis("rawdist="+tmp_venue.rawdistance);
 		this.venueList=this.venueList.concat(this.housesList); //append houses to bottom of the list
 
 		
@@ -650,7 +658,7 @@ NearbyVenuesAssistant.prototype.checkIn = function(id, n) {
 	
 	if (_globals.auth) {
 		this.controller.get('message').innerHTML = 'Checking into ' + n;
-		var url = 'http://api.foursquare.com/v1/checkin.json';
+		var url = 'https://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'true',
@@ -836,6 +844,9 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
                 	_globals.checkUpdate(this);
                 	break;
                 case "do-Nothing":
+                	break;
+                case "do-Donate":
+                	_globals.doDonate();
                 	break;
                 case "do-Search":
 					if(this.searchShowing){						

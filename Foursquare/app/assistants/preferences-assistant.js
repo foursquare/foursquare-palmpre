@@ -78,7 +78,8 @@ PreferencesAssistant.prototype.setup = function() {
         this.unitsattributes = {
             choices: [
                 {label: "Miles", value: "si"},
-                {label: "Meters", value: "metric"}
+                {label: "Meters", value: "metricb"},
+                {label: "Kilometers", value: "metric"}
                 ]},
 
         this.unitsmodel = {

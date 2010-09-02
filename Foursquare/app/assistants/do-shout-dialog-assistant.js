@@ -54,7 +54,7 @@ DoShoutDialogAssistant.prototype.okTappedShout = function() {
 	if (this.auth) {
 		Mojo.Log.error("###trying to shout");
 	
-		var url = 'http://api.foursquare.com/v1/checkin.json';
+		var url = 'https://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',

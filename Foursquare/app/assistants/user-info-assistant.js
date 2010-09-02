@@ -625,7 +625,7 @@ Mojo.Log.error(response.responseText);
 }
 
 UserInfoAssistant.prototype.approveFriend = function(event) {
-	var url = 'http://api.foursquare.com/v1/friend/approve.json';
+	var url = 'https://api.foursquare.com/v1/friend/approve.json';
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
@@ -649,7 +649,7 @@ UserInfoAssistant.prototype.approveFailed = function(response) {
 }
 
 UserInfoAssistant.prototype.denyFriend = function(event) {
-	var url = 'http://api.foursquare.com/v1/friend/deny.json';
+	var url = 'https://api.foursquare.com/v1/friend/deny.json';
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
@@ -790,7 +790,7 @@ UserInfoAssistant.prototype.setPings = function(event) {
 	var params=this.uid+"="+val;
 
 	
-	var url = 'http://api.foursquare.com/v1/settings/setpings.json';
+	var url = 'https://api.foursquare.com/v1/settings/setpings.json';
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
@@ -824,7 +824,7 @@ UserInfoAssistant.prototype.pingFailed = function(response) {
 
 
 UserInfoAssistant.prototype.addFriend = function(event) {
-	var url = 'http://api.foursquare.com/v1/friend/sendrequest.json';
+	var url = 'https://api.foursquare.com/v1/friend/sendrequest.json';
 	var request = new Ajax.Request(url, {
 	   method: 'post',
 	   evalJSON: 'force',
@@ -912,7 +912,7 @@ UserInfoAssistant.prototype.friendTapped = function(event) {
 
 UserInfoAssistant.prototype.searchFriends = function(how,query) {
 	var what=(how=="twitter")? {}: {q: query};
-	var url = 'http://api.foursquare.com/v1/findfriends/by'+how+'.json';
+	var url = 'https://api.foursquare.com/v1/findfriends/by'+how+'.json';
 	this.query=query;
 	this.how=how;
 /*	auth = _globals.auth;
@@ -1002,6 +1002,9 @@ UserInfoAssistant.prototype.handleCommand = function(event) {
                 	break;
                 case "do-Prefs":
 					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.zoomFade},this);
+                	break;
+                case "do-Donate":
+                	_globals.doDonate();
                 	break;
                 case "do-Refresh":
 					this.controller.get("userInfo").innerHTML="";

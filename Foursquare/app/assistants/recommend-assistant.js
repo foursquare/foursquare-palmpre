@@ -4,7 +4,7 @@ function RecommendAssistant(venues) {
 
 RecommendAssistant.prototype.setup = function() {
 	if(this.venues.length<50){
-		var url = 'http://api.foursquare.com/v1/venues.json';
+		var url = 'https://api.foursquare.com/v1/venues.json';
 		auth = _globals.auth;
 		var request = new Ajax.Request(url, {
 		   method: 'get',
@@ -205,7 +205,7 @@ RecommendAssistant.prototype.getVenue = function(r) {
 	
 	
 	
-	var url = 'http://api.foursquare.com/v1/venue.json';
+	var url = 'https://api.foursquare.com/v1/venue.json';
 	auth = _globals.auth;
 	var request = new Ajax.Request(url, {
 	   method: 'get',

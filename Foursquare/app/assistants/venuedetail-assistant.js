@@ -1,5 +1,6 @@
 function VenuedetailAssistant(venue,u,p,i,fui,ps,fm,fl) {
 	   this.venue=venue;
+	   this.venue.name=(this.venue.name!=undefined)? this.venue.name.replace("ᄑ","&#9992;"): "";
 	   this.username=_globals.username;
 	   this.password=_globals.password;
 	   this.uid=_globals.uid;
@@ -13,7 +14,7 @@ function VenuedetailAssistant(venue,u,p,i,fui,ps,fm,fl) {
 
 VenuedetailAssistant.prototype.setup = function() {
 	this.controller.get("snapMayor").hide();
-	this.controller.get("checkinVenueName").innerHTML=this.venue.name;
+	this.controller.get("checkinVenueName").innerHTML=this.venue.name.replace("ᄑ","&#9992;");
 	this.controller.get("checkinVenueAddress").innerHTML=this.venue.address;
 	if (this.venue.crossstreet) {
 		this.controller.get("checkinVenueAddress").innerHTML += " ("+this.venue.crossstreet+")";
@@ -900,7 +901,7 @@ VenuedetailAssistant.prototype.promptCheckin = function(event) {
 VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 	if (_globals.auth) {
 		sf=(sf==0)? 1: 0;
-		var url = 'http://api.foursquare.com/v1/checkin.json';
+		var url = 'https://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
@@ -922,7 +923,7 @@ VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 }
 VenuedetailAssistant.prototype.markClosed = function() {
 	if (_globals.auth) {
-		var url = 'http://api.foursquare.com/v1/venue/flagclosed.json';
+		var url = 'https://api.foursquare.com/v1/venue/flagclosed.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
@@ -940,7 +941,7 @@ VenuedetailAssistant.prototype.markClosed = function() {
 }
 VenuedetailAssistant.prototype.markMislocated = function() {
 	if (_globals.auth) {
-		var url = 'http://api.foursquare.com/v1/venue/flagmislocated.json';
+		var url = 'https://api.foursquare.com/v1/venue/flagmislocated.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
@@ -958,7 +959,7 @@ VenuedetailAssistant.prototype.markMislocated = function() {
 }
 VenuedetailAssistant.prototype.markDuplicate = function() {
 	if (_globals.auth) {
-		var url = 'http://api.foursquare.com/v1/venue/flagduplicate.json';
+		var url = 'https://api.foursquare.com/v1/venue/flagduplicate.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
@@ -1413,6 +1414,9 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
                 case "do-About":
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
                 	break;
+                case "do-Donate":
+                	_globals.doDonate();
+                	break;
                 case "do-Prefs":
 					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
                 	break;
@@ -1470,7 +1474,7 @@ VenuedetailAssistant.prototype.tipTapped = function(event) {
 
 }
 VenuedetailAssistant.prototype.markTip = function(tip,how){
-		var url = 'http://api.foursquare.com/v1/tip/mark'+how+'.json';
+		var url = 'https://api.foursquare.com/v1/tip/mark'+how+'.json';
 		var request = new Ajax.Request(url, {
 		   method: 'post',
 		   evalJSON: 'force',

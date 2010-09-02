@@ -65,17 +65,20 @@ _globals.gotLocation = function(event) {
 				Mojo.Log.error("got it on first try");
 				_globals.GPS.stop();											//actual or user doesn't care, AND first check, continue
 				_globals.gotGPS=true;
+				_globals.gpsStatus.innerHTML="Found your location!";
 			}else{																//if user cares and radius is larger than requested
 				Mojo.Log.error("bad radius; retrying");
 				_globals.retryingGPS=true;										//AND first check, restart GPS and let main push
 				//_globals.GPS.restart();											//venues and alert user of crappy accuracy
 				_globals.gotGPS=true;
+				_globals.gpsStatus.innerHTML="Inaccurate location. Retrying...";
 			}
 		}else{ //if _globals.retryingGPS==true...
 			if(acc>=_globals.hacc && _globals.onVenues==true){
 				Mojo.Log.error("got it second try");
 				_globals.GPS.stop();
 				_globals.retryingGPS=false;
+				_globals.gpsStatus.innerHTML="Found your location!";
 				Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"showrefresh");
 			}
 			if(acc<_globals.hacc && _globals.onVenues==true){
@@ -84,6 +87,7 @@ _globals.gotLocation = function(event) {
 				var diff=(now-_globals.gpsStart)/1000; //in seconds
 				if(dff>=10){
 					Mojo.Log.error("giving up");
+					_globals.gpsStatus.innerHTML="Found good enough location.";
 					_globals.GPS.stop();
 					_globals.retryingGPS=false;
 					Mojo.Event.send(cardStageController.document.getElementById("gotloc"),"gaveup");				
@@ -296,7 +300,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
         // FIRST LAUNCH
         // Look for an existing main stage by name.
         	   //grab categories in the background...
-		 var url = "http://api.foursquare.com/v1/categories.json";
+		 var url = "https://api.foursquare.com/v1/categories.json";
 		 var request = new Ajax.Request(url, {
 		   method: 'get',
 		   evalJSON: 'force',
@@ -406,7 +410,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 		
 		        // Update the feed list
 		       // Mojo.Log.error("Update FeedList");
-				var url = 'http://api.foursquare.com/v1/checkins.json';
+				var url = 'https://api.foursquare.com/v1/checkins.json';
 				auth = _globals.auth;
 				var request = new Ajax.Request(url, {
 				   method: 'get',
@@ -441,7 +445,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 				
 				_globals.loadPrefs();
 				
-				 var url = "http://api.foursquare.com/v1/categories.json";
+				 var url = "https://api.foursquare.com/v1/categories.json";
 				 var request = new Ajax.Request(url, {
 				   method: 'get',
 				   evalJSON: 'force',
@@ -451,7 +455,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 	
 	
 				//also grab user settings in bg
-				var url = "http://api.foursquare.com/v1/user.json";
+				var url = "https://api.foursquare.com/v1/user.json";
 				var request = new Ajax.Request(url, {
 				   method: 'get',
 				   evalJSON: 'true',
@@ -620,7 +624,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 						_globals.loadPrefs();
 						
 
-						 var url = "http://api.foursquare.com/v1/categories.json";
+						 var url = "https://api.foursquare.com/v1/categories.json";
 						 var request = new Ajax.Request(url, {
 						   method: 'get',
 						   evalJSON: 'force',
@@ -630,7 +634,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 			
 			
 						//also grab user settings in bg
-						var url = "http://api.foursquare.com/v1/user.json";
+						var url = "https://api.foursquare.com/v1/user.json";
 						var request = new Ajax.Request(url, {
 						   method: 'get',
 						   evalJSON: 'true',
@@ -1043,12 +1047,20 @@ AppAssistant.prototype.historyFailed = function(r) {
 	logthis("hfail="+Object.toJSON(r));
 }
 
+_globals.doDonate =function(){
+	        Mojo.Controller.getAppController().getActiveStageController().activeScene().serviceRequest('palm://com.palm.applicationManager', {
+	            method:'open',
+	               parameters:{
+		               target: "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=QGN8Q924DXP82&lc=US&item_name=foursquare%20for%20webOS&item_number=foursquare%2dwebos&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"
+	                    }
+	         });
 
-_globals.getFriendRequests = function(){
+};
+_globals.getFriendRequests = function(c){
 //	    this.cookieData=new Mojo.Model.Cookie("lastHID");
 //		var credentials=this.cookieData.get();
 //		_globals.lastHID=(credentials)? credentials.lastHID: '0';
-		var url = "http://api.foursquare.com/v1/friend/requests.json";
+		var url = "https://api.foursquare.com/v1/friend/requests.json";
 		var request = new Ajax.Request(url, {
 		   method: 'get',
 		   evalJSON: 'true',
@@ -1060,11 +1072,17 @@ _globals.getFriendRequests = function(){
 };
 
 _globals.requestsSuccess = function(r){
+	//logthis(", c="+c+", r="+Object.toJSON(r));
+	
 	if(r.responseJSON.requests != undefined && r.responseJSON.requests != null && r.responseJSON.requests.length>0){
 		_globals.requests='';
 		for(var f=0;f<r.responseJSON.requests.length;f++){
 			var html=Mojo.View.render({template:'listtemplates/friend-requests',object:r.responseJSON.requests[f]});
 			_globals.requests+=html;
+		}
+		
+		if(c!=undefined){
+			c.innerHTML=_globals.requests;
 		}
 	}
 };
@@ -1100,7 +1118,7 @@ function foursquareGet(that,opts){
 				opts.parameters={};
 			}
 			
-			var url = "http://api.foursquare.com/v1/"+opts.endpoint;
+			var url = "https://api.foursquare.com/v1/"+opts.endpoint;
 			var request = new Ajax.Request(url, {
 			   method: 'get',
 			   evalJSON: 'true',
@@ -1213,7 +1231,7 @@ function foursquarePost(that,opts){
 				opts.parameters={};
 			}
 			
-			var url = "http://api.foursquare.com/v1/"+opts.endpoint;
+			var url = "https://api.foursquare.com/v1/"+opts.endpoint;
 			var request = new Ajax.Request(url, {
 			   method: 'post',
 			   evalJSON: 'true',

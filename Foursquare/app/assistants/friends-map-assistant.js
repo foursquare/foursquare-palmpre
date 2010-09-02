@@ -350,6 +350,9 @@ FriendsMapAssistant.prototype.handleCommand = function(event) {
                 case "do-About":
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
                 	break;
+                case "do-Donate":
+                	_globals.doDonate();
+                	break;
                 case "do-Update":
                 	_globals.checkUpdate(this);
                 	break;

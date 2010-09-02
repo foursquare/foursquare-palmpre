@@ -434,7 +434,7 @@ ShoutAssistant.prototype.getTheHeaders =function(r){
 ShoutAssistant.prototype.doShout = function(extra) {
 	this.uploading=false;
 	extra=(extra==undefined)? "": extra;
-		var url = 'http://api.foursquare.com/v1/checkin.json';
+		var url = 'https://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',

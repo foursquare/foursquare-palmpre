@@ -109,7 +109,7 @@ NearbyTipsAssistant.prototype.listWasTapped = function(event){
 
 NearbyTipsAssistant.prototype.listDelete = function(event){
 	var tip=event.item.id;
-		var url = 'http://api.foursquare.com/v1/tip/unmark.json';
+		var url = 'https://api.foursquare.com/v1/tip/unmark.json';
 		var request = new Ajax.Request(url, {
 		   method: 'post',
 		   evalJSON: 'force',
@@ -122,7 +122,7 @@ NearbyTipsAssistant.prototype.listDelete = function(event){
 }
 
 NearbyTipsAssistant.prototype.markTip = function(tip,how){
-		var url = 'http://api.foursquare.com/v1/tip/mark'+how+'.json';
+		var url = 'https://api.foursquare.com/v1/tip/mark'+how+'.json';
 		var request = new Ajax.Request(url, {
 		   method: 'post',
 		   evalJSON: 'force',
@@ -155,6 +155,21 @@ NearbyTipsAssistant.prototype.markTipFailed = function(response){
 NearbyTipsAssistant.prototype.getTipsFailed = function(response){
 	Mojo.Log.error("****error tips="+response.responseText);
 }
+NearbyTipsAssistant.prototype.relativeTime = function(offset){
+	// got this from: http://github.com/trek/thoughtbox/blob/master/js_relative_dates/src/relative_date.js
+    var distanceInMinutes = (offset.abs() / 60000).round();
+    if (distanceInMinutes == 0) { return 'less than a minute'; }
+    else if ($R(0,1).include(distanceInMinutes)) { return 'about a minute'; }
+    else if ($R(2,44).include(distanceInMinutes)) { return distanceInMinutes + ' minutes';}
+    else if ($R(45,89).include(distanceInMinutes)) { return 'about 1 hour';}
+    else if ($R(90,1439).include(distanceInMinutes)) { return 'about ' + (distanceInMinutes / 60).round() + ' hours'; }
+    else if ($R(1440,2879).include(distanceInMinutes)) {return '1 day'; }
+    else if ($R(2880,43199).include(distanceInMinutes)) {return 'about ' + (distanceInMinutes / 1440).round() + ' days'; }
+    else if ($R( 43200,86399).include(distanceInMinutes)) {return 'about a month' }
+    else if ($R(86400,525599).include(distanceInMinutes)) {return 'about ' + (distanceInMinutes / 43200).round() + ' months'; }
+    else if ($R(525600,1051199).include(distanceInMinutes)) {return 'about a year';}
+    else return 'over ' + (distanceInMinutes / 525600).round() + ' years';
+  }
 
 
 NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {	
@@ -197,14 +212,30 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 						dist=roundNumber(dist*amile,1);
 						var unit="";
 						if(dist==1){unit="mile";}else{unit="miles";}
-					}else{
+					}else if(_globals.units=="metric"){
 						dist=roundNumber(dist/1000,1);
 						var unit="";
 						if(dist==1){unit="KM";}else{unit="KM";}						
+					}else{
+						if(dist==1){unit="m";}else{unit="m";}						
 					}
 					this.tipsList[this.tipsList.length-1].distance=dist;
 					this.tipsList[this.tipsList.length-1].unit=unit;
 					this.tipsList[this.tipsList.length-1].grouping=grouping;
+					
+					var created=this.tipsList[this.tipsList.length-1].created;
+					if(this.tipsList[this.tipsList.length-1].created != undefined) {
+						var now = new Date;
+						var later = new Date(this.tipsList[this.tipsList.length-1].created);
+						var offset = later.getTime() - now.getTime();
+						var when=this.relativeTime(offset) + " ago";
+					}else{
+					   	var when="";
+					}
+					this.tipsList[this.tipsList.length-1].when=when;
+
+					
+					
 					if(grouping=="Me"){
 						this.tipsList[this.tipsList.length-1].candelete=false;	
 					}else{
@@ -269,6 +300,9 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
                 	break;
                 case "do-About":
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Donate":
+                	_globals.doDonate();
                 	break;
                 case "do-Prefs":
 					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.zoomFade},this);

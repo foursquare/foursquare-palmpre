@@ -16,11 +16,25 @@ body {
 	}
 
 #message {
-	width: 90%;
+	/*width: 90%;*/
 /*	position: absolute;
 	top: 220px;
 	left: 0px;	*/
-	margin-top: -60px;
+/*	margin-top: -60px;*/
+}
+#login-status {
+	width: 100%;
+	position: fixed;
+	left: 0px;
+	bottom: 0px;
+	padding: 3px;
+	background: rgba(20,90,151,0.6);
+	
+}
+#gps-status {
+	font-size: 13px;
+	padding-left: 20px;
+
 }
 
 #spinnerId {

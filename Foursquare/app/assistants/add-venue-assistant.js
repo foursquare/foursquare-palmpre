@@ -379,7 +379,7 @@ AddVenueAssistant.prototype.okTapped = function() {
 
 		if(!this.editing) {
 			pcat=_globals.selectedCat;
-			var url = 'http://api.foursquare.com/v1/addvenue.json';
+			var url = 'https://api.foursquare.com/v1/addvenue.json';
 			var ep="addvenue.json";
 			var params={
 				name: this.nameModel.value,
@@ -396,7 +396,7 @@ AddVenueAssistant.prototype.okTapped = function() {
 			};
 		}else{
 			pcat=_globals.selectedCat;
-			var url = 'http://api.foursquare.com/v1/venue/proposeedit.json';
+			var url = 'https://api.foursquare.com/v1/venue/proposeedit.json';
 			var ep="venue/proposeedit.json";
 			var params={
 				name: this.nameModel.value,
@@ -508,7 +508,7 @@ AddVenueAssistant.prototype.promptCheckin = function(vid,vname) {
 }
 
 AddVenueAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
-		var url = 'http://api.foursquare.com/v1/checkin.json';
+		var url = 'https://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
 			evalJSON: 'true',
