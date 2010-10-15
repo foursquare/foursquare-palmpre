@@ -7,129 +7,126 @@
 
 			<div id="docheckin" style="width: 34%;float:left;display:none;">checkin</div>
 			<div id="vcategory" style="width: 20%;float:left;font-size:12px;display:none;"></div>
-			<!--<div style="clear:both;height: 2px;">&nbsp;</div>
-		  	<div id="dropshadow">&nbsp;</div>-->
 		</div>
 	</div>
-	<div id="tabs" style="padding:0; margin:-12px auto -13px auto; width: 100%;"><!-- z-index: 999;background: url(images/fsq-menu-gradient-top.png) left -10px;position:absolute;top:127px;left:0px;height: 84px;-->
-		<div x-mojo-element="RadioButton" id="tabButtons" class="radiobuttonClass" 
+	<div class="header-bottom-border"></div>
+<div id="todohere" style="display:none;"></div>
+	<div id="tabs" style="padding:0; margin:-12px auto -13px auto; width: 100%;">
+			<div x-mojo-element="RadioButton" id="tabButtons" class="radiobuttonClass" 
  name="radiobuttonName" style="padding: 0px;width:100%;"></div>
 	</div>
 	<div style="height: 13px;">&nbsp;</div>
    <div x-mojo-element="Scroller" id="detailScroller" class="scrollerClass" name="scrollerName">
-	<div id="details-group">
+	  <div id="overview-group">
+		<div class="palm-list">
+			<div class="palm-row" id="mayor-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="mayor-left">
+						<div id="mayorName"></div>
+						<div id="mayorInfo"></div>
+					</div>
+					<div class="mayor-right">
+						<img id="mayorPic" class="friend-avatar" width="48" height="48" data="" alt="Mayor!" src="" />
+					</div>
+					<br class="breaker">
+				</div>
+			</div>
+			
+			<div class="palm-row" id="whoshere-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="people-here"></div>
+						<div id="whoshere-avatars"></div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+				</div>
+			</div>
+
+			<div class="palm-row" id="tips-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="friend-tips"></div>
+						<div class="subtext" id="others-tips"></div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+					<br>
+				</div>
+			</div>
+
+			<div class="palm-row" id="more-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="more-text">More info</div>
+						<div class="subtext" id="more-subtext">Map, contact, photos, and more</div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+					<br>
+				</div>
+			</div>
+		</div>
+<div style="height: 150px;"></div><br/><br/>
+	</div>	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div id="details-group" style="display: none;">	
 		<div id="snapMap">
-			<!--<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="mapDivider">
-			  <tr>
-			    <td class="left"></td>
-			    <td class="label">
-			      Map
-			    </td>
-			    <td class="line" width="100%" id="mapLine"></td>
-			    <td><div class="palm-arrow-expanded arrow_button" id="mapArrow"></div></td>
-			    <td class="right"></td>
-			  </tr>
-			</table>-->
 			<div id="mapDrawer" x-mojo-element="Drawer">
-				<!--<a href="" id="venuemaplink"><img id="venueMap" src="" border="0" width="320" height="175" /></a>-->
 				<img id="venueMap" src="" border="0" width="320" height="125" />
 			</div>
-		<!--	<br/>
-			<div class="fsq-divider">Meta</div>
-			<div id="meta-buttons">
-				<img id="flickr-button" src="images/camera.png" width="42" border="0"/>
-				<img id="banks-button" src="images/banks.png" width="42" border="0" style="margin-left: 3px;"/>
-				<img id="parking-button" src="images/parking.png" width="42" border="0" style="margin-left: 3px;"/>
-				<span id="yelpbutton"></span>
-			</div>-->
 		</div>
 		<div id="snapSpecials" class="breaker">
-			<!--<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="specialsDivider">
-			  <tr>
-			    <td class="left"></td>
-			    <td class="label">
-			      Specials
-			    </td>
-			    <td class="line" width="100%" id="specialsLine"></td>
-			    <td><div class="palm-arrow-expanded arrow_button" id="specialsArrow"></div></td>
-			    <td class="right"></td>
-			  </tr>
-			</table>-->
 			<div id="venueSpecialsContainer"  x-mojo-element="Drawer">
 				<div id="venueSpecials" style="padding: 7px;display:none;"></div>
 				<div id="nearbySpecials" style="padding: 7px;"></div>
 			</div>
 		</div>
+		<br/>
+		<div id="snapInfo" class="breaker">
+			<div id="venueInfoContainer" x-mojo-element="Drawer">
+				<div id="infoList" x-mojo-element="List" ></div>  	
+			</div>
+		</div>
+		<br>
 		<div id="snapTags" class="breaker">
-			<!--<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="tagsDivider">
-			  <tr>
-			    <td class="left"></td>
-			    <td class="label">
-			      Tags
-			    </td>
-			    <td class="line" width="100%" id="tagsLine"></td>
-			    <td><div class="palm-arrow-expanded arrow_button" id="tagsArrow"></div></td>
-			    <td class="right"></td>
-			  </tr>
-			</table>-->
 			<br/>
 			<div class="fsq-divider">
 				Tags
 			</div>
 			<div id="tagsDrawer"  x-mojo-element="Drawer"><div id="venueTags"></div></div>
 		</div>
-		<br/>
-		<div id="snapInfo" class="breaker">
-			<!--<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="infoDivider">
-			  <tr>
-			    <td class="left"></td>
-			    <td class="label">
-			      Venue Info
-			    </td>
-			    <td class="line" width="100%" id="infoLine"></td>
-			    <td><div class="palm-arrow-expanded arrow_button" id="infoArrow"></div></td>
-			    <td class="right"></td>
-			  </tr>
-			</table>-->
-			<!--<br/>
-			<div class="fsq-divider">
-				Venue Info
-			</div>-->
-			<div id="venueInfoContainer" x-mojo-element="Drawer">
-				<!--<div id="venueInfo"></div>
-				<div x-mojo-element="Button" id="buttonMarkClosed" class="buttonClass addtipok" name="buttonName"></div>
-				<div x-mojo-element="Button" id="buttonProposeEdit" class="buttonClass addtipcancel" name="buttonName"></div>-->
-				<div id="infoList" x-mojo-element="List" ></div>  	
-			</div>
-		</div>
 		<div style="height: 150px"></div><br/><br/>
 	</div><!--details-->
 	<div id="people-group" style="display:none;">
 		<div id="snapMayor">
-			<!--<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="mayorDivider">
-			  <tr>
-			    <td class="left"></td>
-			    <td class="label">
-			      Mayor
-			    </td>
-			    <td class="line" width="100%" id="mayorLine"></td>
-			    <td><div class="palm-arrow-expanded arrow_button" id="mayorArrow"></div></td>
-			    <td class="right"></td>
-			  </tr>
-			</table>-->
 			<div class="fsq-divider">
 				Mayor
 			</div>
 			<div id="mayorDrawer" x-mojo-element="Drawer">
 			<div id="venueMayor" >
-				<div id="mayorAvatar" class="userLink" data="">
-					<img id="mayorPic" class="friend-avatar" width="75" height="75" data="" alt="Mayor!" src="" />
-					<img id="mayorPicBorder" src="images/roundedCorner.png" class="" data="" alt="" />
+				<div id="mayorAvatar2" class="userLink" data="">
+					<img id="mayorPic2" class="friend-avatar" width="75" height="75" data="" alt="Mayor!" src="" />
+					<img id="mayorPicBorder2" src="images/roundedCorner.png" class="" data="" alt="" />
 					<img id="mayorCrown" src="images/crown_50x50.png" class=""/>
 				</div>
-				<div id="mayorInfoBlock">
-					<div id="mayorName" class="title userLink fakelink" alt=""></div>
-					<div id="mayorInfo" class="palm-info-text" style="color: #1f1f1f;"></div><br class="breaker"/>
+				<div id="mayorInfoBlock2">
+					<div id="mayorName2" class="title userLink fakelink" alt=""></div>
+					<div id="mayorInfo2" class="palm-info-text" style="color: #1f1f1f;"></div><br class="breaker"/>
 				</div>
 			</div>
 			</div>
@@ -138,37 +135,20 @@
 			<div class="fsq-divider">
 				Who's Here?
 			</div>
-			<!--<table class="palm-divider labeled">
-			  <tr>
-			    <td class="left"></td>
-			    <td class="label">
-			      Who's Here?
-			    </td>
-			    <td class="right"></td>
-			  </tr>
-			</table>-->
 			<div id="venueUsers"></div>
 		</div>
 		<div style="height:150px;"></div><br/><br/>
 	</div><!--people-->
 	<div id="tips-group" style="display: none;">
 		<div id="snapTips" class="breaker">
-			<!--<table class="palm-divider labeled collapsible" x-mojo-tap-highlight="momentary" id="tipsDivider">
-			  <tr>
-			    <td class="left"></td>
-			    <td class="label">
-			      Tips &amp; To-do's
-			    </td>
-			    <td class="line" width="100%" id="tipsLine"></td>
-			    <td><div class="palm-arrow-closed arrow_button" id="tipsArrow"></div></td>
-			    <td class="right"></td>
-			  </tr>
-			</table>-->
 			<div id="venueTipsContainer"  x-mojo-element="Drawer">
 				<div id="venueTips"></div>
+				<div id="tips-list" x-mojo-element="List" >
+					
+				</div>
 				<br class="breaker"/>
-				<div x-mojo-element="Button" id="buttonAddTip" class="buttonClass addtipok" name="buttonName"></div>
-				<div x-mojo-element="Button" id="buttonAddTodo" class="buttonClass addtipcancel" name="buttonName"></div>
+				<div x-mojo-element="Button" id="buttonAddTip" class="buttonClass addtipok" name="buttonName" style="display:none;"></div>
+				<div x-mojo-element="Button" id="buttonAddTodo" class="buttonClass addtipcancel" name="buttonName" style="display:none;"></div>
 			</div>
 		</div>
 		<div style="height: 150px;"></div><br/><br/>
@@ -211,4 +191,29 @@
 </div>
 
 <div id="nearby-special" style="display: none;"></div>
+<div id="tips-badge-wrapper" class="menu-badge" style="display: none;">
+    <span id="tips-badge"></span>
+</div>
+<div id="people-badge-wrapper" class="menu-badge" style="display: none;">
+    <span id="people-badge"></span>
+</div>
 <!--<div class="fade-bottom"></div>-->
+
+<div id="special_overlay" style="display: none;">
+	<div id="special_top"></div>
+	<div id="special_middle">
+		<div x-mojo-element="Scroller" id="specialScroller" class="scrollerClass" name="scrollerName">
+			<div id="special_content">
+			
+			</div>
+		</div>
+		<br class="breaker">
+		<div id="triangle-left" style="display: none;"></div>
+		<div id="triangle-right" style="display:none;"></div>
+	</div>
+	
+	<div id="special_bottom"></div>
+		<br class="breaker">
+
+</div>
+

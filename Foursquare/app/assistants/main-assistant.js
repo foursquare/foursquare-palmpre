@@ -11,7 +11,7 @@ function MainAssistant(expressLogin,credentials,fp) {
 		   	this.password=this.credentials.password;
 		   	this.auth=make_base_auth(this.username,this.password);
 		   }
-		//   Mojo.Log.error("auth="+this.auth);
+		//   logthis("auth="+this.auth);
 	   }
 	   
 	   this.gotGPS=false;
@@ -33,29 +33,26 @@ MainAssistant.prototype.setup = function() {
 	this.controller.setupWidget('goLogin', this.attributes = {type:Mojo.Widget.activityButton}, this.loginBtnModel = {label:'Log In', disabled:false});
 	this.controller.setupWidget('goSignup', this.attributes = {}, this.signupBtnModel = {label:'Need an account? Sign up!', disabled:false});
 	
-	Mojo.Event.listen(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTapped.bind(this));
-	Mojo.Event.listen(this.controller.get("goSignup"), Mojo.Event.tap, this.onSignupTapped.bind(this));
-    this.controller.document.addEventListener("keyup", this.keyDownHandler.bind(this), true);
+	this.onLoginTappedBound=this.onLoginTapped.bind(this);
+	this.onSignupTappedBound=this.onSignupTapped.bind(this);
+	this.keyDownHandlerBound=this.keyDownHandler.bind(this);
+	
+	Mojo.Event.listen(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTappedBound);
+	Mojo.Event.listen(this.controller.get("goSignup"), Mojo.Event.tap, this.onSignupTappedBound);
+    this.controller.document.addEventListener("keyup", this.keyDownHandlerBound, true);
 
 		logthis("hasweb="+_globals.hasWeb);
- 	//if(_globals.hasWeb=="true"){
 		if (this.expressLogin) {
-			//Mojo.Log.error("expresslogin");
 			this.controller.get("loginfields").style.visibility="hidden";
 			this.controller.get("main").removeClassName("palm-hasheader");
-			//this.controller.get("message").style.marginTop="-70px";
 			this.controller.get("main").style.background="url(SPLASH_boy_transparent.png) no-repeat left top";
 	
 			this.login(this.username,this.password);
 		}     	
- 	//}else{
- 	//	this.loginRequestFailed({},false,true);
- 	//}
 	_globals.gpsStatus=this.controller.get("gps-status");
 }
 
 MainAssistant.prototype.onLoginTapped = function(event){
-	//this.controller.get('message').innerHTML = 'logging in';
 	
 	this.username=this.usernameModel.value;
 	this.password=this.passwordModel.value;
@@ -105,7 +102,6 @@ MainAssistant.prototype.login = function(uname, pass){
 		auth = (this.expressLogin)? _globals.auth: make_base_auth(uname, pass);
 	}
 	
-	//this.timeout=this.controller.window.setTimeout(this.connectionTimedOut.bindAsEventListener(this),5000);
 	
 	this.controller.get('signupbutton').hide();
 	
@@ -132,8 +128,6 @@ MainAssistant.prototype.login = function(uname, pass){
 var userData;
 
 MainAssistant.prototype.loginRequestSuccess = function(response) {
-//logthis("complete: "+response.status);
-//logthis(Object.toJSON(response.responseJSON.error));
 	if(response.status!=0){
 		if(response.responseJSON.error==undefined){
 			this.controller.window.clearTimeout(this.timeout);
@@ -174,34 +168,26 @@ MainAssistant.prototype.loginRequestSuccess = function(response) {
 					_globals.firstLoad=true;
 					this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
 				}else{
-					//Mojo.Log.error("waiting on GPS");
 					this.gpscheck=this.controller.window.setInterval(function(){
-						//Mojo.Log.error("checking gps");
 						if(_globals.gotGPS){
-							//Mojo.Log.error("got gps finally!");
 							_globals.firstLoad=true;
 							this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
 						}
 					}.bind(this),200);
-					//this.controller.get('message').innerHTML+='<div class="small-text">Getting location...</div>';
 				}
 			
 			}
 		}else{
-			//logthis("resp="+response.responseText);
 			this.loginRequestFailed(response,true);
 		}
 	}else{
-			//logthis("resp2="+response.responseText);
 		this.loginRequestFailed(response,true);
 	}
 }
 MainAssistant.prototype.connectionTimedOut = function() {
-	//this.request.abort();
 };
 
 MainAssistant.prototype.loginRequestFailed = function(response,timeout,noConnection) {
-	//logthis("resp3="+response.responseText);
 	auth = undefined;
 	try{
 		this.controller.get('goLogin').mojo.deactivate();
@@ -241,7 +227,7 @@ MainAssistant.prototype.loginRequestFailed = function(response,timeout,noConnect
 	
 	if(timeout){
 		this.wrongcreds=false;
-		msg='Foursquare appears to be down. Try again later.<br/><a href="http://m.twitter.com/foursquare">Check @foursquare on Twitter for Status</a>';
+		msg='Foursquare appears to be down. Try again later.<br/><a href="http://status.foursquare.com/">Check Status of foursquare</a>';
 	}
 	if(noConnection){
 		this.wrongcreds=false;
@@ -257,7 +243,6 @@ MainAssistant.prototype.loginRequestFailed = function(response,timeout,noConnect
 MainAssistant.prototype.keyDownHandler = function(event) {
       if(Mojo.Char.isEnterKey(event.keyCode)) {
          if(event.srcElement.parentElement.id=="password") {
-    		//this.controller.get('username').mojo.blur();
     		setTimeout(this.onLoginTapped.bind(this), 10);
          }
       }
@@ -266,18 +251,7 @@ MainAssistant.prototype.keyDownHandler = function(event) {
 
 
 MainAssistant.prototype.activate = function(event) {
-	//sneakily grab coords in the background...
    	if(!this.fromPrefs) {
-   	/*	this.controller.serviceRequest('palm://com.palm.location', {
-			method: "getCurrentPosition",
-			parameters: {accuracy: 1, maximumAge:0, responseTime: 1},
-			onSuccess: this.gotLocation.bind(this),
-			onFailure: this.failedLocation.bind(this)
-		});*/
-		
-//		_globals.GPS = new Location(_globals.gotLocation);
-//		_globals.GPS.start();
-		
 		_globals.main=this;
 	}
 }
@@ -295,7 +269,7 @@ MainAssistant.prototype.activate = function(event) {
 
 MainAssistant.prototype.failedLocation = function(event) {
 	this.controller.get('gps-status').innerHTML = 'failed to get location: ' + event.errorCode;
-	Mojo.Log.error('failed to get location: ' + event.errorCode);
+	logthis('failed to get location: ' + event.errorCode);
 	Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
 
 }
@@ -306,6 +280,9 @@ MainAssistant.prototype.deactivate = function(event) {
 
 MainAssistant.prototype.cleanup = function(event) {
 	this.controller.window.clearInterval(this.gpscheck);
+	Mojo.Event.stopListening(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTappedBound);
+	Mojo.Event.stopListening(this.controller.get("goSignup"), Mojo.Event.tap, this.onSignupTappedBound);
+    this.controller.document.removeEventListener("keyup", this.keyDownHandlerBound, true);
 }
 
 

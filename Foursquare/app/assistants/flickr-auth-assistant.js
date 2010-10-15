@@ -24,7 +24,7 @@ FlickrAuthAssistant.prototype.setup = function() {
 	
 	//now that we have an api_sig, gotta get the frob...
 	var url="http://api.flickr.com/services/rest/?method=flickr.auth.getFrob&api_key="+_globals.flickr_key+"&api_sig="+this.api_sig;
-	Mojo.Log.error("getfroburl="+url);
+	logthis("getfroburl="+url);
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'force',
@@ -48,7 +48,7 @@ FlickrAuthAssistant.prototype.getFrobSuccess = function(response) {
 	
 }
 FlickrAuthAssistant.prototype.getFrobFailed = function(response) {
-	Mojo.Log.error("frob failed");
+	logthis("frob failed");
 
 }
 
@@ -77,7 +77,7 @@ FlickrAuthAssistant.prototype.handleWebUrl = function(event,title,url) {
 
 FlickrAuthAssistant.prototype.getTokenSuccess = function(response) {
 	//now that we have our frob, sig, key, and secret, we have to build a login URL and send the user to it
-	Mojo.Log.error("##token="+response.responseText);
+	logthis("##token="+response.responseText);
 	this.token=response.responseXML.getElementsByTagName('token')[0].lastChild.data;
 	this.user=response.responseXML.getElementsByTagName('user')[0];
 	this.nsid=this.user.getAttribute("nsid");

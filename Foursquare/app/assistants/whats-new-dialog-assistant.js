@@ -21,7 +21,7 @@ WhatsNewDialogAssistant.prototype.activate = function() {
 
 
 WhatsNewDialogAssistant.prototype.tipokTapped = function() {
-	Mojo.Log.error("oktapped");
+	logthis("oktapped");
 	this.cookieData=new Mojo.Model.Cookie("firstrun");
 	this.cookieData.put({
 		version: Mojo.appInfo.version

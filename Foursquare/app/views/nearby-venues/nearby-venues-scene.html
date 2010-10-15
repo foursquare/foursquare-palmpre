@@ -26,7 +26,7 @@
 	</div>
 	<div id="go_button" x-mojo-element="Button"></div>
 </div>
-<div id='message' style='padding: 0 20px;'></div>
+<div id='message' style='padding: 0 20px;display:none;'></div>
 <div id="gps_banner" style="display:none;height: 27px;padding-top:8px;">
 	<span id="banner_text"></span>
 	<div x-mojo-element="Spinner" id="smallSpinner" class="spinnerClass" name="spinnerName"></div>
@@ -40,6 +40,28 @@
 <div class="palm-group-nope unlabeled-nope" id='resultListBox' style='display:none;'>
 	<!--<div class="palm-group-title" x-mojo-loc=''>Search Results</div>-->
 	<div id="results-venue-list" x-mojo-element="List" ></div>
+</div>
+<div id="searchfailed" style="display: none;">
+			<div class="fsq-divider" id="resultssuck">Still Not in List?</div>
+
+			<div class='result row' x-mojo-tap-highlight='momentary' style="position: relative;padding:0;padding-top:5px;padding-left: 7px; padding-right: 7px;border-bottom: 0px solid #e7e7e7 !important;" id="search-add-venue">
+				<div style="position: relative;">
+					<div class="venue-info-wrap" style="width: 260px;">
+						<div class="venue-name truncating-text">Add this place</div>
+						<div class='venue-address truncating-text'>So others can check in here too!</div>
+					</div>
+					<br class="breaker">
+				</div>
+			</div>
+			<div class='result row' x-mojo-tap-highlight='momentary' style="position: relative;padding:0;padding-top:5px;padding-left: 7px; padding-right: 7px;border-bottom: 0px solid #e7e7e7 !important;" id="search-checkin">
+				<div style="position: relative;">
+					<div class="venue-info-wrap" style="width: 260px;">
+						<div class="venue-name truncating-text">Check-in here anyway</div>
+						<div class='venue-address truncating-text'>...without adding this place for others to find</div>
+					</div>
+					<br class="breaker">
+				</div>
+			</div>
 </div>
 <div id="add_venue_button" x-mojo-element="Button"></div>
 <div id="accuracy" class="small-text blue-box"></div>

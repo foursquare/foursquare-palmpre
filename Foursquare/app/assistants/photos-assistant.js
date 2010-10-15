@@ -45,7 +45,10 @@ PhotosAssistant.prototype.setup = function() {
         });
 
 	/* add event handlers to listen to events from widgets */
-	Mojo.Event.listen(this.controller.get("buttonUpload"),Mojo.Event.tap, this.tryflickrUpload.bind(this));
+	this.tryflickrUploadBound=this.tryflickrUpload.bind(this);
+	this.handleFlickrTapBound=this.handleFlickrTap.bind(this);
+
+	Mojo.Event.listen(this.controller.get("buttonUpload"),Mojo.Event.tap, this.tryflickrUploadBound);
 
 
 	var url='http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key='+_globals.flickr_key+'&machine_tags=foursquare:venue="'+this.venue.id+'"&nojsoncallback=1&format=json';
@@ -68,40 +71,30 @@ PhotosAssistant.prototype.activate = function(event) {
 
 };
 PhotosAssistant.prototype.flickrFailed = function(response) {
-//	this.controller.get("meta-overlay").show();
 	this.controller.get("flickrSpinner").mojo.stop();
 	this.controller.get("flickrSpinner").hide();
 	this.controller.get("flickr-content").innerHTML='No Flickr images found for this venue.';
-//	this.controller.get("overlay-title").innerHTML="Photos "+this.flickrUpload;
 }
 PhotosAssistant.prototype.flickrnearbyFailed = function(response) {
-//	this.controller.get("meta-overlay").show();
 	this.controller.get("flickrnearbySpinner").mojo.stop();
 	this.controller.get("flickrnearbySpinner").hide();
 	this.controller.get("flickrnearby-content").innerHTML='No nearby Flickr images found for this venue.';
-//	this.controller.get("overlay-title").innerHTML="Photos "+this.flickrUpload;
 }
 PhotosAssistant.prototype.tweetphotoFailed = function(response) {
-//	this.controller.get("meta-overlay").show();
 	this.controller.get("tweetphotoSpinner").mojo.stop();
 	this.controller.get("tweetphotoSpinner").hide();
-	this.controller.get("tweetphoto-content").innerHTML='No TweetPhoto images found for this venue.';
-//	this.controller.get("overlay-title").innerHTML="Photos "+this.flickrUpload;
+	this.controller.get("tweetphoto-content").innerHTML='No Plixi images found for this venue.';
 }
 PhotosAssistant.prototype.pikchurFailed = function(response) {
-//	this.controller.get("meta-overlay").show();
 	this.controller.get("pikchurSpinner").mojo.stop();
 	this.controller.get("pikchurSpinner").hide();
 	this.controller.get("pikchur-content").innerHTML='No Pikchur images found for this venue.';
-//	this.controller.get("overlay-title").innerHTML="Photos "+this.flickrUpload;
 }
 
 PhotosAssistant.prototype.flickrSuccess = function(response) {
 	var j=eval("("+response.responseText+")");
-//	this.controller.get("overlay-title").innerHTML='Photos '+this.flickrUpload;
 
 	if(j.photos!=undefined && j.photos.photo.length!=0) {
-		//this.controller.get("meta-overlay").show();
 
 		var html=this.controller.get("flickr-content");
 		this.controller.get("flickrSpinner").mojo.stop();
@@ -120,7 +113,7 @@ PhotosAssistant.prototype.flickrSuccess = function(response) {
 
 		this.flickr_len=j.photos.photo.length;
 		for(var i=0;i<j.photos.photo.length;i++) {
-			Mojo.Event.listen(this.controller.get("flickr"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+			Mojo.Event.listen(this.controller.get("flickr"+i),Mojo.Event.tap, this.handleFlickrTapBound);	
 		}
 		html.show();
 
@@ -131,9 +124,6 @@ PhotosAssistant.prototype.flickrSuccess = function(response) {
 }
 
 PhotosAssistant.prototype.flickrNearby = function() {
-//	this.controller.get("meta-overlay").show();
-//	this.controller.get("overlaySpinner").mojo.start();
-//	this.controller.get("overlaySpinner").show();
 
 	var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key='+_globals.flickr_key+'&lat='+_globals.lat+'&lon='+_globals.long+'&radius=5&radius_units=km&nojsoncallback=1&format=json';
 	var requester = new Ajax.Request(url, {
@@ -153,7 +143,6 @@ PhotosAssistant.prototype.flickrNearbySuccess = function(response) {
 		this.controller.get("flickrnearbySpinner").hide();
 
 		var html=this.controller.get("flickrnearby-content");
-		//html.update(html.innerHTML+"<br/>Flickr (Nearby)<br/>");
 		for(var i=0;i<j.photos.photo.length;i++) {
 			var id=j.photos.photo[i].id;
 			var secret=j.photos.photo[i].secret;
@@ -168,7 +157,7 @@ PhotosAssistant.prototype.flickrNearbySuccess = function(response) {
 
 		this.flickrn_len=j.photos.photo.length;
 		for(var i=0;i<j.photos.photo.length;i++) {
-			Mojo.Event.listen(this.controller.get("flickrnearby"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+			Mojo.Event.listen(this.controller.get("flickrnearby"+i),Mojo.Event.tap, this.handleFlickrTapBound);	
 		}
 		html.show();
 	}else{
@@ -177,9 +166,8 @@ PhotosAssistant.prototype.flickrNearbySuccess = function(response) {
 }
 
 PhotosAssistant.prototype.tweetPhoto = function() {
-	//this.controller.get("meta-overlay").show();
 
-	var url = 'http://tweetphotoapi.com/api/tpapi.svc/json/photos/byvenue?vid='+this.venue.id;
+	var url = 'http://api.plixi.com/api/tpapi.svc/json/photos/byvenue?vid='+this.venue.id;
 	var requester = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'true',
@@ -199,7 +187,6 @@ PhotosAssistant.prototype.tweetPhotoSuccess = function(r) {
 				this.controller.get("tweetphotoSpinner").mojo.stop();
 				this.controller.get("tweetphotoSpinner").hide();
 				var html=this.controller.get("tweetphoto-content");
-				//html.update(html.innerHTML+"<br/>TweetPhoto<br/>");
 				for(var p=0;p<pics.length;p++){
 					var tn=pics[p].ThumbnailUrl;
 					var url=pics[p].DetailsUrl;
@@ -208,7 +195,7 @@ PhotosAssistant.prototype.tweetPhotoSuccess = function(r) {
 			
 				this.tp_len=pics.length;
 				for(var p=0;p<pics.length;p++){
-					Mojo.Event.listen(this.controller.get("tweetphoto"+p),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+					Mojo.Event.listen(this.controller.get("tweetphoto"+p),Mojo.Event.tap, this.handleFlickrTapBound);	
 				}
 			}
 			html.show();
@@ -222,8 +209,6 @@ PhotosAssistant.prototype.tweetPhotoSuccess = function(r) {
 
 
 PhotosAssistant.prototype.pikchur = function() {
-	//this.controller.get("meta-overlay").show();
-
 	var url = 'http://api.pikchur.com/geosocial/venue/json';
 	var requester = new Ajax.Request(url, {
 			method: 'post',
@@ -256,7 +241,7 @@ PhotosAssistant.prototype.pikchurSuccess = function(r) {
 			
 			this.pikchur_len=pics.length;
 			for(var p=0;p<pics.length;p++){
-				Mojo.Event.listen(this.controller.get("pikchur"+p),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+				Mojo.Event.listen(this.controller.get("pikchur"+p),Mojo.Event.tap, this.handleFlickrTapBound);	
 			}
 			html.show();
 			
@@ -298,18 +283,18 @@ PhotosAssistant.prototype.cleanup = function(event) {
 	   a result of being popped off the scene stack */
 
 
-	Mojo.Event.stopListening(this.controller.get("buttonUpload"),Mojo.Event.tap, this.tryflickrUpload.bind(this));
+	Mojo.Event.stopListening(this.controller.get("buttonUpload"),Mojo.Event.tap, this.tryflickrUploadBound);
 	for(var p=0;p<this.pikchur_len;p++){
-		Mojo.Event.stopListening(this.controller.get("pikchur"+p),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+		Mojo.Event.stopListening(this.controller.get("pikchur"+p),Mojo.Event.tap, this.handleFlickrTapBound);	
 	}
 	for(var p=0;p<this.tp_len;p++){
-		Mojo.Event.stopListening(this.controller.get("tweetphoto"+p),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+		Mojo.Event.stopListening(this.controller.get("tweetphoto"+p),Mojo.Event.tap, this.handleFlickrTapBound);	
 	}
 	for(var i=0;i<this.flickrn_len;i++) {
-		Mojo.Event.stopListening(this.controller.get("flickrnearby"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+		Mojo.Event.stopListening(this.controller.get("flickrnearby"+i),Mojo.Event.tap, this.handleFlickrTapBound);	
 	}
 	for(var i=0;i<this.flickr_len;i++) {
-		Mojo.Event.stopListening(this.controller.get("flickr"+i),Mojo.Event.tap, this.handleFlickrTap.bind(this));	
+		Mojo.Event.stopListening(this.controller.get("flickr"+i),Mojo.Event.tap, this.handleFlickrTapBound);	
 	}
 
 };

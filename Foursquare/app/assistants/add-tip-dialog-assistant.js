@@ -15,7 +15,7 @@ AddTipDialogAssistant.prototype.setup = function(widget) {
       disabled: false
     }
   );
-  Mojo.Event.listen(this.sceneAssistant.controller.get('tipokButton'), Mojo.Event.tap, this.tipokTapped.bindAsEventListener(this));
+  this.tipokTappedBound=this.tipokTapped.bindAsEventListener(this);
 
   this.sceneAssistant.controller.setupWidget("cancelButton",
     this.cancelattributes = {},
@@ -24,10 +24,24 @@ AddTipDialogAssistant.prototype.setup = function(widget) {
       disabled: false
     }
   );
-  Mojo.Event.listen(this.sceneAssistant.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
   
+  this.cancelTappedBound=this.cancelTapped.bindAsEventListener(this);
   
-	this.sceneAssistant.controller.setupWidget('newtip', this.tipAttributes = {hintText:'Enter '+this.type+' here...',multiline:true,focus:true}, 		this.tipModel = {value:'', disabled:false});
+  this.tipKeyPressBound=this.tipKeyPress.bindAsEventListener(this);
+
+
+	Mojo.Event.listen(this.sceneAssistant.controller.get('tipokButton'), Mojo.Event.tap, this.tipokTappedBound);
+	Mojo.Event.listen(this.sceneAssistant.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTappedBound);
+    Mojo.Event.listen(this.sceneAssistant.controller.document, "keyup", this.tipKeyPressBound);
+
+  	if(this.type=="tip"){
+  		var hint="Try the surf-n-turf!";
+  	}else{
+  		var hint="Add a note (optional)";
+  	}
+  
+	this.sceneAssistant.controller.setupWidget('newtip', this.tipAttributes = {hintText:hint,multiline:true,focus:true},
+	 		this.tipModel = {value:'', disabled:false});
 
 	this.sceneAssistant.controller.get("addtip-title").innerHTML="Add a "+this.type;
 }
@@ -36,33 +50,44 @@ AddTipDialogAssistant.prototype.activate = function() {
 	this.sceneAssistant.controller.get('newtip').mojo.focus();
 }
 
+AddTipDialogAssistant.prototype.tipKeyPress = function(event) {
+logthis("keypress");
+	try{
+		var charsLeft=200-this.sceneAssistant.controller.get("newtip").mojo.getValue().length;
+		
+		this.sceneAssistant.controller.get("charCount").innerHTML=charsLeft;
+		if(charsLeft<0){
+			if(!this.sceneAssistant.controller.get("charCount").hasClassName("negative")){
+				this.sceneAssistant.controller.get("charCount").addClassName("negative");
+			}
+		}else{
+			if(this.sceneAssistant.controller.get("charCount").hasClassName("negative")){
+				this.sceneAssistant.controller.get("charCount").removeClassName("negative");
+			}	
+		}
+	}catch(e){
+	
+	}
+};
+
 
 AddTipDialogAssistant.prototype.tipokTapped = function() {
-Mojo.Log.error("oktapped");
-/*		var url = 'http://api.foursquare.com/v1/addtip.json';
-		var request = new Ajax.Request(url, {
-			method: 'post',
-			evalJSON: 'true',
-			requestHeaders: {
-				Authorization: _globals.auth
-			},
-			parameters: {
+logthis("oktapped");
+		var params={
 				vid: this.vid,
-				text: this.tipModel.value,
 				type: this.type
-			},
-			onSuccess: this.tipSuccess.bind(this),
-			onFailure: this.tipFailed.bind(this)
-		});*/
-		
+			};
+
+		if(this.tipModel.value==''){
+			params.text='I want to visit this place.';
+		}else{
+			params.text=this.tipModel.value;
+		}
+			
 		foursquarePost(this.sceneAssistant,{
 			endpoint: 'addtip.json',
 			requiresAuth: true,
-			parameters: {
-				vid: this.vid,
-				text: this.tipModel.value,
-				type: this.type
-			},
+			parameters: params,
 			onSuccess: this.tipSuccess.bind(this),
 			onFailure: this.tipFailed.bind(this)
 			
@@ -85,7 +110,8 @@ AddTipDialogAssistant.prototype.cancelTapped = function() {
 }
 
 AddTipDialogAssistant.prototype.cleanup = function() {
-  Mojo.Event.stopListening(this.sceneAssistant.controller.get('tipokButton'), Mojo.Event.tap, this.tipokTapped.bindAsEventListener(this));
-  Mojo.Event.stopListening(this.sceneAssistant.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.sceneAssistant.controller.get('tipokButton'), Mojo.Event.tap, this.tipokTappedBound);
+	Mojo.Event.stopListening(this.sceneAssistant.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTappedBound);
+    Mojo.Event.stopListening(this.sceneAssistant.controller.document, "keyup", this.tipKeyPressBound);
 
 }

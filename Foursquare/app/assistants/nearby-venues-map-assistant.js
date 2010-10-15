@@ -14,6 +14,9 @@ function NearbyVenuesMapAssistant(lat,long,v,u,p,uid,ps,q) {
 	   this.infowindows=[];
 }
 
+NearbyVenuesMapAssistant.prototype.aboutToActivate = function(callback) {
+	callback.defer();     //makes the setup behave like it should.
+};
 
 NearbyVenuesMapAssistant.prototype.setup = function() {
 	NavMenu.setup(this,{buttons: 'navOnly'});
@@ -40,16 +43,16 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
        _globals.amattributes,
        _globals.ammodel);
        
-    Mojo.Event.listen(this.controller.get('venue-nearby'),"mousedown", function(){this.controller.get('venue-nearby').addClassName("pressed");}.bind(this));
-	Mojo.Event.listen(this.controller.get('venue-nearby'),"mouseup", function(){this.controller.get('venue-nearby').removeClassName("pressed");}.bind(this));
-	Mojo.Event.listen(this.controller.get('venue-nearby'),Mojo.Event.tap, function(){this.controller.stageController.popScene("nearby-venues-map");}.bind(this));
 
+   this.handleGestureStartBound=this.handleGestureStart.bindAsEventListener(this);
+   this.handleGestureChangeBound=this.handleGestureChange.bindAsEventListener(this);
+   this.handleGestureEndBound=this.handleGestureEnd.bindAsEventListener(this);
+   this.showVenueInfoBound=this.showVenueInfo.bind(this);
    
-	Mojo.Event.listen(this.controller.document, 'gesturestart', this.handleGestureStart.bindAsEventListener(this), false);
-    Mojo.Event.listen(this.controller.document, 'gesturechange', this.handleGestureChange.bindAsEventListener(this), false);
-    Mojo.Event.listen(this.controller.document, 'gestureend', this.handleGestureEnd.bindAsEventListener(this), false);
-	Mojo.Event.listen(this.controller.get('vmenu'),Mojo.Event.tap, this.showMenu.bind(this));
-	Mojo.Event.listen(this.controller.get("map_info"),Mojo.Event.tap, this.showVenueInfo.bind(this));
+	Mojo.Event.listen(this.controller.document, 'gesturestart', this.handleGestureStartBound, false);
+    Mojo.Event.listen(this.controller.document, 'gesturechange', this.handleGestureChangeBound, false);
+    Mojo.Event.listen(this.controller.document, 'gestureend', this.handleGestureEndBound, false);
+	Mojo.Event.listen(this.controller.get("map_info"),Mojo.Event.tap, this.showVenueInfoBound);
 
 	_globals.ammodel.items[0].disabled=true;
 	this.controller.modelChanged(_globals.ammodel);
@@ -61,25 +64,12 @@ NearbyVenuesMapAssistant.prototype.setup = function() {
 }
 
 NearbyVenuesMapAssistant.prototype.handleGestureStart = function(e) {
-//        this.origZoom = this.zoom;
-//        this.inGesture = 1;
-//		this.cntr=this.map.getCenter();
 	this.map.setOptions({draggable:false});
 	this.previousScale=e.scale;
 
 
 }
 NearbyVenuesMapAssistant.prototype.handleGestureChange = function(e) {
-/*	    s = event.scale;
-        if (s>2) s=2;
-        if (s<0.5) s=0.5;
-        s2 = 2*Math.log(s)/Math.log(2);
-        this.zoom = this.origZoom + s2;
-	    if (this.zoom > 18) this.zoom = 18;
-        if (this.zoom < 7) this.zoom = 7;
-        this.map.setZoom(Math.round(this.zoom));
-        this.map.panTo(this.cntr);
-*/
 	e.stop();
 	var d=this.previousScale-e.scale;
 	if(Math.abs(d)>0.25){
@@ -89,11 +79,6 @@ NearbyVenuesMapAssistant.prototype.handleGestureChange = function(e) {
 	}
 }
 NearbyVenuesMapAssistant.prototype.handleGestureEnd = function(e) {
-/*        this.origZoom = this.zoom;
-        this.inGesture = 0;
-        this.map.setZoom(Math.round(this.zoom));
-        this.map.panTo(this.cntr);*/
-        
 	e.stop();
 	this.map.setOptions({draggable:true});     
 }
@@ -237,42 +222,6 @@ NearbyVenuesMapAssistant.prototype.activate = function(event) {
 }
 
 
-NearbyVenuesMapAssistant.prototype.popupChoose = function(event) {
-	switch(event){
-	            case "venue-search":
-                	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,true,"",this.what);
-                	break;
-				case "friend-map":
-					this.oldCaption="Map";
-					break;
-				case "nearby-venues":
-                	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,false,this.query,"", this.what);
-					break;
-				case "venue-add":
-                	var thisauth=_globals.auth;
-					this.controller.stageController.pushScene({name: "add-venue", transition: Mojo.Transition.crossFade},thisauth);
-					break;
-				case "friends-feed":
-                	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this,false,"feed");
-					break;
-	}
-}
-NearbyVenuesMapAssistant.prototype.showMenu = function(event){
-					this.controller.popupSubmenu({
-			             onChoose:this.popupChoose,
-            			 placeNear:this.controller.get('menuhere'),
-			             items: [{secondaryIconPath: 'images/radar-dark.png',label: 'Nearby', command: 'nearby-venues'},
-				           {secondaryIconPath: 'images/marker-icon.png',label: 'Map', command: 'venue-map'},
-            	           {secondaryIconPath: 'images/search-black.png',label: 'Search', command: 'venue-search'},
-                	       {secondaryIconPath: 'images/plus.png',label: 'Add Venue', command: 'venue-add'}]
-		             });
-}
-
-
-
 NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
@@ -306,6 +255,11 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
                 	this.controller.stageController.popScene();
 					this.prevScene.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
+                case "do-Todos":
+                	var thisauth=auth;
+                	this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "todos", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.popScene();
@@ -332,7 +286,13 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
                 	NavMenu.toggleMenu();
                 	break;
             }
+        }else if(event.type===Mojo.Event.back){
+			if(NavMenu.showing==true){
+				event.preventDefault();
+				NavMenu.hideMenu();
+			}        
         }
+
     }
 
 
@@ -340,15 +300,10 @@ NearbyVenuesMapAssistant.prototype.deactivate = function(event) {
 }
 
 NearbyVenuesMapAssistant.prototype.cleanup = function(event) {
-    Mojo.Event.stopListening(this.controller.get('venue-nearby'),"mousedown", function(){this.controller.get('venue-nearby').addClassName("pressed");}.bind(this));
-	Mojo.Event.stopListening(this.controller.get('venue-nearby'),"mouseup", function(){this.controller.get('venue-nearby').removeClassName("pressed");}.bind(this));
-	Mojo.Event.stopListening(this.controller.get('venue-nearby'),Mojo.Event.tap, function(){this.controller.stageController.popScene("nearby-venues-map");}.bind(this));
-
-   
-	Mojo.Event.stopListening(this.controller.document, 'gesturestart', this.handleGestureStart.bindAsEventListener(this), false);
-    Mojo.Event.stopListening(this.controller.document, 'gesturechange', this.handleGestureChange.bindAsEventListener(this), false);
-    Mojo.Event.stopListening(this.controller.document, 'gestureend', this.handleGestureEnd.bindAsEventListener(this), false);
-	Mojo.Event.stopListening(this.controller.get('vmenu'),Mojo.Event.tap, this.showMenu.bind(this));
+	Mojo.Event.stopListening(this.controller.document, 'gesturestart', this.handleGestureStartBound, false);
+    Mojo.Event.stopListening(this.controller.document, 'gesturechange', this.handleGestureChangeBound, false);
+    Mojo.Event.stopListening(this.controller.document, 'gestureend', this.handleGestureEndBound, false);
+	Mojo.Event.stopListening(this.controller.get("map_info"),Mojo.Event.tap, this.showVenueInfoBound);
 }
 
 

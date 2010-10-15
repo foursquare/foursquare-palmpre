@@ -11,7 +11,8 @@ FriendSearchDialogAssistant.prototype.setup = function(widget) {
       disabled: false
     }
   );
-  Mojo.Event.listen(this.sceneAssistant.controller.get('searchButton'), Mojo.Event.tap, this.searchTapped.bindAsEventListener(this));
+  
+  this.searchTappedBound=this.searchTapped.bindAsEventListener(this);
   this.sceneAssistant.controller.setupWidget("twitterButton",
     this.attributes = {type : Mojo.Widget.activityButton},
     this.twitterButtonModel = {
@@ -19,7 +20,10 @@ FriendSearchDialogAssistant.prototype.setup = function(widget) {
       disabled: false
     }
   );
-  Mojo.Event.listen(this.sceneAssistant.controller.get('twitterButton'), Mojo.Event.tap, this.twitterTapped.bindAsEventListener(this));
+  this.twitterTappedBound=this.twitterTapped.bindAsEventListener(this);
+
+  Mojo.Event.listen(this.sceneAssistant.controller.get('searchButton'), Mojo.Event.tap, this.searchTappedBound);
+  Mojo.Event.listen(this.sceneAssistant.controller.get('twitterButton'), Mojo.Event.tap, this.twitterTappedBound);
 
   
   
@@ -61,7 +65,7 @@ FriendSearchDialogAssistant.prototype.cancelTapped = function() {
 }
 
 FriendSearchDialogAssistant.prototype.cleanup = function() {
-  Mojo.Event.stopListening(this.sceneAssistant.controller.get('searchButton'), Mojo.Event.tap, this.searchTapped.bindAsEventListener(this));
-  Mojo.Event.stopListening(this.sceneAssistant.controller.get('twitterButton'), Mojo.Event.tap, this.twitterTapped.bindAsEventListener(this));
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('searchButton'), Mojo.Event.tap, this.searchTappedBound);
+  Mojo.Event.stopListening(this.sceneAssistant.controller.get('twitterButton'), Mojo.Event.tap, this.twitterTappedBound);
 
 }

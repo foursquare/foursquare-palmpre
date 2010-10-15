@@ -1,14 +1,20 @@
-function ShoutAssistant(a,u,ps) {
+function ShoutAssistant(a,u,ps,text) {
 	   this.auth=a;
 	   this.urllen=0;
 	   this.prevScene=ps;
 	   this.uploading=false;
+	   this.text=(text!=undefined)? text: '';
 }
+ShoutAssistant.prototype.aboutToActivate = function(callback) {
+	callback.defer();     //makes the setup behave like it should.
+};
 
 ShoutAssistant.prototype.setup = function() {
+	NavMenu.setup(this,{buttons:'navOnly'});
+
 	this.imageHosts=[
                 {label: "Flickr", value: "flickr", urlLen:23},
-                {label: "TweetPhoto", value: "tweetphoto", urlLen: 18},
+                {label: "Plixi (TweetPhoto)", value: "tweetphoto", urlLen: 18},
                 {label: "Pikchur", value: "pikchur", urlLen: 16},
                 {label: "FSPic", value: "fspic", urlLen: 20}
             ];
@@ -23,6 +29,7 @@ ShoutAssistant.prototype.setup = function() {
 		"fspic": 21
 	};
 
+	logthis("1");
   this.controller.setupWidget("okButtonShout",
     this.attributes = {type : Mojo.Widget.activityButton},
     this.OKButtonModel = {
@@ -30,48 +37,30 @@ ShoutAssistant.prototype.setup = function() {
       disabled: false
     }
   );
-  Mojo.Event.listen(this.controller.get('okButtonShout'), Mojo.Event.tap, this.okTappedShout.bindAsEventListener(this));
-  Mojo.Event.listen(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
-  Mojo.Event.listen(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
-  Mojo.Event.listen(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
-  Mojo.Event.listen(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
-  Mojo.Event.listen(this.controller.document, "keyup", this.shoutKeyPress.bindAsEventListener(this));
-
   
+  this.okTappedShoutBound=this.okTappedShout.bindAsEventListener(this);
+  this.attachImageBound=this.attachImage.bindAsEventListener(this);
+  this.removeImageBound=this.removeImage.bindAsEventListener(this);
+  this.attachDownBound=function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this);
+  this.attachUpBound=function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this);
+  this.shoutKeyPressBound=this.shoutKeyPress.bindAsEventListener(this);
+  
+
+  	logthis("2");
+
   	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 	var pings=(credentials.ping=="on")? '0': '1';
 	this.stt=(credentials.savetotwitter==true)? '1': '0';
 	this.stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
-  
+  	logthis("3");
+
+	_globals.ammodel.items[0].disabled=true;
+
 	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
 
-   /* this.controller.setupWidget("chkTwitter",
-         this.twattributes = {
-             trueValue: '1',
-             falseValue: '0', 
-             trueLabel: 'On',
-             falseLabel: 'Off'
-         },
-         this.twmodel = {
-             value: stt,
-             disabled: false
-         });
-    this.controller.setupWidget("chkFacebook",
-         this.fbattributes = {
-             trueValue: '1',
-             falseValue: '0',
-             trueLabel: 'On',
-             falseLabel: 'Off'
-         },
-         this.fbmodel = {
-             value: stf,
-             disabled: false
-         });*/
-  		
-  		
 	this.lhc=new Mojo.Model.Cookie("photohost");
 	var lh=this.lhc.get();
 	_globals.lasthost=(lh)? lh.photohost: "pikchur";
@@ -84,13 +73,14 @@ ShoutAssistant.prototype.setup = function() {
             disabled: false
         }
     ); 
+    	logthis("4");
 
-	this.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
 
-	_globals.ammodel.items[0].disabled=true;
-	this.controller.modelChanged(_globals.ammodel);
+	this.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true}, this.tipModel = {value:this.text, disabled:false});
+
 	this.controller.get("photohostList").hide();
 
+	logthis("5");
 
 	if(Mojo.Environment.DeviceInfo.touchableRows < 8)
 	{
@@ -103,8 +93,10 @@ ShoutAssistant.prototype.setup = function() {
 		this.controller.get('share-facebook').addClassName("pressed");
 	}
 
-	Mojo.Event.listen(this.controller.get('share-facebook'), Mojo.Event.tap, function(){
-	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+
+
+	this.handleFacebookBound=function(){
+	logthis("stf: %i, stt: %i",this.stf,this.stt);
 		if(this.stf=="1"){
 			this.stf="0";
 			this.controller.get('share-facebook').removeClassName("pressed");
@@ -112,14 +104,17 @@ ShoutAssistant.prototype.setup = function() {
 			this.stf="1";
 			this.controller.get('share-facebook').addClassName("pressed");
 		}
-	}.bindAsEventListener(this));
+	}.bindAsEventListener(this);
+	
+	logthis("6");
 
 	if(this.stt=="1"){
 		this.controller.get('share-twitter').addClassName("pressed");
 	}
 
-	Mojo.Event.listen(this.controller.get('share-twitter'), Mojo.Event.tap, function(){
-	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+
+	this.handleTwitterBound=function(){
+	logthis("stf: %i, stt: %i",this.stf,this.stt);
 		if(this.stt=="1"){
 			this.stt="0";
 			this.controller.get('share-twitter').removeClassName("pressed");
@@ -127,12 +122,25 @@ ShoutAssistant.prototype.setup = function() {
 			this.stt="1";
 			this.controller.get('share-twitter').addClassName("pressed");		
 		}
-	}.bindAsEventListener(this));
+	}.bindAsEventListener(this);
 	
-	
-	Mojo.Event.listen(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost.bind(this));
+		logthis("7");
 
-	NavMenu.setup(this,{buttons:'navOnly'});
+	
+	this.handlePhotohostBound=this.handlePhotohost.bind(this);
+	Mojo.Event.listen(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohostBound);
+	Mojo.Event.listen(this.controller.get('share-twitter'), Mojo.Event.tap, this.handleTwitterBound);
+	Mojo.Event.listen(this.controller.get('share-facebook'), Mojo.Event.tap, this.handleFacebookBound);
+	Mojo.Event.listen(this.controller.get('okButtonShout'), Mojo.Event.tap, this.okTappedShoutBound);
+	Mojo.Event.listen(this.controller.get('attach'), Mojo.Event.tap, this.attachImageBound);
+	Mojo.Event.listen(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImageBound);
+	Mojo.Event.listen(this.controller.get('attach'), "mousedown", this.attachDownBound);
+	Mojo.Event.listen(this.controller.get('attach'), "mouseup", this.attachUpBound);
+	Mojo.Event.listen(this.controller.document, "keyup", this.shoutKeyPressBound);
+
+
+	logthis("8");
+
 
 
 }
@@ -182,6 +190,10 @@ ShoutAssistant.prototype.handleCommand = function(event) {
 				]
 			});
 		}
+		if(NavMenu.showing==true){
+			event.preventDefault();
+			NavMenu.hideMenu();
+		}        
 	}
 };
 
@@ -243,9 +255,9 @@ ShoutAssistant.prototype.okTappedShout = function() {
 							 		var pe=xml.indexOf("</photoid>");
 							 		var len=pe-ps;
 							 		var photoid=parseInt(xml.substring(ps,pe));
-							 		Mojo.Log.error("photoid="+photoid);
+							 		logthis("photoid="+photoid);
 							 		var epid=this.base58_encode(photoid);
-							 		Mojo.Log.error("epid="+epid);
+							 		logthis("epid="+epid);
 						 			var extra="http://flic.kr/p/"+epid;
 						 			
 						 			this.doShout(extra);
@@ -254,7 +266,7 @@ ShoutAssistant.prototype.okTappedShout = function() {
 						 	
 					  	}.bind(this),
 			            onFailure: function (e){
-	  						Mojo.Log.error('Failure : ' + Object.toJSON(resp));
+	  						logthis('Failure : ' + Object.toJSON(resp));
 					 	}.bind(this)
 			        });
 	 
@@ -273,7 +285,7 @@ ShoutAssistant.prototype.okTappedShout = function() {
 					params.push({"key":"geolon","data":_globals.long,"contentType":"text/plain"});
 					params.push({"key":"service","data":"foursquare","contentType":"text/plain"});
 					params.push({"key":"source","data":"Njk1","contentType":"text/plain"});
-					Mojo.Log.error("params="+Object.toJSON(params));
+					logthis("params="+Object.toJSON(params));
 				
 				    var appController = Mojo.Controller.getAppController();
 			  	  	var cardStageController = appController.getStageController("mainStage");
@@ -295,7 +307,7 @@ ShoutAssistant.prototype.okTappedShout = function() {
 						 	}
 					  	}.bind(this),
 			            onFailure: function (e){
-	  						Mojo.Log.error('Failure : ' + Object.toJSON(e));
+	  						logthis('Failure : ' + Object.toJSON(e));
 					 	}.bind(this)
 			        });
 
@@ -324,7 +336,7 @@ ShoutAssistant.prototype.okTappedShout = function() {
 			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
             			method: 'upload',
 			            parameters: {
-            			    'url': "http://tweetphotoapi.com/api/upload.aspx",
+            			    'url': "http://api.plixi.com/api/upload.aspx",
 			                'fileLabel': 'media',
             			    'fileName': this.fileName,
 			                'postParameters': params,
@@ -335,7 +347,7 @@ ShoutAssistant.prototype.okTappedShout = function() {
 						 	if(r != undefined && r != "") {
 						 		var json=eval("("+r+")");
 						 		var url=json.MediaUrl;
-						 		Mojo.Log.error("longurl="+url);
+						 		logthis("longurl="+url);
 						 		//shorten with id.gd
 						 		var url = 'http://is.gd/api.php?longurl='+url;
 								var request = new Ajax.Request(url, {
@@ -343,11 +355,11 @@ ShoutAssistant.prototype.okTappedShout = function() {
 								   evalJSON: 'false',
 								   onSuccess: function(r){
 								   		var url=r.responseText;
-								   		Mojo.Log.error("url="+url);
+								   		logthis("url="+url);
 								   		this.doShout(url);
 								   }.bind(this),
 								   onFailure: function (e){
-	  									Mojo.Log.error('Failure : ' + Object.toJSON(e));
+	  									logthis('Failure : ' + Object.toJSON(e));
 					 				}.bind(this)
 								 });
 
@@ -355,7 +367,7 @@ ShoutAssistant.prototype.okTappedShout = function() {
 						 	}
 					  	}.bind(this),
 			            onFailure: function (e){
-	  						Mojo.Log.error('Failure : ' + Object.toJSON(e));
+	  						logthis('Failure : ' + Object.toJSON(e));
 					 	}.bind(this)
 			        });
 
@@ -400,7 +412,7 @@ ShoutAssistant.prototype.okTappedShout = function() {
 						 	}
 					  	}.bind(this),
 			            onFailure: function (e){
-	  						Mojo.Log.error('Failure : ' + Object.toJSON(e));
+	  						logthis('Failure : ' + Object.toJSON(e));
 					 	}.bind(this)
 			        });
 
@@ -434,21 +446,19 @@ ShoutAssistant.prototype.getTheHeaders =function(r){
 ShoutAssistant.prototype.doShout = function(extra) {
 	this.uploading=false;
 	extra=(extra==undefined)? "": extra;
-		var url = 'https://api.foursquare.com/v1/checkin.json';
-		var request = new Ajax.Request(url, {
-			method: 'post',
-			evalJSON: 'true',
-			requestHeaders: {
-				Authorization: _globals.auth
-			},
-			parameters: {
+	
+	foursquarePost(this,{
+		endpoint: 'checkin.json',
+		parameters: {
 				shout: this.tipModel.value+" "+extra,
 				twitter: this.stt,
 				facebook: this.stf
 			},
-			onSuccess: this.checkInSuccess.bind(this),
-			onFailure: this.checkInFailed.bind(this)
-		});
+		requiresAuth: true,
+		debug: false,
+		onSuccess: this.checkInSuccess.bind(this),
+		onFailure: this.checkInFailed.bind(this)
+	});
 
 }
 
@@ -719,30 +729,13 @@ ShoutAssistant.prototype.deactivate = function(event) {
 }
 
 ShoutAssistant.prototype.cleanup = function(event) {
-  Mojo.Event.stopListening(this.controller.get('okButtonShout'), Mojo.Event.tap, this.okTappedShout.bindAsEventListener(this));
-  Mojo.Event.stopListening(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
-  Mojo.Event.stopListening(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
-  Mojo.Event.stopListening(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
-  Mojo.Event.stopListening(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost);
-	Mojo.Event.stopListening(this.controller.get('share-facebook'), Mojo.Event.tap, function(){
-	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
-		if(this.stf=="1"){
-			this.stf="0";
-			this.controller.get('share-facebook').removeClassName("pressed");
-		}else{
-			this.stf="1";
-			this.controller.get('share-facebook').addClassName("pressed");
-		}
-	}.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('share-twitter'), Mojo.Event.tap, function(){
-	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
-		if(this.stt=="1"){
-			this.stt="0";
-			this.controller.get('share-twitter').removeClassName("pressed");
-		}else{
-			this.stt="1";
-			this.controller.get('share-twitter').addClassName("pressed");		
-		}
-	}.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohostBound);
+	Mojo.Event.stopListening(this.controller.get('share-twitter'), Mojo.Event.tap, this.handleTwitterBound);
+	Mojo.Event.stopListening(this.controller.get('share-facebook'), Mojo.Event.tap, this.handleFacebookBound);
+	Mojo.Event.stopListening(this.controller.get('okButtonShout'), Mojo.Event.tap, this.okTappedShoutBound);
+	Mojo.Event.stopListening(this.controller.get('attach'), Mojo.Event.tap, this.attachImageBound);
+	Mojo.Event.stopListening(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImageBound);
+	Mojo.Event.stopListening(this.controller.get('attach'), "mousedown", this.attachDownBound);
+	Mojo.Event.stopListening(this.controller.get('attach'), "mouseup", this.attachUpBound);
+	Mojo.Event.stopListening(this.controller.document, "keyup", this.shoutKeyPressBound);
 }

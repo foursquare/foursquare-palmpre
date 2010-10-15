@@ -4,6 +4,10 @@ function NearbyTipsAssistant(a) {
 	   this.todosItems=[];
 }
 
+NearbyTipsAssistant.prototype.aboutToActivate = function(callback) {
+	callback.defer();     //makes the setup behave like it should.
+};
+
 NearbyTipsAssistant.prototype.setup = function() {
 	NavMenu.setup(this,{buttons:'navOnly'});
 	this.resultsModel = {items: [], listTitle: $L('Results')};
@@ -12,8 +16,11 @@ NearbyTipsAssistant.prototype.setup = function() {
 					      {itemTemplate:'listtemplates/tipsItems',swipeToDelete: true,dividerTemplate: 'listtemplates/dividertemplate',dividerFunction: this.groupTips,preventDeleteProperty:'candelete'},
 					      this.resultsModel);
 
-	Mojo.Event.listen(this.controller.get('results-tips-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
-	Mojo.Event.listen(this.controller.get('results-tips-list'),Mojo.Event.listDelete, this.listDelete.bind(this));
+	this.listWasTappedBound=this.listWasTapped.bind(this);
+	this.listDeleteBound=this.listDelete.bind(this);
+
+	Mojo.Event.listen(this.controller.get('results-tips-list'),Mojo.Event.listTap, this.listWasTappedBound);
+	Mojo.Event.listen(this.controller.get('results-tips-list'),Mojo.Event.listDelete, this.listDeleteBound);
 
 	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
@@ -26,13 +33,6 @@ NearbyTipsAssistant.prototype.setup = function() {
          this.model = {
              spinning: true 
          });
-    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
-    	this.attributes = {
-	        spacerHeight: 0,
-        	menuClass: 'fsq-fade'
-    	},
-	    _globals.cmmodel
-	);*/
     this.controller.setupWidget(Mojo.Menu.commandMenu,
     	this.attributes = {
 	        spacerHeight: 0,
@@ -43,13 +43,12 @@ NearbyTipsAssistant.prototype.setup = function() {
         	items: [ 
                  {
                  items: [
-	                /* { icon: "search", command: "do-Search"},*/
 	                	{},
-    	             { label: "Tips", command: "show-Tips"},
-    	             { label: "To-Dos", command: "show-Todos"},
+    	             { label: "Nearby", command: "show-nearby"},
+    	             { label: "Friends", command: "show-friends"},
     	             {}
     	         ],
-    	         toggleCmd: 'show-Tips'
+    	         toggleCmd: 'show-nearby'
     	         }
                  
                  ]
@@ -66,23 +65,55 @@ NearbyTipsAssistant.prototype.setup = function() {
 }
 
 NearbyTipsAssistant.prototype.getTips = function() {
-	if(_globals.tipsList==undefined || _globals.reloadTips==true) {
+//	if(_globals.tipsList==undefined || _globals.reloadTips==true) {
+
+		try{this.controller.get("spinnerId").mojo.start();}catch(e){}
+		this.controller.get("spinnerId").show();
+		this.controller.get("resultListBox").hide();
+		this.controller.get("notice").hide();
+
 		_globals.reloadTips=false;
 		_globals.tipsList=undefined;
-
+	this.get='nearby';
 		 foursquareGet(this,{
 		 	endpoint: 'tips.json',
 		 	requiresAuth: true,
-		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
+		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude, filter: 'nearby'},
 		   onSuccess: this.getTipsSuccess.bind(this),
 		   onFailure: this.getTipsFailed.bind(this)		 	
 		 });
-	}else{
+/*	}else{
 		this.resultsModel.items=_globals.tipsList;
 		this.controller.modelChanged(this.resultsModel);
 		this.lat=_globals.lat;
 		this.long=_globals.long;
-	}
+	}*/
+}
+
+NearbyTipsAssistant.prototype.getFriendTips = function() {
+	//if(_globals.tipsList==undefined || _globals.reloadTips==true) {
+		try{this.controller.get("spinnerId").mojo.start();}catch(e){}
+		this.controller.get("spinnerId").show();
+		this.controller.get("resultListBox").hide();
+		this.controller.get("notice").hide();
+
+		_globals.reloadTips=false;
+		_globals.tipsList=undefined;
+
+		this.get='friends';
+		 foursquareGet(this,{
+		 	endpoint: 'tips.json',
+		 	requiresAuth: true,
+		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude, filter: 'friends'},
+		   onSuccess: this.getTipsSuccess.bind(this),
+		   onFailure: this.getTipsFailed.bind(this)		 	
+		 });
+	/*}else{
+		this.resultsModel.items=_globals.tipsList;
+		this.controller.modelChanged(this.resultsModel);
+		this.lat=_globals.lat;
+		this.long=_globals.long;
+	}*/
 }
 
 NearbyTipsAssistant.prototype.groupTips = function(data){
@@ -90,47 +121,35 @@ NearbyTipsAssistant.prototype.groupTips = function(data){
 	return g;
 }
 NearbyTipsAssistant.prototype.listWasTapped = function(event){
-    this.controller.popupSubmenu({
-                        items: [{label: $L('I want to do this'), command: 'todo', icon: 'status-available-dark'},
-                            {label: $L('I\'ve done this!'), command: 'todone'}
-                        ],
-                        onChoose: function(arg) {
-                           switch(arg) {
-                           		case "todo":
-                           			this.markTip(event.item.id,"todo");
-                           			break;
-                           		case "todone":
-                           			this.markTip(event.item.id,"done");
-                           			break;
-                           }
-                        }.bind(this)
-    });
+    
+   	this.controller.stageController.pushScene({name:"view-tip",transition:Mojo.Transition.zoomFade},[{tip:event.item}],undefined,true);
+
 }
 
 NearbyTipsAssistant.prototype.listDelete = function(event){
 	var tip=event.item.id;
-		var url = 'https://api.foursquare.com/v1/tip/unmark.json';
-		var request = new Ajax.Request(url, {
-		   method: 'post',
-		   evalJSON: 'force',
-		   requestHeaders: {Authorization: _globals.auth},
-		   parameters: {tid: tip},
-		   onSuccess: this.unmarkTipSuccess.bind(this),
-		   onFailure: this.markTipFailed.bind(this)
-		 });
+	
+		foursquarePost(this,{
+			endpoint: 'tip/unmark.json',
+			parameters: {tid: tip},
+			requiresAuth: true,
+			debug: false,
+			onSuccess: this.unmarkTipSuccess.bind(this),
+			onFailure: this.markTipFailed.bind(this)
+		});
 
 }
 
 NearbyTipsAssistant.prototype.markTip = function(tip,how){
 		var url = 'https://api.foursquare.com/v1/tip/mark'+how+'.json';
-		var request = new Ajax.Request(url, {
-		   method: 'post',
-		   evalJSON: 'force',
-		   requestHeaders: {Authorization: _globals.auth},
-		   parameters: {tid: tip},
-		   onSuccess: this.markTipSuccess.bind(this),
-		   onFailure: this.markTipFailed.bind(this)
-		 });
+		foursquarePost(this,{
+			endpoint: 'tip/mark'+how+'.json',
+			parameters: {tid: tip},
+			requiresAuth: true,
+			debug: false,
+			onSuccess: this.markTipSuccess.bind(this),
+			onFailure: this.markTipFailed.bind(this)
+		});
 }
 NearbyTipsAssistant.prototype.markTipSuccess = function(response){
 	if(response.responseJSON.tip!=undefined){
@@ -153,7 +172,7 @@ NearbyTipsAssistant.prototype.markTipFailed = function(response){
 
 
 NearbyTipsAssistant.prototype.getTipsFailed = function(response){
-	Mojo.Log.error("****error tips="+response.responseText);
+	logthis("****error tips="+response.responseText);
 }
 NearbyTipsAssistant.prototype.relativeTime = function(offset){
 	// got this from: http://github.com/trek/thoughtbox/blob/master/js_relative_dates/src/relative_date.js
@@ -186,25 +205,35 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 		it'll still work and just go to the code that handles proper JSON responses.
 	*/
 	
+	logthis("tips are done");
 	
 	if (response.responseJSON == undefined) {
-		Mojo.Log.error("###tips are effed!");
+		logthis("###tips are effed!");
 		var t=response.responseText;
 		t=t.replace('"group":null,"type":"Nearby",',"");
 		var j = eval("(" + t + ")");
 
 	}else{
 		var j=response.responseJSON;
+		
+		
 	}
+	
+	logthis(Object.toJSON(j));
 	
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.tipsList = [];
+		this.tipsItems=[];
 
-		if(j.groups[0] != undefined) { //actually got some tips
+	/*	if(j.groups[0] != undefined) { //actually got some tips
+			logthis("1");
 			for(var g=0;g<j.groups.length;g++) {
 				var tarray=j.groups[g].tips;
-				var grouping=j.groups[g].type;
+				var grouping=j.groups[g].type;*/
+				var tarray=j.tips;
+				logthis("1");
 				for(var t=0;t<tarray.length;t++) {
+				logthis("2loop");
 					this.tipsList.push(tarray[t]);
 					var dist=this.tipsList[this.tipsList.length-1].distance;
 					if(_globals.units=="si") {					
@@ -219,9 +248,10 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 					}else{
 						if(dist==1){unit="m";}else{unit="m";}						
 					}
+				logthis("3");
 					this.tipsList[this.tipsList.length-1].distance=dist;
 					this.tipsList[this.tipsList.length-1].unit=unit;
-					this.tipsList[this.tipsList.length-1].grouping=grouping;
+					//this.tipsList[this.tipsList.length-1].grouping=grouping;
 					
 					var created=this.tipsList[this.tipsList.length-1].created;
 					if(this.tipsList[this.tipsList.length-1].created != undefined) {
@@ -233,32 +263,61 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 					   	var when="";
 					}
 					this.tipsList[this.tipsList.length-1].when=when;
+				logthis("4");
+					
+					
+					if(this.tipsList[this.tipsList.length-1].status){
+						if(this.tipsList[this.tipsList.length-1].status=="todo"){
+							this.tipsList[this.tipsList.length-1].dogear="block";
+						}else{
+							this.tipsList[this.tipsList.length-1].dogear="none";
+						}
+					}else{
+						this.tipsList[this.tipsList.length-1].dogear="none";
+					}
+				logthis("5");
 
+					var fs=this.tipsList[this.tipsList.length-1].user.friendstatus;
+					if(fs!=undefined){
+						logthis("fs="+this.tipsList[this.tipsList.length-1].user.friendstatus);
+					}else{
+						logthis("nope! user="+this.tipsList[this.tipsList.length-1].user.firstname);
+					}
+
+				logthis("6");
 					
-					
-					if(grouping=="Me"){
+					/*if(grouping=="Me"){
 						this.tipsList[this.tipsList.length-1].candelete=false;	
 					}else{
 						this.tipsList[this.tipsList.length-1].candelete=true;
-					}
+					}*/
 					if(this.tipsList[this.tipsList.length-1].user.id==_globals.uid){
 						this.tipsList[this.tipsList.length-1].candelete=false;	
 					}
-					if(grouping=="Me"){
+				logthis("7");
+					
+					/*if(grouping=="Me"){
 						this.todosItems.push(this.tipsList[this.tipsList.length-1]);
-					}else{
+					}else{*/
 						this.tipsItems.push(this.tipsList[this.tipsList.length-1]);
-					}
-				}
-			}
-		}
+					//}
 
+				logthis("8");
+
+				}
+			/*}
+		}*/
+		logthis("");
 
 		_globals.tipsList=this.tipsItems;
 		this.resultsModel.items =this.tipsItems; //update list with basic user info
 		this.controller.modelChanged(this.resultsModel);
 		if(this.tipsItems.length==0){
-			this.controller.get("notice").innerHTML="There aren't any tips near you.";
+			if(this.get=='nearby'){
+				this.controller.get("notice").innerHTML="There aren't any tips near you.";
+			}else if(this.get=='friends'){
+				this.controller.get("notice").innerHTML="There aren't any tips from your friends nearby.";
+			}
 			this.controller.get("notice").show();
 			logthis("notips");
 		}else{
@@ -269,7 +328,7 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 		
 		this.controller.get("spinnerId").mojo.stop();
 		this.controller.get("spinnerId").hide();
-		this.controller.get("resultListBox").style.display = 'block';
+		this.controller.get("resultListBox").show();
 
 }
 
@@ -289,6 +348,10 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
                 case "do-Badges":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade},thisauth,"");
+                	break;
+                case "do-Todos":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "todos", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Shout":
                 	var thisauth=_globals.auth;
@@ -322,31 +385,34 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
                 case "toggleMenu":
                 	NavMenu.toggleMenu();
                 	break;
-				case "show-Tips":
-					this.resultsModel.items =this.tipsItems; //update list with basic user info
+				case "show-nearby":
+					/*this.resultsModel.items =this.tipsItems; //update list with basic user info
 					this.controller.modelChanged(this.resultsModel);
 					if(this.tipsItems.length==0){
 						this.controller.get("notice").innerHTML="There aren't any tips near you.";
 						this.controller.get("notice").show();
 					}else{
 						this.controller.get("notice").hide();
-					}
+					}*/
 					
 					var scroller=this.controller.getSceneScroller();
 					scroller.mojo.revealTop();
+					this.getTips();
 					break;
-				case "show-Todos":
-					this.resultsModel.items =this.todosItems; //update list with basic user info
+				case "show-friends":
+					/*this.resultsModel.items =this.todosItems; //update list with basic user info
 					this.controller.modelChanged(this.resultsModel);
 					if(this.todosItems.length==0){
 						this.controller.get("notice").innerHTML="You haven't created any to-dos yet.";
 						this.controller.get("notice").show();
 					}else{
 						this.controller.get("notice").hide();
-					}
+					}*/
 
 					var scroller=this.controller.getSceneScroller();
 					scroller.mojo.revealTop();
+					_globals.reloadTips=true;
+					this.getFriendTips();
 					break;
                 case "gototop":
 					var scroller=this.controller.getSceneScroller();
@@ -354,7 +420,13 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
 					scroller.mojo.scrollTo(0,0,true);
 					break;
 			}
-		}
+		}else if(event.type===Mojo.Event.back){
+			if(NavMenu.showing==true){
+				event.preventDefault();
+				NavMenu.hideMenu();
+			}        
+        }
+
 }
 
 NearbyTipsAssistant.prototype.activate = function(event) {
@@ -379,6 +451,6 @@ NearbyTipsAssistant.prototype.deactivate = function(event) {
 }
 
 NearbyTipsAssistant.prototype.cleanup = function(event) {
-	Mojo.Event.stopListening(this.controller.get('results-tips-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
-	Mojo.Event.stopListening(this.controller.get('results-tips-list'),Mojo.Event.listDelete, this.listDelete.bind(this));
+	Mojo.Event.stopListening(this.controller.get('results-tips-list'),Mojo.Event.listTap, this.listWasTappedBound);
+	Mojo.Event.stopListening(this.controller.get('results-tips-list'),Mojo.Event.listDelete, this.listDeleteBound);
 }

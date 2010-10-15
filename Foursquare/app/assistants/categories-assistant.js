@@ -59,7 +59,12 @@ CategoriesAssistant.prototype.setup = function() {
 	      disabled: false
     	}
 	  );
-	Mojo.Event.listen(this.controller.get('categoryBack'), Mojo.Event.tap, this.goBack.bindAsEventListener(this));
+	
+	this.goBackBound=this.goBack.bindAsEventListener(this);
+	this.useCatBound=this.useCat.bindAsEventListener(this);
+	this.listWasTappedBound=this.listWasTapped.bind(this);
+	
+	
 	
 	this.controller.get("categoryBack").hide();
 
@@ -70,21 +75,17 @@ CategoriesAssistant.prototype.setup = function() {
 	      disabled: false
     	}
 	  );
-	Mojo.Event.listen(this.controller.get('categorySelect'), Mojo.Event.tap, this.useCat.bindAsEventListener(this));
 	
 	this.controller.get("categorySelect").hide();
-
-	//this.controller.instantiateChildWidgets(this.controller.get('categories-list'));
-	/* setup widgets here */
-	
-	/* add event handlers to listen to events from widgets */
-	Mojo.Event.listen(this.controller.get('categories-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+	Mojo.Event.listen(this.controller.get('categoryBack'), Mojo.Event.tap, this.goBackBound);
+	Mojo.Event.listen(this.controller.get('categorySelect'), Mojo.Event.tap, this.useCatBound);
+	Mojo.Event.listen(this.controller.get('categories-list'),Mojo.Event.listTap, this.listWasTappedBound);
 
 };
 
 CategoriesAssistant.prototype.listWasTapped = function(event) {
 	var i=event.item.index;
-	Mojo.Log.error("i="+i+", level="+event.item.level+", label="+event.item.label+", id="+event.item.id);
+	logthis("i="+i+", level="+event.item.level+", label="+event.item.label+", id="+event.item.id);
 	if (event.item.level==0){	//tapped root, show sub items
 		this.catButtonModel.buttonLabel="Back to main categories...";
 		this.controller.modelChanged(this.catButtonModel);
@@ -188,7 +189,7 @@ CategoriesAssistant.prototype.deactivate = function(event) {
 };
 
 CategoriesAssistant.prototype.cleanup = function(event) {
-	Mojo.Event.stopListening(this.controller.get('categoryBack'), Mojo.Event.tap, this.goBack.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('categorySelect'), Mojo.Event.tap, this.useCat.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('categories-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+	Mojo.Event.stopListening(this.controller.get('categoryBack'), Mojo.Event.tap, this.goBackBound);
+	Mojo.Event.stopListening(this.controller.get('categorySelect'), Mojo.Event.tap, this.useCatBound);
+	Mojo.Event.stopListening(this.controller.get('categories-list'),Mojo.Event.listTap, this.listWasTappedBound);
 };

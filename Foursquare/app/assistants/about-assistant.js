@@ -19,7 +19,7 @@ AboutAssistant.prototype.getUA = function(event) {
 
 }
 AboutAssistant.prototype.yay = function(event) {
-	Mojo.Log.error(event.responseText);
+	logthis(event.responseText);
 }
 AboutAssistant.prototype.activate = function(event) {
 }

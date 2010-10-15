@@ -16,11 +16,11 @@ MapsHelper.prototype.mapsLoaded = function(id)
 {
     try
     {
-        Mojo.Log.error("Initializing Maps");
+        logthis("Initializing Maps");
         
         // Load any map objects such as Icons that you will reuse later
 
-        Mojo.Log.error("Maps Initialized");
+        logthis("Maps Initialized");
         
         this.initialized = true;
         if(this.loadCallback != undefined)
@@ -30,7 +30,7 @@ MapsHelper.prototype.mapsLoaded = function(id)
         
     
     } catch(error) {
-        Mojo.Log.error("Error Initializing Maps: " + error);
+        logthis("Error Initializing Maps: " + error);
     }
 };
 
@@ -56,7 +56,7 @@ var Maps = new MapsHelper();
 
 function loadMaps () {
     
-    Mojo.Log.error("Initializing Google Maps");
+    logthis("Initializing Google Maps");
     google.load("maps", "2", {"callback" : Maps.mapsLoaded.bind(Maps),"other_params":"sensor=true"});
 }
 
@@ -65,7 +65,7 @@ function initLoader() {
   	  	var cardStageController = appController.getStageController("mainStage");
 		var doc=cardStageController.document;
 
-    Mojo.Log.error("Initializing Google Loader");
+    logthis("Initializing Google Loader");
     // Code from Google Sample
     var script = doc.createElement("script");
     script.src = "http://www.google.com/jsapi?key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=mapLoaded";

@@ -3,8 +3,11 @@ function CheckinResultAssistant( checkinJSON,i) {
 	this.uid=i;	
 }
 
+CheckinResultAssistant.prototype.aboutToActivate = function(callback){
+	callback.defer();
+};
+
 CheckinResultAssistant.prototype.setup = function() {
-//	zBar.hideToolbar();
 		NavMenu.setup(this,{buttons:'empty'});
 
   this.controller.setupWidget("okButtonCheckin",
@@ -14,7 +17,10 @@ CheckinResultAssistant.prototype.setup = function() {
       disabled: false
     }
   );
-	Mojo.Event.listen(this.controller.get('okButtonCheckin'), Mojo.Event.tap, this.okTappedCheckin.bindAsEventListener(this));
+  
+  	this.okTappedCheckinBound=this.okTappedCheckin.bindAsEventListener(this);
+  	
+	Mojo.Event.listen(this.controller.get('okButtonCheckin'), Mojo.Event.tap, this.okTappedCheckinBound);
 	if(Mojo.Environment.DeviceInfo.touchableRows < 8)
 	{
 	   this.controller.get("checkin-widgets").style.minHeight="247px;";
@@ -25,7 +31,7 @@ CheckinResultAssistant.prototype.setup = function() {
 
 	this.initData(this.json);
 	
-}
+};
 
 CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 //	checkinJSON.checkin.created="";
@@ -155,20 +161,52 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 	//but @naveen insists a tips block is returned sometimes
 	/*checkinJSON.checkin.tips=[
 		{
-			text: "Sample tip text",
+			text: "This is a sample tip that pops-up when you check-in, if one of your friends was the one who created the tip.",
 			user: {
 				firstname: "Geoff",
 				lastname: "G",
-				photo: "url"
-			}
+				photo: "http://playfoursquare.s3.amazonaws.com/userpix/74127_1256147747191.jpg"
+			},
+			id: 468853
 		}
 	];*/
 	checkinJSON.checkin.created="";
 	if(checkinJSON.checkin.tips != undefined){
 		logthis("there's a tip!");
+	    this.controller.setupWidget("tipScroller",
+         this.scrollAttributes = {
+             mode: 'vertical-snap'
+         },
+         this.scrollModel = {
+         });
+
+		  this.controller.setupWidget("buttonRemove",
+		    this.attributes = {type : Mojo.Widget.activityButton},
+		    this.removeModel = {
+		      buttonLabel: "Remove from My To-Do List",
+		      disabled: false,
+		      buttonClass: 'secondary'
+		    }
+		  );
+		
+		  this.controller.setupWidget("buttonDone",
+		    this.attributes = {type : Mojo.Widget.activityButton},
+		    this.doneModel = {
+		      buttonLabel: "I've Done This!",
+		      disabled: false,
+		      buttonClass: 'fsq-button'
+		    }
+		  );
+
+  this.tipRemoveBound=this.tipRemove.bind(this);
+  this.tipDoneBound=this.tipDone.bind(this);
+ 	Mojo.Event.listen(this.controller.get("buttonRemove"),Mojo.Event.tap,this.tipRemoveBound);
+	Mojo.Event.listen(this.controller.get("buttonDone"),Mojo.Event.tap,this.tipDoneBound);
+
 		//logthis(Object.toJSON(checkinJSON.checkin.tips);
 		//if(checkinJSON.checkin.tips.length != undefined){
 			var tip=checkinJSON.checkin.tips[0];
+			this.tip=tip;
 			var here=false;
 			if(tip.venue != undefined){
 				var tipvenuename=tip.venue.name;
@@ -190,14 +228,47 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			var tipuserln=(tip.user.lastname!=undefined)? tip.user.lastname: "";
 			var tipuserpic=tip.user.photo;
 			
-			this.controller.showAlertDialog({
+			/*this.controller.showAlertDialog({
 				onChoose: function(value) {},
 				title: $L(tipuserfn+" "+tipuserln+" says..."),
 				message: $L(tiptext),
 				choices:[
 					{label:$L('Gotcha!'), value:"OK", type:'primary'}
 				]
-			});
+			});*/
+
+			if(tip.status!=undefined){ //from a tip
+				switch(tip.status){
+					case "done":
+						this.doneModel.disabled=true;
+						this.controller.modelChanged(this.doneModel);
+						break;
+					case "todo":
+						break;
+				}
+			}else{
+				  this.controller.get("buttonAdd").show();
+				  this.controller.get("buttonRemove").hide();
+				  this.controller.setupWidget("buttonAdd",
+				    this.attributes = {type : Mojo.Widget.activityButton},
+				    this.doneModel = {
+				      buttonLabel: "Add to My To-Do List",
+				      disabled: false,
+				      buttonClass: 'primary'
+				    }
+				  );
+				  
+				  this.tipAddBound=this.tipAdd.bind(this);
+				  Mojo.Event.listen(this.controller.get("buttonAdd"),Mojo.Event.tap,this.tipAddBound);
+				
+			}
+
+			
+			this.controller.get("userPic").src=tipuserpic;
+			this.controller.get("userName").update(tipuserfn+" "+tipuserln+" says...");
+			this.controller.get("popTipText").update(tiptext);
+			this.controller.get("pop-tip").show();
+			this.controller.get("userScrim").show();
 
 			
 		//}
@@ -209,6 +280,95 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 CheckinResultAssistant.prototype.okTappedCheckin = function() {
 	this.controller.stageController.popScene("checkin-result");
 }
+
+CheckinResultAssistant.prototype.tipDone = function() {
+		foursquarePost(this,{
+			endpoint: 'tip/markdone.json',
+			parameters: {tid: this.tip.id},
+			requiresAuth: true,
+			debug: true,
+			onSuccess: function(r){
+				logthis("todo ok");
+				var j=r.responseJSON;
+				logthis(j);
+				var todo=j.tip;
+				if(todo){
+					this.controller.get("pop-tip").hide();
+					this.controller.get("userScrim").hide();
+				}else{
+					Mojo.Controller.getAppController().showBanner("Error marking todo as done", {source: 'notification'});
+				}
+			}.bind(this),
+			onFailure: function(r){
+				logthis("todo fail");
+				logthis(r.responseText);
+				Mojo.Controller.getAppController().showBanner("Error marking todo as done", {source: 'notification'});
+			}.bind(this)
+		});
+}
+CheckinResultAssistant.prototype.tipRemove = function() {
+		foursquarePost(this,{
+			endpoint: 'tip/unmark.json',
+			parameters: {tid: this.tip.id},
+			requiresAuth: true,
+			debug: true,
+			onSuccess: function(r){
+				logthis("todo ok");
+				var j=r.responseJSON;
+				logthis(j);
+				var todo=j.tip;
+				if(todo){
+					this.controller.get("pop-tip").hide();
+					this.controller.get("userScrim").hide();
+				}else{
+					Mojo.Controller.getAppController().showBanner("Error removing todo", {source: 'notification'});
+				}
+			}.bind(this),
+			onFailure: function(r){
+				logthis("todo fail");
+				logthis(r.responseText);
+				Mojo.Controller.getAppController().showBanner("Error removing todo", {source: 'notification'});
+			}.bind(this)
+		});
+
+}
+CheckinResultAssistant.prototype.tipAdd = function() {
+		foursquarePost(this,{
+			endpoint: 'tip/marktodo.json',
+			parameters: {tid: this.tip.id},
+			requiresAuth: true,
+			debug: true,
+			onSuccess: function(r){
+				logthis("todo ok");
+				var j=r.responseJSON;
+				logthis(j);
+				var todo=j.tip;
+				if(todo){
+					this.controller.get("pop-tip").hide();
+					this.controller.get("userScrim").hide();
+				}else{
+					Mojo.Controller.getAppController().showBanner("Error marking as todo", {source: 'notification'});
+				}
+			}.bind(this),
+			onFailure: function(r){
+				logthis("todo fail");
+				logthis(r.responseText);
+				Mojo.Controller.getAppController().showBanner("Error marking as todo", {source: 'notification'});
+			}.bind(this)
+		});
+
+}
+
+
+CheckinResultAssistant.prototype.handleCommand = function(event) {
+	if(event.type===Mojo.Event.back && this.controller.get("pop-tip").style.display!="none"){
+		event.preventDefault();
+		event.stopPropagation();
+		event.stop();
+		this.controller.get("pop-tip").hide();
+		this.controller.get("userScrim").hide();
+	}
+};
 
 
 
@@ -222,5 +382,5 @@ CheckinResultAssistant.prototype.deactivate = function(event) {
 }
 
 CheckinResultAssistant.prototype.cleanup = function(event) {
-	Mojo.Event.stopListening(this.controller.get('okButtonCheckin'), Mojo.Event.tap, this.okTappedCheckin.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('okButtonCheckin'), Mojo.Event.tap, this.okTappedCheckinBound);
 }

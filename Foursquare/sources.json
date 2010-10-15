@@ -1,7 +1,8 @@
 [
-	{"source": "app/models/metrix.js"},
-	{"source": "app/models/asyncWrappers.js"},
-	{"source": "app/lib/navmenu.js"},
+    {"source": "app/models/metrix.js"},
+    {"source": "app/models/asyncWrappers.js"},
+    {"source": "app/lib/globals.js"},
+    {"source": "app/lib/navmenu.js"},
     {"source": "app/assistants/app-assistant.js"},
     {"source": "app/assistants/stage-assistant.js"},
     {
@@ -105,5 +106,17 @@
     {
         "scenes": "recommend",
         "source": "app/assistants/recommend-assistant.js"
+    },
+    {
+        "scenes": "view-tip",
+        "source": "app/assistants/view-tip-assistant.js"
+    },
+    {
+        "scenes": "add-venue-map",
+        "source": "app/assistants/add-venue-map-assistant.js"
+    },
+    {
+        "scenes": "todos",
+        "source": "app/assistants/todos-assistant.js"
     }
 ]

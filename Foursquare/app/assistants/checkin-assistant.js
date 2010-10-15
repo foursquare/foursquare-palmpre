@@ -1,5 +1,11 @@
 function CheckinAssistant(v) {
 	this.venue=v;
+	
+	if(this.venue.id==undefined){
+		this.venueless=true;
+	}else{
+		this.venueless=false;
+	}
 	this.urllen=0;
 	this.uploading=false;
 }
@@ -8,7 +14,7 @@ CheckinAssistant.prototype.setup = function() {
 	NavMenu.setup(this,{buttons:'empty'});
 	this.imageHosts=[
                 {label: "Flickr", value: "flickr"},
-                {label: "TweetPhoto", value: "tweetphoto"},
+                {label: "Plixi (TweetPhoto)", value: "tweetphoto"},
                 {label: "Pikchur", value: "pikchur"},
                 {label: "FSPic", value: "fspic"}
             ];
@@ -79,8 +85,10 @@ CheckinAssistant.prototype.setup = function() {
 		this.controller.get('share-facebook').addClassName("pressed");
 	}
 
-	Mojo.Event.listen(this.controller.get('share-facebook'), Mojo.Event.tap, function(){
-		Mojo.Log.error("before: stf: %i, stt: %i",this.stf,this.stt);
+
+
+	this.fbShareBound=function(){
+		logthis("before: stf: %i, stt: %i",this.stf,this.stt);
 		if(this.stf=="1"){
 			this.stf="0";
 			this.controller.get('share-facebook').removeClassName("pressed");
@@ -88,14 +96,15 @@ CheckinAssistant.prototype.setup = function() {
 			this.stf="1";
 			this.controller.get('share-facebook').addClassName("pressed");
 		}
-		Mojo.Log.error("after: stf: %i, stt: %i",this.stf,this.stt);
-	}.bindAsEventListener(this));
+		logthis("after: stf: %i, stt: %i",this.stf,this.stt);
+	}.bindAsEventListener(this);
+
 
 	if(this.stt=="1"){
 		this.controller.get('share-twitter').addClassName("pressed");
 	}
 
-	Mojo.Event.listen(this.controller.get('share-twitter'), Mojo.Event.tap, function(){
+	this.twShareBound=function(){
 		Mojo.Log.error("before: stf: %i, stt: %i",this.stf,this.stt);
 		if(this.controller.get('share-twitter').hasClassName("pressed")){
 			this.stt="0";
@@ -105,18 +114,34 @@ CheckinAssistant.prototype.setup = function() {
 			this.controller.get('share-twitter').addClassName("pressed");		
 		}
 		Mojo.Log.error("after: stf: %i, stt: %i",this.stf,this.stt);
-	}.bindAsEventListener(this));
+	}.bindAsEventListener(this);
 
+
+	if(this.venueless){
+		this.venue.address='';
+	}
 	this.controller.get("checkin-info").update("<b>"+this.venue.name+"</b><br/>"+this.venue.address);
 	this.controller.get("photorow").hide();
-	Mojo.Event.listen(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost.bind(this));
-	Mojo.Event.listen(this.controller.get("chkShowFriends"), Mojo.Event.propertyChange, this.handleCheckbox.bind(this));
-	Mojo.Event.listen(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.document, "keyup", this.shoutKeyPress.bindAsEventListener(this));
+	
+	this.handlePhotohostBound=this.handlePhotohost.bind(this);
+	this.handleCheckboxBound=this.handleCheckbox.bind(this);
+	this.attachImageBound=this.attachImage.bindAsEventListener(this);
+	this.removeImageBound=this.removeImage.bindAsEventListener(this);
+	this.attachDownBound=function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this);
+	this.attachUpBound=function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this);
+	this.okTappedBound=this.okTapped.bindAsEventListener(this);
+	this.shoutKeyPressBound=this.shoutKeyPress.bindAsEventListener(this);
+	
+	Mojo.Event.listen(this.controller.get('share-facebook'), Mojo.Event.tap, this.fbShareBound);
+	Mojo.Event.listen(this.controller.get('share-twitter'), Mojo.Event.tap, this.twShareBound);	
+	Mojo.Event.listen(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohostBound);
+	Mojo.Event.listen(this.controller.get("chkShowFriends"), Mojo.Event.propertyChange, this.handleCheckboxBound);
+	Mojo.Event.listen(this.controller.get('attach'), Mojo.Event.tap, this.attachImageBound);
+	Mojo.Event.listen(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImageBound);
+	Mojo.Event.listen(this.controller.get('attach'), "mousedown", this.attachDownBound);
+	Mojo.Event.listen(this.controller.get('attach'), "mouseup", this.attachUpBound);
+	Mojo.Event.listen(this.controller.get('okButton'), Mojo.Event.tap, this.okTappedBound);
+	Mojo.Event.listen(this.controller.document, "keyup", this.shoutKeyPressBound);
 
 };
 
@@ -153,7 +178,7 @@ CheckinAssistant.prototype.okTapped = function() {
 				case "flickr":
 					var ptitle=this.tipModel.value;
 					var pdesc=this.tipModel.value;
-					var ptags="foursquare:venue="+this.venue.id+", "+this.venue.name;
+					var ptags=(this.venueless)? this.venue.name: "foursquare:venue="+this.venue.id+", "+this.venue.name;
 					var format="xml";
 					var nojsoncallback="1";
 					var api_key=_globals.flickr_key;
@@ -210,7 +235,7 @@ CheckinAssistant.prototype.okTapped = function() {
 						 	
 					  	}.bind(this),
 			            onFailure: function (e){
-	  						Mojo.Log.error('Failure : ' + Object.toJSON(resp));
+	  						logthis('Failure : ' + Object.toJSON(resp));
 					 	}.bind(this)
 			        });
 	 
@@ -227,7 +252,9 @@ CheckinAssistant.prototype.okTapped = function() {
 					params.push({"key":"message","data":this.tipModel.value,"contentType":"text/plain"});
 					params.push({"key":"geolat","data":_globals.lat,"contentType":"text/plain"});
 					params.push({"key":"geolon","data":_globals.long,"contentType":"text/plain"});
-					params.push({"key":"venue_id","data":this.venue.id,"contentType":"text/plain"});
+					if(!this.venueless){
+						params.push({"key":"venue_id","data":this.venue.id,"contentType":"text/plain"});
+					}
 					params.push({"key":"service","data":"foursquare","contentType":"text/plain"});
 					params.push({"key":"source","data":"Njk1","contentType":"text/plain"});
 				
@@ -247,7 +274,7 @@ CheckinAssistant.prototype.okTapped = function() {
             			onSuccess: function (resp,j){
 						 	var r=resp.responseString;
 						 	if(r != undefined) {
-								Mojo.Log.error("r="+r);
+								logthis("r="+r);
 						 		var json=eval("("+r+")");
 						 		var url=json.post.url;
 								this.checkIn(this.venue.id,this.venue.name,this.tipModel.value+" "+url,this.sfmodel.value,this.stt,this.stf);
@@ -255,7 +282,7 @@ CheckinAssistant.prototype.okTapped = function() {
 						 	}
 					  	}.bind(this),
 			            onFailure: function (e){
-	  						Mojo.Log.error('Failure : ' + Object.toJSON(e));
+	  						logthis('Failure : ' + Object.toJSON(e));
 					 	}.bind(this)
 			        });
 
@@ -273,7 +300,9 @@ CheckinAssistant.prototype.okTapped = function() {
 					params.push({"key":"message","data":this.tipModel.value,"contentType":"text/plain"});
 					params.push({"key":"latitude","data":_globals.lat,"contentType":"text/plain"});
 					params.push({"key":"longitude","data":_globals.long,"contentType":"text/plain"});
-					params.push({"key":"vid","data":this.venue.id,"contentType":"text/plain"});
+					if(!this.venueless){
+						params.push({"key":"vid","data":this.venue.id,"contentType":"text/plain"});
+					}
 					params.push({"key":"response_format","data":"JSON","contentType":"text/plain"});
 					params.push({"key":"username","data":un,"contentType":"text/plain"});
 					params.push({"key":"password","data":pw,"contentType":"text/plain"});
@@ -285,19 +314,19 @@ CheckinAssistant.prototype.okTapped = function() {
 			        controller.serviceRequest('palm://com.palm.downloadmanager/', {
             			method: 'upload',
 			            parameters: {
-            			    'url': "http://tweetphotoapi.com/api/upload.aspx",
+            			    'url': "http://api.plixi.com/api/upload.aspx",
 			                'fileLabel': 'media',
             			    'fileName': this.fileName,
 			                'postParameters': params,
             			    'subscribe': true
 			            },
             			onSuccess: function (resp,j){
-						 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
+						 	logthis('Success : ' + Object.toJSON(resp));
 						 	var r=resp.responseString;
 						 	if(r != undefined && r != "") {
 						 		var json=eval("("+r+")");
 						 		var url=json.MediaUrl;
-						 		Mojo.Log.error("longurl="+url);
+						 		logthis("longurl="+url);
 						 		//shorten with is.gd
 						 		var url = 'http://is.gd/api.php?longurl='+url;
 								var request = new Ajax.Request(url, {
@@ -305,12 +334,12 @@ CheckinAssistant.prototype.okTapped = function() {
 								   evalJSON: 'false',
 								   onSuccess: function(r){
 								   		var url=r.responseText;
-								   		Mojo.Log.error("url="+url);
+								   		logthis("url="+url);
 								   		this.checkIn(this.venue.id,this.venue.name,this.tipModel.value+" "+url,this.sfmodel.value,this.stt,this.stf);
 
 								   }.bind(this),
 								   onFailure: function (e){
-	  									Mojo.Log.error('Failure : ' + Object.toJSON(e));
+	  									logthis('Failure : ' + Object.toJSON(e));
 					 				}.bind(this)
 								 });
 
@@ -318,7 +347,7 @@ CheckinAssistant.prototype.okTapped = function() {
 						 	}
 					  	}.bind(this),
 			            onFailure: function (e){
-	  						Mojo.Log.error('Failure : ' + Object.toJSON(e));
+	  						logthis('Failure : ' + Object.toJSON(e));
 					 	}.bind(this)
 			        });
 
@@ -335,7 +364,9 @@ CheckinAssistant.prototype.okTapped = function() {
 					params.push({"key":"shout_text","data":this.tipModel.value,"contentType":"text/plain"});
 					params.push({"key":"phone_or_email","data":un,"contentType":"text/plain"});
 					params.push({"key":"password","data":pw,"contentType":"text/plain"});
-					params.push({"key":"vid","data":this.venue.id,"contentType":"text/plain"});
+					if(!this.venueless){
+						params.push({"key":"vid","data":this.venue.id,"contentType":"text/plain"});
+					}
 
 				    var appController = Mojo.Controller.getAppController();
 			  	  	var cardStageController = appController.getStageController("mainStage");
@@ -364,7 +395,7 @@ CheckinAssistant.prototype.okTapped = function() {
 						 	}
 					  	}.bind(this),
 			            onFailure: function (e){
-	  						Mojo.Log.error('Failure : ' + Object.toJSON(e));
+	  						logthis('Failure : ' + Object.toJSON(e));
 					 	}.bind(this)
 			        });
 
@@ -377,7 +408,6 @@ CheckinAssistant.prototype.okTapped = function() {
 
 CheckinAssistant.prototype.attachImage = function(event) {
 	Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image','video'],'defaultKind':'image','onSelect':function(fn){
-//		Mojo.Log.error(Object.toJSON(fn));
 		this.fileName=fn.fullPath;
 		this.hasPhoto=true;
 		if(fn.attachmentType=="image"){
@@ -388,7 +418,6 @@ CheckinAssistant.prototype.attachImage = function(event) {
 			this.phModel.choices=this.videoHosts;
 		}
 		this.controller.modelChanged(this.phModel);
-//		Mojo.Log.error(icon);
 		this.controller.get("img").src=icon;
 		this.controller.get("img-preview").show();
 		this.controller.get("photorow").show();
@@ -452,17 +481,23 @@ CheckinAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 		});
 		sf=(sf==0)? 1: 0;
 
-		
-		foursquarePost(this, {
-			endpoint: 'checkin.json',
-			requiresAuth: true,
-			parameters: {
-				vid: id,
+		var params={
 				shout: s,
 				private: sf,
 				twitter: t,
 				facebook: fb
-			},
+			};
+			
+		if(!this.venueless){
+			params.vid=id;
+		}else{
+			params.venue=this.venue.name;
+		}
+		
+		foursquarePost(this, {
+			endpoint: 'checkin.json',
+			requiresAuth: true,
+			parameters: params,
 			onSuccess: this.checkInSuccess.bind(this),
 			onFailure: this.checkInFailed.bind(this)
 			
@@ -481,7 +516,7 @@ CheckinAssistant.prototype.checkInSuccess = function(response) {
 }
 
 CheckinAssistant.prototype.checkInFailed = function(response) {
-	Mojo.Log.error('Check In Failed: ' + repsonse.responseText);
+	logthis('Check In Failed: ' + repsonse.responseText);
 	Mojo.Controller.getAppController().showBanner("Error checking in!", {source: 'notification'});
 }
 CheckinAssistant.prototype.handleCommand = function(event) {
@@ -633,32 +668,14 @@ CheckinAssistant.prototype.deactivate = function(event) {
 };
 
 CheckinAssistant.prototype.cleanup = function(event) {
-	Mojo.Event.stopListening(this.controller.get('share-facebook'), Mojo.Event.tap, function(){
-		Mojo.Log.error("before: stf: %i, stt: %i",this.stf,this.stt);
-		if(this.stf=="1"){
-			this.stf="0";
-			this.controller.get('share-facebook').removeClassName("pressed");
-		}else{
-			this.stf="1";
-			this.controller.get('share-facebook').addClassName("pressed");
-		}
-		Mojo.Log.error("after: stf: %i, stt: %i",this.stf,this.stt);
-	}.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('share-twitter'), Mojo.Event.tap, function(){
-		Mojo.Log.error("before: stf: %i, stt: %i",this.stf,this.stt);
-		if(this.controller.get('share-twitter').hasClassName("pressed")){
-			this.stt="0";
-			this.controller.get('share-twitter').removeClassName("pressed");
-		}else{
-			this.stt="1";
-			this.controller.get('share-twitter').addClassName("pressed");		
-		}
-		Mojo.Log.error("after: stf: %i, stt: %i",this.stf,this.stt);
-	}.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohost);
-	Mojo.Event.stopListening(this.controller.get('attach'), Mojo.Event.tap, this.attachImage.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImage.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('attach'), "mousedown", function(){this.controller.get("attachicon").addClassName("pressed");}.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('attach'), "mouseup", function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
+	Mojo.Event.stopListening(this.controller.get('share-facebook'), Mojo.Event.tap, this.fbShareBound);
+	Mojo.Event.stopListening(this.controller.get('share-twitter'), Mojo.Event.tap, this.twShareBound);	
+	Mojo.Event.stopListening(this.controller.get("photohostList"), Mojo.Event.propertyChange, this.handlePhotohostBound);
+	Mojo.Event.stopListening(this.controller.get("chkShowFriends"), Mojo.Event.propertyChange, this.handleCheckboxBound);
+	Mojo.Event.stopListening(this.controller.get('attach'), Mojo.Event.tap, this.attachImageBound);
+	Mojo.Event.stopListening(this.controller.get('img-preview'), Mojo.Event.tap, this.removeImageBound);
+	Mojo.Event.stopListening(this.controller.get('attach'), "mousedown", this.attachDownBound);
+	Mojo.Event.stopListening(this.controller.get('attach'), "mouseup", this.attachUpBound);
+	Mojo.Event.stopListening(this.controller.get('okButton'), Mojo.Event.tap, this.okTappedBound);
+	Mojo.Event.stopListening(this.controller.document, "keyup", this.shoutKeyPressBound);
 };

@@ -16,22 +16,14 @@
 	</div>	-->
 	<div class="palm-page-header-nope multi-line-nope" id="userHeader">
 		<div class="palm-page-header-wrapper-nope">
-			<div id="userAvatar" style="width: 70px;float:left;">
-				<img id="userPic" width="60" height="60" data="" alt="" src="" class="friend-avatar" />
+			<div id="userAvatar" style="width: 90px;float:left;">
+				<img id="userPic" width="80" height="80" data="" alt="" src="" class="friend-avatar" />
 				<!--<img id="userPicBorder" src="images/roundedCorner.png" class="userLink" data="" alt="" />-->
 				
 			</div>
-			<div style="width: 200px; float: left; padding-left: 7px;">
+			<div style="width: 180px; float: left; padding-left: 7px;">
 			    <div id="userName" class="title left" ></div>                         
 				<div id="userCity" class=""></div>
-				<div class="darkerbg" id="user-mayorinfo">
-					<div class="smallest">MAYORSHIPS &#9654;</div>
-					<div class="bigtext" id="mayorcount"></div>
-				</div>
-				<div class="darkerbg" id="user-badgeinfo">
-					<div class="smallest">BADGES &#9654;</div>
-					<div class="bigtext" id="badgecount"></div>
-				</div>
 				
 			</div>
 			<div style="clear:both;height: 2px;">&nbsp;</div>
@@ -39,11 +31,85 @@
 		  	
 		</div>
 	</div>
-	<div id="tabs" style="padding:0; margin:-12px auto -13px auto; width: 100%;">
-		<div x-mojo-element="RadioButton" id="tabButtons" class="radiobuttonClass" 
- name="radiobuttonName" style="padding: 0px;width:100%;"></div>
+	<div class="header-bottom-border"></div>
+
+<br>
+	<div id="tabs" style="padding:0; margin:-12px auto -13px auto; width: 302px;">
+				<div class="grey-bg-noshadow" id="user-mayorinfo">
+					<div class="smallest">MAYORSHIPS &#9654;</div>
+					<div class="bigtext" id="mayorcount"></div>
+				</div>
+				<div class="grey-bg-noshadow" id="user-badgeinfo">
+					<div class="smallest">BADGES &#9654;</div>
+					<div class="bigtext" id="badgecount"></div>
+				</div>
+				<div class="grey-bg-noshadow" id="user-tipinfo">
+					<div class="smallest">TIPS &#9654;</div>
+					<div class="bigtext" id="tipcount"></div>
+				</div>
+
+			<br class="breaker">
 	</div>
-	<div style="height: 13px;"></div>
+<br class="breaker">
+	  <div id="overview">
+		<div class="palm-list">
+			
+			<div class="palm-row" id="checkins-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="checkin-count">checkins</div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+				</div>
+			</div>
+
+			<div class="palm-row" id="friends-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="friends-count"></div>
+						<div id="friends-avatars"></div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+				</div>
+			</div>
+
+			<div class="palm-row" id="more-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="more-text">More info</div>
+						<div class="subtext" id="more-subtext">Contact, Ping Settings</div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+				</div>
+			</div>
+
+			<div class="palm-row" id="leaderboard-row" style="display:none;">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="leaderboard-text">Leaderboard</div>
+						<div class="subtext" id="leaderboard-subtext">See your score vs. your friends and city</div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+
 
   	<div class="palm-group-nope" id='mayorof' style="display:none;">
   		<div class="fsq-divider">Mayorships</div>
@@ -63,13 +129,23 @@
 			</div>
 	</div>
 
-	<div class="palm-group-nope" id='uhistory' style="padding-top: 5px;">
+	<div class="palm-group-nope" id='uhistory' style="padding-top: 5px; display:none;">
 		<!--<div id='history-title' class="palm-group-title" x-mojo-loc=''>History</div>-->
 		<div id="checkinHistory" x-mojo-element="List" >
 			<!--<div id='history-box' class='listWhiteBox'>
 			</div>-->
 		</div>
 	</div>
+
+	<div class="palm-group-nope" id='utips' style="padding-top: 5px; display:none;">
+	<div class="fsq-divider">Tips</div>
+		<div id="tips-notice" class="notice" style="display: none; margin-top: 50px;"></div>
+		<div id="user-tips" x-mojo-element="List" >
+			<!--<div id='history-box' class='listWhiteBox'>
+			</div>-->
+		</div>
+	</div>
+
 
 	<div class="palm-group-nope" id='uinfo' style="display:none;">
 		<!--<div id='info-title' class="palm-group-title" x-mojo-loc=''>Info</div>-->
@@ -80,6 +156,7 @@
 
 
 	<div class="palm-group-nope" id="ufriends" style="display:none;">
+		<div x-mojo-element="RadioButton" id="friendToggle" class="radiobuttonClass" name="radiobuttonName"></div>
 		<div id="friendsList" x-mojo-element="List" ></div>
 	</div>
 	<div class="palm-group-nope" id="ufriendsresults" style="display:none;">

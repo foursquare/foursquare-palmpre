@@ -26,7 +26,7 @@ DoCheckinDialogAssistant.prototype.setup = function(widget) {
   	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 	var pings=(credentials.ping=="on")? '0': '1';
-	Mojo.Log.error("pings="+pings);
+	logthis("pings="+pings);
 	var stt=(credentials.savetotwitter==true)? '1': '0';
 	var stf=(credentials.savetofacebook==true || credentials.savetofacebook=='true')? '1': '0';
   

@@ -143,9 +143,9 @@ zBar.render = function(toolbar,active,activeScene) {
 
 		zBar.activeButton=active;
 		zBar.oldBar=zBar.currentBar;
-		Mojo.Log.error("rendering zBar");
+		logthis("rendering zBar");
 		var gnav=zBar.document.getElementById("zBar");
-		Mojo.Log.error("gnav="+gnav);
+		logthis("gnav="+gnav);
 		if(gnav){Element.remove(gnav);}
 		
 		
@@ -179,10 +179,10 @@ zBar.render = function(toolbar,active,activeScene) {
 
 
 		nav.addClassName(toolbar);	
-		Mojo.Log.error("gonna atatch to body=");
+		logthis("gonna atatch to body=");
 		doc.body.appendChild(nav);
 		zBar.currentBar=toolbar;
-		Mojo.Log.error("atatched to body");
+		logthis("atatched to body");
 	
 	
 		//now we must loop through each toolbar and display its objects

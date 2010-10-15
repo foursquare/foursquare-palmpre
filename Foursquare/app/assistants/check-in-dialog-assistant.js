@@ -5,7 +5,6 @@ function CheckInDialogAssistant(sceneAssistant, checkinJSON,i) {
 }
 CheckInDialogAssistant.prototype.setup = function(widget) {
   this.widget = widget;
-  //Mojo.Log.error("################checkin: "+this.data);
   this.initData(this.data);
   
   // Setup button and event handler

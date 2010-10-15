@@ -24,14 +24,14 @@ _globals=_globals || {};
 _globals.ammodel = {
 	visible: true,
 	items: [
-		{label: "Refresh", command: "do-Refresh"},
-		{label: "Search", command: "do-Search",disabled:true},
-		{label: "Preferences & Accounts", command: "do-Prefs"},
-		Mojo.Menu.editItem,
-		{label: "Check for Updates", command: "do-Update"},
-		{label: "About", command: "do-About"},
-		{label: "DONATE",command: "do-Donate"}
-	]
+{label: "Refresh", command: "do-Refresh"},
+{label: "Search", command: "do-Search",disabled:true},
+{label: "Preferences & Accounts", command: "do-Prefs"},
+Mojo.Menu.editItem,
+{label: "Check for Updates", command: "do-Update"},
+{label: "About", command: "do-About"},
+{label: "DONATE",command: "do-Donate"}
+]
 };
 _globals.amattributes = {
 	omitDefaultItems: true
@@ -48,47 +48,47 @@ _globals.userCache=[];
 
 //allows the update routine to run from anywhere
 _globals.checkUpdate = function(as) {
-	Mojo.Log.error("getting update...");
+	logthis("getting update...");
 	var url="http://zhephree.com/foursquare/update.php";
 	var request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'true',
 	   onSuccess: function(t) {
-	   			Mojo.Log.error("got info: "+t.responseText);
+	   			logthis("got info: "+t.responseText);
 	   			var j=eval("("+t.responseText+")");
-	   			Mojo.Log.error("got json");
+	   			logthis("got json");
 	   			var v=j.latest;
-	   			Mojo.Log.error("got version");
+	   			logthis("got version");
 	   			var m=j.message;
-	   			Mojo.Log.error("got message");
+	   			logthis("got message");
 	   			var tv=Mojo.appInfo.version;
-	   			Mojo.Log.error("got this version");
+	   			logthis("got this version");
 	   			var update=false;
-	   			Mojo.Log.error("set update to false");
+	   			logthis("set update to false");
 	   			if(v != tv) { // probably have a newer version available
 	   				varray=v.split(".");
 	   				tvarray=tv.split(".");
 	   				//now we have arrays like [1,2,9] for 1.2.9
-	   				Mojo.Log.error("versions are diff");
+	   				logthis("versions are diff");
 	   				if(varray[0]>tvarray[0]) { //if online major ver is bigger than this major ver...
-	   					Mojo.Log.error("diff majors");
+	   					logthis("diff majors");
 	   					update=true;
 	   				}else if(varray[0]==tvarray[0]){ //same major versions. check minor ver
-	   					Mojo.Log.error("same majors");
+	   					logthis("same majors");
 	   					if(varray[1]>tvarray[1]) { //bigger online minor ver
-	   						Mojo.Log.error("diff minors");
+	   						logthis("diff minors");
 	   						update=true;
 	   					}else if(varray[1]==tvarray[1]){ //same major ver, same moinor ver. check revision.
-	   						Mojo.Log.error("same minors");
+	   						logthis("same minors");
 	   						if(varray[2]>tvarray[2]) { //bigger online rev than this rev
-	   							Mojo.Log.error("diff revs");
+	   							logthis("diff revs");
 	   							update=true;
 	   						}else{ //rev is the same or smaller
-	   							Mojo.Log.error("same or smaller revs");
+	   							logthis("same or smaller revs");
 	   							update=false;
 	   						}
 	   					}else { //same major ver, tv is bigger minor ver
-	   						Mojo.Log.error("same major, smaller minor");
+	   						logthis("same major, smaller minor");
 	   						update=false;
 	   					}
 	   				}else{ //this version has a bigger major than online. only happens if user got github ver before app cat
@@ -96,11 +96,11 @@ _globals.checkUpdate = function(as) {
 	   				}
 	   			
 	   			}else { //same versions
-	   				Mojo.Log.error("versions are the same");
+	   				logthis("versions are the same");
 					update=false;
 	   			}
 	   			if(update){
-	   				Mojo.Log.error("update is true");
+	   				logthis("update is true");
 	   				as.controller.showAlertDialog({
 						onChoose: function(value) {
 							if (value) {
@@ -118,11 +118,11 @@ _globals.checkUpdate = function(as) {
 						choices:[ {label:'Update', value:true, type:'affirmative'}, {label:'Cancel', value:false, type:'dismiss'} ]
 					});
 				}else{
-					Mojo.Log.error("update is false");
+					logthis("update is false");
 					as.controller.showAlertDialog({
 						onChoose: function(value) {
 							if (value) {
-								//Mojo.Log.error("#######click yeah");
+								//logthis("#######click yeah");
 								//this.checkIn(this.venue.id, this.venue.name,'','','0');
 							}
 						},
@@ -168,6 +168,6 @@ StageAssistant.prototype.getUA = function(event) {
 
 }
 StageAssistant.prototype.yay = function(event) {
-	Mojo.Log.error(event.responseText);
+	logthis(event.responseText);
 }
 

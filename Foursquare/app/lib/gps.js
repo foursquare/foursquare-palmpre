@@ -12,13 +12,13 @@ GPS.prototype.go = function() {
 	    parameters: { subscribe: true },
     	onSuccess: function(response) {
 	    	if (response.errorCode==0) {
-	    		Mojo.Log.error("gps success");
+	    		logthis("gps success");
 	    		this.going=true;
 	        	this.location.set(response);
 	     	}
 	    }.bind(this),
     	onFailure: function(response) {
-	    	Mojo.Log.error("gps failure");
+	    	logthis("gps failure");
     		this.going=false;
       		this.location.oops();
     	}.bind(this)
@@ -37,13 +37,13 @@ GPS.prototype.stop = function() {
 function Location(callback) {
 	this.GPS=new GPS(this);
 	this.callback=callback;
-	Mojo.Log.error("created location");
+	logthis("created location");
 }
 
 Location.prototype.set = function(resp) {
-	Mojo.Log.error("setting...");
+	logthis("setting...");
 	if(((this.lat!=resp.latitude || this.long!=resp.longitude) && this.radius>resp.horizAccuracy) || !this.radius){  //new coords
-		Mojo.Log.error("new coords");
+		logthis("new coords");
 		this.lat=resp.latitude;
 		this.long=resp.longitude;
 		this.radius=resp.horizAccuracy;
@@ -53,7 +53,7 @@ Location.prototype.set = function(resp) {
 		this.when=new Date().getTime();
 		
 		if(this.callback) {
-			Mojo.Log.error("doing callback");
+			logthis("doing callback");
 			this.callback({latitude:this.lat,
 							longitude:this.long,
 							horizAccuracy: this.radius,
@@ -67,7 +67,7 @@ Location.prototype.set = function(resp) {
 
 Location.prototype.start = function() {
 	if(!this.going){
-	Mojo.Log.error("starting...");
+	logthis("starting...");
 		this.GPS.go();
 	}
 };
@@ -89,7 +89,7 @@ Location.prototype.stop = function() {
 };
 
 Location.prototype.oops = function(e) {
-	Mojo.Log.error("oops");
+	logthis("oops");
 };
 
 Location.prototype.get = function() {

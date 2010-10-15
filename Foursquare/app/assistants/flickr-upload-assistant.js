@@ -3,7 +3,7 @@ function FlickrUploadAssistant(ps,vid,vn,sc,img) {
 	   this.fileName="";
 	   this.vid=vid;
 	   this.venueName=vn;
-	   Mojo.Log.error("vname="+this.venueName);
+	   logthis("vname="+this.venueName);
 	   this.stage=sc;
 	   this.imagepath=img;
 }
@@ -109,7 +109,7 @@ FlickrUploadAssistant.prototype.fspicUpload = function() {
 							}
 					  	}.bind(this),
 			            onFailure: function (resp){
-						 	Mojo.Log.error('Fail : ' + Object.toJSON(resp));
+						 	logthis('Fail : ' + Object.toJSON(resp));
 						 	this.controller.get("uploadButton").mojo.deactivate();
 							Mojo.Controller.getAppController().showBanner("Error uploading photo!", {source: 'notification'});
 						 	this.controller.stageController.popScene("flickr-upload");
@@ -121,15 +121,15 @@ FlickrUploadAssistant.prototype.fspicUpload = function() {
 
 
 FlickrUploadAssistant.prototype.pikchurUpload = function() {
-					Mojo.Log.error("upload part0");
+					logthis("upload part0");
 					var eauth=_globals.auth.replace("Basic ","");
 					var plaintext=Base64.decode(eauth);//Njk1
-					Mojo.Log.error("upload part1");
+					logthis("upload part1");
 					var creds=plaintext.split(":");
 					var un=creds[0];
 					var pw=creds[1];
 					var params=[];
-					Mojo.Log.error("upload part2");
+					logthis("upload part2");
 					params.push({"key":"api_key","data":"QTG1n51CVNEJNDkkiMQIXQ","contentType":"text/plain"});
 					params.push({"key":"encodedAuth","data":eauth,"contentType":"text/plain"});
 					params.push({"key":"message","data":this.descriptionModel.value,"contentType":"text/plain"});
@@ -138,7 +138,7 @@ FlickrUploadAssistant.prototype.pikchurUpload = function() {
 					params.push({"key":"service","data":"foursquare","contentType":"text/plain"});
 					params.push({"key":"source","data":"Njk1","contentType":"text/plain"});
 					params.push({"key":"venue_id","data":this.vid,"contentType":"text/plain"});
-					Mojo.Log.error("params="+Object.toJSON(params));
+					logthis("params="+Object.toJSON(params));
 				
 					//var controller = Mojo.Controller.stageController.activeScene();
 			        // Queue the upload request with the download manager service.
@@ -155,7 +155,7 @@ FlickrUploadAssistant.prototype.pikchurUpload = function() {
 			            },
             			onSuccess: function (resp,j){
 						 	if(resp.responseString){
-							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
+							 	logthis('Success : ' + Object.toJSON(resp));
 							 	this.controller.get("uploadButton").mojo.deactivate();
 							 	this.controller.showAlertDialog({
 								     onChoose: function(value) {this.controller.stageController.popScene("flickr-upload");},
@@ -169,7 +169,7 @@ FlickrUploadAssistant.prototype.pikchurUpload = function() {
 							}
 					  	}.bind(this),
 			            onFailure: function (resp){
-						 	Mojo.Log.error('Fail : ' + Object.toJSON(resp));
+						 	logthis('Fail : ' + Object.toJSON(resp));
 						 	this.controller.get("uploadButton").mojo.deactivate();
 							Mojo.Controller.getAppController().showBanner("Error uploading photo!", {source: 'notification'});
 						 	this.controller.stageController.popScene("flickr-upload");
@@ -204,7 +204,7 @@ FlickrUploadAssistant.prototype.tweetphotoUpload = function() {
 			        this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
             			method: 'upload',
 			            parameters: {
-            			    'url': "http://tweetphotoapi.com/api/upload.aspx",
+            			    'url': "http://api.plixi.com/api/upload.aspx",
 			                'fileLabel': 'media',
             			    'fileName': this.fileName,
 			                'postParameters': params,
@@ -212,7 +212,7 @@ FlickrUploadAssistant.prototype.tweetphotoUpload = function() {
 			            },
             			onSuccess: function (resp,j){
 						 	if(resp.responseString){
-							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
+							 	logthis('Success : ' + Object.toJSON(resp));
 							 	this.controller.get("uploadButton").mojo.deactivate();
 							 	this.controller.showAlertDialog({
 								     onChoose: function(value) {this.controller.stageController.popScene("flickr-upload");},
@@ -227,7 +227,7 @@ FlickrUploadAssistant.prototype.tweetphotoUpload = function() {
 							}
 					  	}.bind(this),
 			            onFailure: function (resp){
-						 	Mojo.Log.error('Fail : ' + Object.toJSON(resp));
+						 	logthis('Fail : ' + Object.toJSON(resp));
 						 	this.controller.get("uploadButton").mojo.deactivate();
 							Mojo.Controller.getAppController().showBanner("Error uploading photo!", {source: 'notification'});
 						 	this.controller.stageController.popScene("flickr-upload");
@@ -247,7 +247,7 @@ FlickrUploadAssistant.prototype.flickrUpload = function() {
 	var api_key=_globals.flickr_key;
 	var auth_token=_globals.flickr_token;
 	var presig=_globals.flickr_secret+"api_key"+api_key+"auth_token"+auth_token+"description"+pdesc+"format"+format+"nojsoncallback"+nojsoncallback+"tags"+ptags+"title"+ptitle;
-	Mojo.Log.error(presig);
+	logthis(presig);
 	var api_sig=hex_md5(presig);
 	
 	var params={
@@ -285,7 +285,7 @@ FlickrUploadAssistant.prototype.flickrUpload = function() {
             },
             onSuccess: function (resp){
 						 	if(resp.responseString){
-							 	Mojo.Log.error('Success : ' + Object.toJSON(resp));
+							 	logthis('Success : ' + Object.toJSON(resp));
 							 	this.controller.get("uploadButton").mojo.deactivate();
 							 	this.controller.showAlertDialog({
 								     onChoose: function(value) {this.controller.stageController.popScene("flickr-upload");},
@@ -300,7 +300,7 @@ FlickrUploadAssistant.prototype.flickrUpload = function() {
 							}
 	  	}.bind(this),
             onFailure: function (e){
-	  				Mojo.Log.error('Failure : ' + Object.toJSON(resp));
+	  				logthis('Failure : ' + Object.toJSON(resp));
 					Mojo.Controller.getAppController().showBanner("Error uploading photo!", {source: 'notification'});
 			 	this.controller.stageController.popScene("flickr-upload");
 	  				

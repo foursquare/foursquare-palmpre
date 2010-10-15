@@ -12,19 +12,10 @@ DupeVenueAssistant.prototype.setup = function(widget) {
 	this.sceneAssistant.controller.setupWidget('results-venue-list', 
 					      {itemTemplate:'listtemplates/venueItemsThin'},
 					      this.resultsModel);
-	Mojo.Event.listen(this.sceneAssistant.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
-
-/*	var url = 'http://api.foursquare.com/v1/venues.json';
-	var auth = _globals.auth;
+	this.listWasTappedBound=this.listWasTapped.bind(this);
 	
-	var request = new Ajax.Request(url, {
-	   method: 'get',
-	   evalJSON: 'force',
-	   requestHeaders: {Authorization: auth}, 
-	   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude, q:this.query},
-	   onSuccess: this.venueSuccess.bind(this),
-	   onFailure: this.venueFailed.bind(this)
-	 });*/
+	Mojo.Event.listen(this.sceneAssistant.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTappedBound);
+
 	 
 	 foursquareGet(this.sceneAssistant,{
 	 	endpoint: 'venues.json',
@@ -44,35 +35,25 @@ DupeVenueAssistant.prototype.listWasTapped = function(event) {
 };
 
 DupeVenueAssistant.prototype.venueSuccess = function(response) {
-	Mojo.Log.error("Venue success");
-	Mojo.Log.error(response.responseText);
+	logthis("Venue success");
+	logthis(response.responseText);
 	if (response.responseJSON == undefined || (response.responseText=='{"venues":null}')) {
-		//this.controller.get('message').innerHTML = 'No Results Found';
-		Mojo.Log.error("no results");
-		//this.controller.get("spinnerId").mojo.stop();
-		//this.controller.get("spinnerId").hide();
-		//this.controller.get("resultListBox").style.display = 'block';
-		//this.controller.get("noresults").show();
+		logthis("no results");
 	}
 	else {
-		Mojo.Log.error("got some results!");
-		//this.controller.get("spinnerId").mojo.stop();
-		//this.controller.get("spinnerId").hide();
-		//this.sceneAssistant.controller.get("resultListBox").style.display = 'block';
-		//this.controller.get("noresults").hide();
-		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
+		logthis("got some results!");
 		this.venueList = [];
 
 		
 		if(response.responseJSON.groups[0] != undefined) { //actually got some venues
-			Mojo.Log.error("gonna loop groups");
+			logthis("gonna loop groups");
 			this.setvenues=true;
 			for(var g=0;g<response.responseJSON.groups.length;g++) {
 				var varray=response.responseJSON.groups[g].venues;
 				var grouping=response.responseJSON.groups[g].type;
-				Mojo.Log.error("in group loop");
+				logthis("in group loop");
 				for(var v=0;v<varray.length;v++) {
-					Mojo.Log.error("in venue group");
+					logthis("in venue group");
 					this.venueList.push(varray[v]);
 					var dist=this.venueList[this.venueList.length-1].distance;
 					
@@ -86,7 +67,7 @@ DupeVenueAssistant.prototype.venueSuccess = function(response) {
 						var unit="";
 						if(dist==1){unit="KM";}else{unit="KM";}						
 					}
-					Mojo.Log.error("did distance");
+					logthis("did distance");
 					
 					//handle people here
 					var herenow=(this.venueList[this.venueList.length-1].stats)? this.venueList[this.venueList.length-1].stats.herenow: 0;
@@ -95,29 +76,29 @@ DupeVenueAssistant.prototype.venueSuccess = function(response) {
 					}else{
 						this.venueList[this.venueList.length-1].peopleicon="off";
 					}
-					Mojo.Log.error("did people here");
+					logthis("did people here");
 					
 					//handle empty category
 					if(this.venueList[this.venueList.length-1].primarycategory==undefined){
 						this.venueList[this.venueList.length-1].primarycategory={};
 						this.venueList[this.venueList.length-1].primarycategory.iconurl="images/no-cat.png";
 					}
-					Mojo.Log.error("did no category");
+					logthis("did no category");
 					
 					this.venueList[this.venueList.length-1].distance=dist;
 					this.venueList[this.venueList.length-1].unit=unit;
 				}
 			}
-			Mojo.Log.error("done looping");
+			logthis("done looping");
 			this.resultsModel.items =this.venueList;
 			this.sceneAssistant.controller.modelChanged(this.resultsModel);
-			Mojo.Log.error("set items");
+			logthis("set items");
 		}
 	}
 
 };
 DupeVenueAssistant.prototype.venueFailed = function(event) {
-Mojo.Log.error("venue failed");
+logthis("venue failed");
 }
 
 DupeVenueAssistant.prototype.activate = function(event) {
@@ -131,5 +112,5 @@ DupeVenueAssistant.prototype.deactivate = function(event) {
 };
 
 DupeVenueAssistant.prototype.cleanup = function(event) {
-	Mojo.Event.stopListening(this.sceneAssistant.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTapped.bind(this));
+	Mojo.Event.listen(this.sceneAssistant.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTappedBound);
 };

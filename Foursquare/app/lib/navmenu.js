@@ -17,6 +17,7 @@ var NavMenu={
 				this.document=that.controller.document;
 				this.stageController=that.controller.stageController;
 				this.that=that;
+				NavMenu.showing=false;
 				NavMenu.theMenu=this.document.getElementById('fsq-navmenu');
 				NavMenu.scrim=this.document.getElementById('menu-panel-scrim');
 		logthis("setup vars");
@@ -117,7 +118,7 @@ var NavMenu={
 			[
 				{title: 'Shout', command: 'do-Shout', icon: 'images/menu/button-shout.png', class: 'normal'},
 				{title: 'Profile', command: 'do-Profile', icon: 'images/menu/button-profile.png', class: 'normal'},
-				{title: 'Scores', command: 'do-Leaderboard', icon: 'images/menu/button-scores.png', class: 'normal'}
+				{title: 'To-Do', command: 'do-Todos', icon: 'images/menu/button-todo.png', class: 'normal'}
 			]
 			
 			],
@@ -180,6 +181,8 @@ var NavMenu={
 					var vm=this.document.querySelector('.navbar-menu .palm-menu-group');
 					vm.removeClassName("grid");
 //					if(callback!=undefined){callback();}
+					NavMenu.showing=false;
+
 				},
 	showMenu: function(){
 					NavMenu.theMenu.style.display="block";
@@ -188,11 +191,14 @@ var NavMenu={
 					
 					var vm=this.document.querySelector('.navbar-menu .palm-menu-group');
 					vm.addClassName("grid");
+					NavMenu.showing=true;
 				},
 	toggleMenu: function(){
 					if(parseInt(NavMenu.theMenu.style.top)==NavMenu.menuPanelHiddenTop){
+						NavMenu.showing=true;
 						this.showMenu();
 					}else{
+						NavMenu.showing=false;
 						this.hideMenu();
 					}
 				},

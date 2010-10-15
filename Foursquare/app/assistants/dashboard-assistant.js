@@ -1,10 +1,10 @@
 function DashboardAssistant(feedlist) {
     this.list = feedlist;
    // this.index = selectedFeedIndex;
-   Mojo.Log.error("item 0="+Object.toJSON(this.list[0]));
+   logthis("item 0="+Object.toJSON(this.list[0]));
    var lname=(this.list[0].user.lastname)? this.list[0].user.lastname: "";
     this.title = this.list[0].user.firstname + " " + lname;
-    Mojo.Log.error("this.title="+this.title);
+    logthis("this.title="+this.title);
     if(this.list[0].venue != undefined){ //normal checkin
     	this.message="@ " + this.list[0].venue.name;
     }else if(this.list[0].shout!=undefined){ //just a shout
@@ -12,7 +12,7 @@ function DashboardAssistant(feedlist) {
     }else{ //private checkin [off the grid]
     	this.message="Checked-in somewhere";
     }
-    Mojo.Log.error("this.message="+this.message);
+    logthis("this.message="+this.message);
     this.count = this.list.length;
     
 	this.autoclose=new Mojo.Model.Cookie("autoclose");
@@ -54,13 +54,13 @@ DashboardAssistant.prototype.cleanup = function() {
 };
  
 DashboardAssistant.prototype.activateStage = function() {
-    Mojo.Log.info("Dashboard stage Activation");
+    logthis("Dashboard stage Activation");
     this.storyIndex = 0;
     this.showStory();
 };
  
 DashboardAssistant.prototype.deactivateStage = function() {
-    Mojo.Log.info("Dashboard stage Deactivation");
+    logthis("Dashboard stage Deactivation");
     this.stopShowStory();
 };
  
@@ -73,7 +73,7 @@ DashboardAssistant.prototype.displayDashboard = function(title, message, count) 
 };
  
 DashboardAssistant.prototype.launchMain = function() {
-    Mojo.Log.info("Tap to Dashboard");
+    logthis("Tap to Dashboard");
     var appController = Mojo.Controller.getAppController();
     appController.assistant.handleLaunch({action: "notification"});
     this.controller.window.close();
@@ -82,7 +82,7 @@ DashboardAssistant.prototype.launchMain = function() {
 // showStory - rotates stories shown in dashboard panel, every 3 seconds.
 // Only displays unread stories
 DashboardAssistant.prototype.showStory = function() {
-    Mojo.Log.info("Dashboard Story Rotation", this.timer, this.storyIndex);
+    logthis("Dashboard Story Rotation", this.timer, this.storyIndex);
  
     this.interval = 3000;
     // If timer is null, just restart the timer and use the most recent story

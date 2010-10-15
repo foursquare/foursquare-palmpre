@@ -1,20 +1,33 @@
 function UserInfoAssistant(a,u,ps,ff) {
 	   this.auth=_globals.auth;
 	   this.uid=u;
+	 	if(this.uid==_globals.uid){
+	 		this.uid='';
+	 	}
 	   this.prevScene=ps;
 	   this.fromFriends=ff;
+
+		if(this.uid=="" || this.uid==undefined || this.uid==_globals.uid){
+			this.isself=true;
+			this.uid=_globals.uid;
+		}else{
+			this.isself=false;
+		}
+		
+		this.inOverview=true;
+
+
+		this.userDone=false;
+		this.friendsDone=false;
+		this.tipsDone=false;
 }
+
+UserInfoAssistant.prototype.aboutToActivate = function(callback) {
+	callback.defer();     //makes the setup behave like it should.
+};
 
 UserInfoAssistant.prototype.setup = function() {
 	if(!this.fromFriends){
-    /*this.controller.setupWidget(Mojo.Menu.commandMenu,
-    	this.attributes = {
-	        spacerHeight: 0,
-        	menuClass: 'fsq-fade'
-    	},
-	    _globals.cmmodel
-	);*/
-    
 	}
 	this.resultsModel = {items: [], listTitle: $L('Results')};
     
@@ -59,33 +72,17 @@ UserInfoAssistant.prototype.setup = function() {
        _globals.ammodel);
          
          
- /*	if(this.fromFriends){
-    this.controller.setupWidget("tabButtons",
+    this.controller.setupWidget("friendToggle",
         this.tabAttributes = {
-            choices: [
-                {label: "Info", value: 3},
-                {label: "Friends", value: 2}
-            ]
-        },
-        this.tabModel = {
-            value: 3,
-            disabled: false
-        }
-    );
-    }else{
-    this.controller.setupWidget("tabButtons",
-        this.tabAttributes = {
-            choices: [
-                {label: "History", value: 1},
-                {label: "Friends", value: 2}
-            ]
+
         },
         this.tabModel = {
             value: 1,
-            disabled: false
-        }
-    );    
-    }*/
+            disabled: false,
+            choices: [
+                {label: "Friends", value: 1}
+            ]        }
+    );
     
     if(this.fromFriends){
     	var cm_items=[
@@ -108,24 +105,6 @@ UserInfoAssistant.prototype.setup = function() {
     }
     
     
-    this.controller.setupWidget(Mojo.Menu.commandMenu,
-    	this.attributes = {
-	        spacerHeight: 0,
-        	menuClass: 'fsq-fade'
-    	},
-		this.cmdMenuModel = {
-          	visible: true,
-        	items: [ 
-                 {
-                 items: cm_items,
-    	         toggleCmd: tog
-    	         }
-                 
-                 ]
-    });
-
-	
-
 	this.mayorshipModel = {items: [], listTitle: $L('Results')};
 	this.controller.setupWidget('mayorshipList', 
 					      {itemTemplate:'listtemplates/venueItemsLimited', formatter:{primarycategory:this.fixIcon.bind(this)}},
@@ -135,22 +114,49 @@ UserInfoAssistant.prototype.setup = function() {
 	this.controller.setupWidget('checkinHistory', 
 					      {itemTemplate:'listtemplates/venueItemsShout'},
 					      this.historyModel);
+	this.tipsModel = {items: [], listTitle: $L('Results')};
+	this.controller.setupWidget('user-tips', 
+					      {itemTemplate:'listtemplates/userTips'},
+					      this.tipsModel);
 
 
-	Mojo.Event.listen(this.controller.get('mayorshipList'),Mojo.Event.listTap, this.listWasTapped.bind(this));
-	Mojo.Event.listen(this.controller.get('checkinHistory'),Mojo.Event.listTap, this.historyListWasTapped.bind(this));
-
-	Mojo.Event.listen(this.controller.get('user-mayorinfo'),Mojo.Event.tap, this.showMayorInfo.bind(this));
-	Mojo.Event.listen(this.controller.get('user-badgeinfo'),Mojo.Event.tap, this.showBadgeInfo.bind(this));
-	Mojo.Event.listen(this.controller.get("tabButtons"), Mojo.Event.propertyChange, this.handleTabs.bind(this));
-	Mojo.Event.listen(this.controller.get('friendsList'),Mojo.Event.listTap, this.friendTapped.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.get('friendsResultsList'),Mojo.Event.listTap, this.friendTapped.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.get('infoList'),Mojo.Event.listTap, this.infoTapped.bindAsEventListener(this));
-	Mojo.Event.listen(this.controller.get('friendsList'),Mojo.Event.listAdd, this.addFriends.bind(this));
+	this.listWasTappedBound=this.listWasTapped.bind(this);
+	this.historyListWasTappedBound=this.historyListWasTapped.bind(this);
+	this.showMayorInfoBound=this.showMayorInfo.bind(this);
+	this.showBadgeInfoBound=this.showBadgeInfo.bind(this);
+	this.showTipInfoBound=this.showTipInfo.bind(this);
+	this.friendTappedBound=this.friendTapped.bindAsEventListener(this);
+	this.infoTappedBound=this.infoTapped.bindAsEventListener(this);
+	this.tipTappedBound=this.tipTapped.bindAsEventListener(this);
+	this.addFriendsBound=this.addFriends.bind(this);
+	this.enlargeAvatarBound=this.enlargeAvatar.bind(this);
+	this.toggleFriendsBound=this.toggleFriends.bind(this);
+	this.showHistoryBound=this.showHistory.bind(this);
+	this.showFriendsBound=this.showFriends.bind(this);
+	this.showInfoBound=this.showInfo.bind(this);
+	this.showLeaderboardBound=this.showLeaderboard.bind(this);
+	this.showBadgeTipBound=this.showBadgeTip.bind(this);
+	
+	Mojo.Event.listen(this.controller.get('mayorshipList'),Mojo.Event.listTap, this.listWasTappedBound);
+	Mojo.Event.listen(this.controller.get('checkinHistory'),Mojo.Event.listTap, this.historyListWasTappedBound);
+	Mojo.Event.listen(this.controller.get('user-mayorinfo'),Mojo.Event.tap, this.showMayorInfoBound);
+	Mojo.Event.listen(this.controller.get('user-badgeinfo'),Mojo.Event.tap, this.showBadgeInfoBound);
+	Mojo.Event.listen(this.controller.get('user-tipinfo'),Mojo.Event.tap, this.showTipInfoBound);
+	Mojo.Event.listen(this.controller.get('friendsList'),Mojo.Event.listTap, this.friendTappedBound);
+	Mojo.Event.listen(this.controller.get('friendsResultsList'),Mojo.Event.listTap, this.friendTappedBound);
+	Mojo.Event.listen(this.controller.get('infoList'),Mojo.Event.listTap, this.infoTappedBound);
+	Mojo.Event.listen(this.controller.get('user-tips'),Mojo.Event.listTap, this.tipTappedBound);
+	Mojo.Event.listen(this.controller.get('friendsList'),Mojo.Event.listAdd, this.addFriendsBound);
+	Mojo.Event.listen(this.controller.get("userPic"),Mojo.Event.tap, this.enlargeAvatarBound);
+	Mojo.Event.listen(this.controller.get("friendToggle"), Mojo.Event.propertyChange, this.toggleFriendsBound);
+	Mojo.Event.listen(this.controller.get("checkins-row"),Mojo.Event.tap, this.showHistoryBound);
+	Mojo.Event.listen(this.controller.get("friends-row"),Mojo.Event.tap, this.showFriendsBound);
+	Mojo.Event.listen(this.controller.get("more-row"),Mojo.Event.tap, this.showInfoBound);
+	Mojo.Event.listen(this.controller.get("leaderboard-row"),Mojo.Event.tap, this.showLeaderboardBound);
 
 	this.controller.get("uhistory").hide();
 	if(this.fromFriends){
-		this.controller.get("uinfo").show();
+		//this.controller.get("uinfo").show();
 	}
 
 	_globals.ammodel.items[0].disabled=true;
@@ -159,6 +165,16 @@ UserInfoAssistant.prototype.setup = function() {
 	if (this.fromFriends){
 		//this.controller.get("tooltip").style.bottom="10px";
 	}
+	
+	
+	if(this.isself){
+		this.controller.get("more-row").hide();
+		this.controller.get("leaderboard-row").show();
+	}else{
+		this.controller.get("checkins-row").hide();
+	}
+	
+	logthis("friends="+Object.toJSON(_globals.friendList));
 }
 
 var auth;
@@ -167,6 +183,17 @@ function make_base_auth(user, pass) {
   var hash = Base64.encode(tok);
   return "Basic " + hash;
 }
+
+UserInfoAssistant.prototype.showLeaderboard = function(event) {
+	this.controller.stageController.pushScene({name: "leaderboard", transition: Mojo.Transition.crossFade},_globals.auth,"",this);
+
+};
+
+UserInfoAssistant.prototype.enlargeAvatar = function(event) {
+	this.controller.get("userPic").toggleClassName("bigavatar");
+	logthis("has="+this.controller.get("userPic").hasClassName("bigavatar"));
+};
+
 UserInfoAssistant.prototype.fixIcon = function(value,model) {
 	if(value==undefined){
 		return {iconurl:"images/no-cat.png"};
@@ -175,24 +202,37 @@ UserInfoAssistant.prototype.fixIcon = function(value,model) {
 	}
 }
 UserInfoAssistant.prototype.getUserInfo = function() {
-/*		var url = 'http://api.foursquare.com/v1/user.json';
-		auth=_globals.auth;
-		var request = new Ajax.Request(url, {
-	   		method: 'get',
-	   		evalJSON: 'force',
-	   		requestHeaders: {Authorization:auth},
-	   		parameters: {uid:this.uid,badges: '1', mayor: '1'},
-	   		onSuccess: this.getUserInfoSuccess.bind(this),
-	   		onFailure: this.getUserInfoFailed.bind(this)
-	 	});*/
 	 	
 	 	foursquareGet(this,{
 	 		endpoint: 'user.json',
 	 		requiresAuth: true,
-	 		parameters: {uid:this.uid,badges: '1', mayor: '1'},
+	 		parameters: {uid:this.uid,badges: '1', mayor: '1',stats: '1'},
 	   		onSuccess: this.getUserInfoSuccess.bind(this),
 	   		onFailure: this.getUserInfoFailed.bind(this)
 	 	});
+	 	
+	/* 	var uid=this.uid;
+	 	if(this.uid=='' || this.uid==undefined){
+	 		uid=_globals.uid;
+	 	}
+
+	 	foursquareGet(this,{
+	 		endpoint: 'tips.json?uid='+uid+'&sort=recent',
+	 		requiresAuth: true,
+	 		debug:true,
+	 		parameters: {},
+	   		onSuccess: this.getTipsSuccess.bind(this),
+	   		onFailure: this.getTipsFailed.bind(this)
+	 	});
+
+		 foursquareGet(this,{
+		 	endpoint: 'friends.json',
+		 	requiresAuth: true,
+		 	parameters: {uid:uid},
+			onSuccess: this.getFriendsSuccess.bind(this),
+		    onFailure: this.getFriendsFailed.bind(this)		 	
+		 });*/
+
 }
 
 UserInfoAssistant.prototype.relativeTime = function(offset){
@@ -209,17 +249,97 @@ UserInfoAssistant.prototype.relativeTime = function(offset){
     else if ($R(86400,525599).include(distanceInMinutes)) {return 'about ' + (distanceInMinutes / 43200).round() + ' months'; }
     else if ($R(525600,1051199).include(distanceInMinutes)) {return 'about a year';}
     else return 'over ' + (distanceInMinutes / 525600).round() + ' years';
-  }
+};
 
+UserInfoAssistant.prototype.getTipsSuccess = function(r){
+	this.tipsResponse=r;
+	var j=r.responseJSON;
+	var tarray=j.tips;
+	
+	this.controller.get("tipcount").update(tarray.length);
+
+	this.tipsList=[];
+	this.tipsItems=[];
+	
+	for(var t=0;t<tarray.length;t++){
+		logthis("in array");
+		this.tipsList.push(tarray[t]);
+		var dist=this.tipsList[this.tipsList.length-1].distance;
+		logthis("got distance");
+		if(_globals.units=="si") {					
+			var amile=0.000621371192;
+			dist=roundNumber(dist*amile,1);
+			var unit="";
+			if(dist==1){unit="mile";}else{unit="miles";}
+		}else if(_globals.units=="metric"){
+			dist=roundNumber(dist/1000,1);
+			var unit="";
+			if(dist==1){unit="KM";}else{unit="KM";}						
+		}else{
+			if(dist==1){unit="m";}else{unit="m";}						
+		}
+		logthis("converted distance");
+		this.tipsList[this.tipsList.length-1].distance=dist;
+		this.tipsList[this.tipsList.length-1].unit=unit;
+		
+		var created=this.tipsList[this.tipsList.length-1].created;
+		if(this.tipsList[this.tipsList.length-1].created != undefined) {
+			var now = new Date;
+			var later = new Date(this.tipsList[this.tipsList.length-1].created);
+			var offset = later.getTime() - now.getTime();
+			var when=this.relativeTime(offset) + " ago";
+		}else{
+		   	var when="";
+		}
+		this.tipsList[this.tipsList.length-1].when=when;
+		
+		logthis("handled time");
+		
+		this.tipsList[this.tipsList.length-1].user=this.user;
+		
+		
+		if(this.tipsList[this.tipsList.length-1].status){
+			if(this.tipsList[this.tipsList.length-1].status=="todo"){
+				this.tipsList[this.tipsList.length-1].dogear="block";
+			}else{
+				this.tipsList[this.tipsList.length-1].dogear="none";
+			}
+		}else{
+			this.tipsList[this.tipsList.length-1].dogear="none";
+		}
+		logthis("handled status");
+
+		
+			this.tipsList[this.tipsList.length-1].candelete=false;	
+			this.tipsItems.push(this.tipsList[this.tipsList.length-1]);
+	}
+	
+	this.tipsModel.items=this.tipsItems;
+	this.controller.modelChanged(this.tipsModel);
+	this.tipsDone=true;
+	this.checkDone();
+};
+
+UserInfoAssistant.prototype.tipTapped = function(event){
+	event.item.user=this.user;
+	this.controller.stageController.pushScene({name:"view-tip",transition:Mojo.Transition.zoomFade},[{tip:event.item}],undefined,true);
+};
+
+UserInfoAssistant.prototype.getTipsFailed = function(r){
+	this.tipsDone=true;
+	this.checkDone();
+
+};
 
 UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	var j=response.responseJSON;
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 
-Mojo.Log.error("uid="+this.uid);
-//Mojo.Log.error(response.responseText);
+logthis("uid="+this.uid);
+//logthis(response.responseText);
 
+	this.user=j.user;
 	this.info=[];
 	//user info
 	this.controller.get("userPic").src=j.user.photo;
@@ -237,7 +357,7 @@ Mojo.Log.error("uid="+this.uid);
 	}
 		
 	var fb=(j.user.facebook != undefined)? '<span class="linefix"><img src="images/facebook.png" width="16" height="16" /> <a id="facebook_button" class="vtag" href="http://facebook.com/profile.php?id='+j.user.facebook+'">Facebook Profile</a></span><br/>': "";
-		Mojo.Log.error("facebook html stuff done");
+		logthis("facebook html stuff done");
 	if(j.user.facebook != undefined && this.fromFriends){//show facebook
 		var itm={};
 		itm.icon="images/facebook_32.png";
@@ -280,7 +400,7 @@ Mojo.Log.error("uid="+this.uid);
 	if(this.uid != "") { //only show friending options if it's not yourself
 	var friendstatus=(j.user.friendstatus != undefined)? j.user.friendstatus: "";
 	
-	Mojo.Log.error("fiend status grabbed");
+	logthis("fiend status grabbed");
 
 	switch (friendstatus) {
 		case "friend":
@@ -326,7 +446,7 @@ Mojo.Log.error("uid="+this.uid);
 		var fs="";
 	}	
 	
-	Mojo.Log.error("handled f status");
+	logthis("handled f status");
 	//fs='<span id="friend_button">'+fs+'</span>';
 	if(j.user.settings!=undefined){
 	this.getpings=j.user.settings.get_pings;
@@ -349,7 +469,7 @@ Mojo.Log.error("uid="+this.uid);
 	}
 	}
 
-Mojo.Log.error("handled pings");
+logthis("handled pings");
 
 
 	this.infoModel.items=this.info;
@@ -367,22 +487,10 @@ Mojo.Log.error("handled pings");
 		this.controller.get("userCity").innerHTML = s + v;
 	}
 	
-		Mojo.Log.error("checkin info set");
+		logthis("checkin info set");
 		
-	//this.controller.get("userInfo").innerHTML+=em+ph+tw+fb+fs;
 	if(j.user.checkin != undefined) {
 	}
-	//assign events to the new button(s)
-/*	if(friendstatus=="pendingyou") {
-		Mojo.Event.listen(this.controller.get("approvefriend"),Mojo.Event.tap,this.approveFriend.bind(this));
-		Mojo.Event.listen(this.controller.get("denyfriend"),Mojo.Event.tap,this.denyFriend.bind(this));
-	}
-	if(friendstatus=="") {
-		Mojo.Event.listen(this.controller.get("addfriend"),Mojo.Event.tap,this.addFriend.bind(this));
-	}
-
-
-	Mojo.Log.error("###handled friendship buttons");*/
 
 	//user's mayorships
 	if(j.user.mayor != null && j.user.mayor != undefined && j.user.mayor.length>0) {
@@ -428,7 +536,6 @@ Mojo.Log.error("handled pings");
 			var pclass=peelclasses[rn];
 			
 			
-			//o += '<td align="center" width="25%" class="medium-text"><img data="'+j.user.badges[m].description+'" id="badge-'+m+'" src="'+j.user.badges[m].icon+'" width="48" height="48"/><br/>'+j.user.badges[m].name+'</td>';
 			o+='<div class="badge sticker"><div class="badgeoverlay '+pclass+'"></div><div class="badgecontent"><img data="'+j.user.badges[m].description+'" id="badge-'+m+'" src="'+j.user.badges[m].icon+'" width="48" height="48" class="'+iclass+'"/><br/>'+j.user.badges[m].name+'</div></div>';
 			if(id==4) {
 				o += '<br class="breaker-small">';
@@ -440,39 +547,65 @@ Mojo.Log.error("handled pings");
 		//hook tooltip event to each badge
 		this.badges_len=j.user.badges.length;
 		for(var b=0;b<j.user.badges.length;b++){
-			Mojo.Event.listen(this.controller.get('badge-'+b),Mojo.Event.tap, this.showBadgeTip.bind(this));
+			Mojo.Event.listen(this.controller.get('badge-'+b),Mojo.Event.tap, this.showBadgeTipBound);
 		}
 	}else{
-		//this.controller.get("badges-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>'+j.user.firstname+' doesn\'t have any badges in '+credentials.city+' yet.</span></div></div>';
 		this.controller.get("badges-notice").innerHTML=j.user.firstname+' doesn\'t have any badges yet.';
 		this.controller.get("badges-notice").show();
 		this.controller.get("badgecount").innerHTML="0";	
 	}
 
 
+
+
+	//handle extra stats
+	this.controller.get("checkin-count").update(j.user.checkincount+" check-ins");
+	var friendcount=j.user.friendcount;
+	var ficcount=0;
+	var avatars='';
+	if(j.user.friendsincommon){
+		ficcount=j.user.friendsincommon.length;
+		for(var f=0;f<ficcount;f++){
+			avatars+='<img width="32" height="32" src="'+j.user.friendsincommon[f].photo+'" class="friend-avatar">';
+		}
+	}
+	var	friendtext=friendcount+" friends";
+	if(ficcount>0){
+		friendtext+=" ("+ficcount+" in common)";
+	}
+	this.controller.get("friends-count").update(friendtext);
+	this.controller.get("friends-avatars").update(avatars);
+	this.controller.get("tipcount").update(j.user.tipcount);
+
 	//if logged in user, show checkin history
 	if(this.uid == "") {
 		this.getHistory();
 	}else{
-		this.controller.get("userScrim").hide();
-		this.controller.get("userSpinner").mojo.stop();
-		this.controller.get("userSpinner").hide();
+		this.userDone=true;
+		this.checkDone();
+
 	}
 
 }
 
 UserInfoAssistant.prototype.getUserInfoFailed = function(response) {
-	Mojo.Log.error(response.responseText);
+	logthis(response.responseText);
 	Mojo.Controller.getAppController().showBanner("Error getting the user's info.", {source: 'notification'});
+
+	this.userDone=true;
+	this.checkDone();
 
 }
 
 
 UserInfoAssistant.prototype.showMayorInfo = function(event) {
-	this.cmdMenuModel.items[0].toggleCmd="";
-	this.controller.modelChanged(this.cmdMenuModel);
+	var scroller=this.controller.getSceneScroller();
+	scroller.mojo.revealTop();
 
+	this.inOverview=false;
+	this.controller.get("overview").hide();
 	this.controller.get("uinfo").hide();
+	this.controller.get("utips").hide();
 	this.controller.get("uhistory").hide();
 	this.controller.get("ubadges").hide();
 	this.controller.get("ufriends").hide();
@@ -481,11 +614,15 @@ UserInfoAssistant.prototype.showMayorInfo = function(event) {
 	//this.tabModel.value=0;
 	this.controller.modelChanged(this.tabModel);
 }
-UserInfoAssistant.prototype.showBadgeInfo = function(event) {
-	this.cmdMenuModel.items[0].toggleCmd="";
-	this.controller.modelChanged(this.cmdMenuModel);
 
+UserInfoAssistant.prototype.showBadgeInfo = function(event) {
+	var scroller=this.controller.getSceneScroller();
+	scroller.mojo.revealTop();
+
+	this.inOverview=false;
+	this.controller.get("overview").hide();
 	this.controller.get("uinfo").hide();
+	this.controller.get("utips").hide();
 	this.controller.get("uhistory").hide();
 	this.controller.get("ubadges").show();
 	this.controller.get("mayorof").hide();
@@ -494,6 +631,121 @@ UserInfoAssistant.prototype.showBadgeInfo = function(event) {
 	//this.tabModel.value=0;
 	this.controller.modelChanged(this.tabModel);
 }
+
+UserInfoAssistant.prototype.showTipInfo = function(event) {
+	this.startLoader();
+	var scroller=this.controller.getSceneScroller();
+	scroller.mojo.revealTop();
+
+	this.inOverview=false;
+	this.controller.get("overview").hide();
+	this.controller.get("uinfo").hide();
+	this.controller.get("utips").show();
+	this.controller.get("uhistory").hide();
+	this.controller.get("ubadges").hide();
+	this.controller.get("mayorof").hide();
+	this.controller.get("ufriends").hide();
+	this.controller.get("ufriendsresults").hide();
+	//this.tabModel.value=0;
+	this.controller.modelChanged(this.tabModel);
+	
+	if(!this.tipsList){
+	 	foursquareGet(this,{
+	 		endpoint: 'tips.json?uid='+this.uid+'&sort=recent',
+	 		requiresAuth: true,
+	 		debug:true,
+	 		parameters: {},
+	   		onSuccess: this.getTipsSuccess.bind(this),
+	   		onFailure: this.getTipsFailed.bind(this)
+	 	});
+	}else{
+		this.getTipsSuccess(this.tipsResponse);
+	}
+}
+
+UserInfoAssistant.prototype.showOverview = function(event) {
+	var scroller=this.controller.getSceneScroller();
+	scroller.mojo.revealTop();
+
+	this.inOverview=true;
+	this.controller.get("overview").show();
+	this.controller.get("uinfo").hide();
+	this.controller.get("utips").hide();
+	this.controller.get("uhistory").hide();
+	this.controller.get("ubadges").hide();
+	this.controller.get("mayorof").hide();
+	this.controller.get("ufriends").hide();
+	this.controller.get("ufriendsresults").hide();
+	//this.tabModel.value=0;
+	this.controller.modelChanged(this.tabModel);
+}
+
+UserInfoAssistant.prototype.showHistory = function(event) {
+	this.startLoader();
+	this.getHistory();
+
+	var scroller=this.controller.getSceneScroller();
+	scroller.mojo.revealTop();
+
+	this.inOverview=false;
+	this.controller.get("overview").hide();
+	this.controller.get("uinfo").hide();
+	this.controller.get("utips").hide();
+	this.controller.get("uhistory").show();
+	this.controller.get("ubadges").hide();
+	this.controller.get("mayorof").hide();
+	this.controller.get("ufriends").hide();
+	this.controller.get("ufriendsresults").hide();
+	//this.tabModel.value=0;
+	this.controller.modelChanged(this.tabModel);
+}
+UserInfoAssistant.prototype.showFriends = function(event) {
+	this.startLoader();
+	var scroller=this.controller.getSceneScroller();
+	scroller.mojo.revealTop();
+
+	this.inOverview=false;
+	this.controller.get("overview").hide();
+	this.controller.get("uinfo").hide();
+	this.controller.get("utips").hide();
+	this.controller.get("uhistory").hide();
+	this.controller.get("ubadges").hide();
+	this.controller.get("mayorof").hide();
+	this.controller.get("ufriends").show();
+	this.controller.get("ufriendsresults").hide();
+	//this.tabModel.value=0;
+	this.controller.modelChanged(this.tabModel);
+	if(!this.friendList){
+		 foursquareGet(this,{
+		 	endpoint: 'friends.json',
+		 	requiresAuth: true,
+		 	parameters: {uid:this.uid},
+			onSuccess: this.getFriendsSuccess.bind(this),
+		    onFailure: this.getFriendsFailed.bind(this)		 	
+		 });
+	}else{
+		this.getFriendsSuccess(this.friendsResponse);
+	}
+}
+UserInfoAssistant.prototype.showInfo = function(event) {
+	var scroller=this.controller.getSceneScroller();
+	scroller.mojo.revealTop();
+
+	this.inOverview=false;
+	this.controller.get("overview").hide();
+	this.controller.get("uinfo").show();
+	this.controller.get("utips").hide();
+	this.controller.get("uhistory").hide();
+	this.controller.get("ubadges").hide();
+	this.controller.get("mayorof").hide();
+	this.controller.get("ufriends").hide();
+	this.controller.get("ufriendsresults").hide();
+	//this.tabModel.value=0;
+	this.controller.modelChanged(this.tabModel);
+}
+
+
+
 UserInfoAssistant.prototype.handleTabs = function(what) {
 	this.controller.get("uinfo").hide();
 	this.controller.get("uhistory").hide();
@@ -516,6 +768,24 @@ UserInfoAssistant.prototype.handleTabs = function(what) {
 			break;
 	}
 }
+
+UserInfoAssistant.prototype.toggleFriends = function(event){
+	switch(event.value){
+		case 1: //friends
+			this.resultsModel.items=this.friendList;
+			this.controller.modelChanged(this.resultsModel);
+			break;
+		case 2: //mutual
+			this.resultsModel.items=this.isfriends;
+			this.controller.modelChanged(this.resultsModel);
+			break;
+		case 3: //requests
+			this.resultsModel.items=this.requestList;
+			this.controller.modelChanged(this.resultsModel);
+			break;
+	}
+};
+
 UserInfoAssistant.prototype.groupFriends = function(data){
 	return data.grouping;
 }
@@ -548,83 +818,185 @@ UserInfoAssistant.prototype.showBadgeTip = function(event){
 	this.tipto=setTimeout(function(){tip.hide();},3000);
 }
 
-UserInfoAssistant.prototype.showFriends = function(){
-
-		this.controller.get("userSpinner").mojo.start();
-		this.controller.get("userSpinner").show();
-
-		var u=this.uid || _globals.uid;
-
-		 
-		 foursquareGet(this,{
-		 	endpoint: 'friends.json',
-		 	requiresAuth: true,
-		 	parameters: {uid:u},
-			onSuccess: this.getFriendsSuccess.bind(this),
-		    onFailure: this.getFriendsFailed.bind(this)		 	
-		 });
-}
 UserInfoAssistant.prototype.getFriendsSuccess = function(response) {
-Mojo.Log.error(response.responseText);
+logthis(response.responseText);
+logthis("friends success");
 
+	this.friendsResponse=response;
 	if (response.responseJSON == undefined) {
 		this.controller.get('message').innerHTML = 'No Results Found';
+		logthis("no json");
 	}
 	else {
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.friendList = [];
 		
 		if(response.responseJSON.friends != undefined) {
+			logthis("got friends array");
+			var fc=response.responseJSON.friends.length;
+			var f=" friends";
+			if(fc==1){f=" friend";}
+			this.controller.get("friends-count").update(fc+f);
+			
+			this.isfriends=[];
+		
+			var isself=false;
+			if(this.uid!="" && this.uid!=undefined){ //uid has been passed, so from friends list or elsewhere
+				if(this.uid==_globals.uid){ //uid passed is not auth'd user, so we load mutual friends
+					isself=true;
+				}
+			}else{
+				isself=true;
+			}
+			logthis("found isself");
 			for(var f=0;f<response.responseJSON.friends.length;f++) {
+				if(response.responseJSON.friends[f].friendstatus=="friend" && !isself){
+					this.isfriends.push(response.responseJSON.friends[f]);
+					this.isfriends[this.isfriends.length-1].grouping="Mutual Friends";
+				}
 				this.friendList.push(response.responseJSON.friends[f]);
+				//logthis(Object.toJSON(response.responseJSON.friends[f]));
 				this.friendList[f].grouping="Friends";
 			}
+			logthis("looped throughf riends");
 		}
 		_globals.friendList=this.friendList;
+		_globals.friendList2=this.friendList;
 		this.resultsModel.items =this.friendList; //update list with basic user info
 		this.controller.modelChanged(this.resultsModel);
+		logthis("updated friends list model");
+
+		var avatars='';
+		var max=(this.isfriends.length>6)? 6: this.isfriends.length;
+		
+		if(this.isfriends.length>0){ //we have mutual friends
+			logthis("has mutual");
+			var mutualthere=false;
+			for(var t=0;t<this.tabModel.choices.length;t++){
+				if(this.tabModel.choices[t].label=="Mutual"){
+					mutualthere=true;
+				}
+			}
+			if(!mutualthere){this.tabModel.choices.push({label:"Mutual",value:2});}
+			logthis("added to model");
+			this.controller.modelChanged(this.tabModel);
+			logthis("modelchanged");
+
+			for(var f=0;f<max;f++){
+			logthis("in mutual loop");
+				avatars+='<img width="32" height="32" src="'+this.isfriends[f].photo+'" class="friend-avatar">';
+			}
+			logthis("out of mutual loop");
+			this.controller.get("friends-count").innerHTML+=' ('+this.isfriends.length+' in common)';
+		}
+		
+		if(max<6){
+			logthis("in max if");
+			var fmax=6-max;
+			if(fmax>this.friendList.length){fmax=this.friendList.length;}
+			logthis("set max");
+			for(var f=0;f<fmax;f++){
+				logthis("in other loop");
+				if(this.friendList[f].friendstatus!="friend" && this.friendList[f].friendstatus!="self"){
+					avatars+='<img width="32" height="32" src="'+this.friendList[f].photo+'" class="friend-avatar">';
+				}
+			}
+			logthis("out of other loop");
+		}
+		logthis("going to update div");
+				
+		this.controller.get("friends-avatars").update(avatars);
 	}
 	
 	//load pending friends
-	if(!this.fromFriends){
-		 
+	var getpending=false;
+	logthis("set getpending");
+	if(this.user){
+		logthis("user exists");
+		if(this.user.status!=undefined){
+			if(this.user.status.friendrequests!=undefined && this.user.status.friendrequests>0){
+			logthis("set pending true");
+				getpending=true;
+			}
+		}else{
+			getpending=false;
+		}
+	}else{
+		logthis("no user, setting true");
+		getpending=true; //get pending even if user info isnt downloaded as a safety
+	}
+	logthis("fgured out pending");
+	
+	this.tabModel.value=1;
+	this.controller.modelChanged(this.tabModel);
+	
+	if(getpending && !this.requestList){
+		this.requestList=[];
+		 logthis("getting pending");
+		this.tabModel.choices.push({label:"Requests",value:3});
+		this.controller.modelChanged(this.tabModel);
 		 foursquareGet(this,{
 		 	endpoint: 'friend/requests.json',
 		 	requiresAuth: true,
+		 	debug: true,
 			onSuccess: this.requestFriendsSuccess.bind(this),
 		    onFailure: this.getFriendsFailed.bind(this)
 		 });
+	}else if(getpending && this.requestList){
+		this.requestList=[];
+		this.requestFriendsSuccess(this.requestsResponse);
 	}else{
-		this.controller.get("userSpinner").hide();
+		//this.controller.get("userSpinner").hide();
+		logthis("not getting pending; done friends");
+		this.friendsDone=true;
+		this.checkDone();
+
 
 	}
 }
 
 
 UserInfoAssistant.prototype.requestFriendsSuccess = function(response){
+logthis("got requests");
+	this.requestsResponse=response;
 		if(response.responseJSON.requests != undefined && response.responseJSON.requests != null && response.responseJSON.requests.length>0) {
+			logthis("in request if");
 			for(var f=0;f<response.responseJSON.requests.length;f++) {
-				this.friendList.push(response.responseJSON.requests[f]);
-				this.friendList[this.friendList.length-1].grouping=" Pending Friend Requests";
+				logthis("request loop");
+				this.requestList.push(response.responseJSON.requests[f]);
+				this.requestList[this.requestList.length-1].grouping=" Pending Friend Requests";
 			}
-			this.controller.get("userSpinner").hide();
-			this.resultsModel.items =this.friendList; //update list with basic user info
-			this.controller.modelChanged(this.resultsModel);
+			logthis("out of loop");
 			this.controller.get('resultListBox').style.display = 'block';
+			logthis("unhid box");
 		}else{
-			//this.controller.get("search-msg").innerHTML="No pending friend requests.";
-			this.controller.get("userSpinner").hide();
-			this.controller.get('resultListBox').style.display = 'none';
 		}
-//		this.controller.get("userSpinner").mojo.stop();
+
+	this.friendsDone=true;
+	this.checkDone();
+
 
 }
 
 UserInfoAssistant.prototype.getFriendsFailed = function(response) {
-Mojo.Log.error(response.responseText);
+logthis(response.responseText);
+logthis("friends failed");
+	this.friendsDone=true;
+	this.checkDone();
+
 }
 
 UserInfoAssistant.prototype.approveFriend = function(event) {
+	foursquarePost(this,{
+		endpoint: 'friend/approve.json',
+		parameters: {uid:this.uid},
+		requiresAuth: true,
+		debug: false,
+		onSuccess: this.approveSuccess.bind(this),
+		onFailure: this.approveFailed.bind(this)
+	});
+
+/*
 	var url = 'https://api.foursquare.com/v1/friend/approve.json';
 	var request = new Ajax.Request(url, {
 	   method: 'post',
@@ -633,8 +1005,10 @@ UserInfoAssistant.prototype.approveFriend = function(event) {
 	   parameters: {uid:this.uid},
 	   onSuccess: this.approveSuccess.bind(this),
 	   onFailure: this.approveFailed.bind(this)
-	 });
+	 });*/
 }
+
+
 UserInfoAssistant.prototype.approveSuccess = function(response) {
 	if(response.responseJSON.user != undefined) {
 		Mojo.Controller.getAppController().showBanner("Friend request approved!", {source: 'notification'});
@@ -649,6 +1023,16 @@ UserInfoAssistant.prototype.approveFailed = function(response) {
 }
 
 UserInfoAssistant.prototype.denyFriend = function(event) {
+	foursquarePost(this, {
+		endpoint: 'friend/deny.json',
+		requiresAuth: true,
+		parameters: {uid: this.uid},
+		debug: false,
+		onSuccess: this.denySuccess.bind(this),
+		onFailure: this.denyFailed.bind(this)
+	});
+
+/*
 	var url = 'https://api.foursquare.com/v1/friend/deny.json';
 	var request = new Ajax.Request(url, {
 	   method: 'post',
@@ -657,7 +1041,7 @@ UserInfoAssistant.prototype.denyFriend = function(event) {
 	   parameters: {uid:this.uid},
 	   onSuccess: this.denySuccess.bind(this),
 	   onFailure: this.denyFailed.bind(this)
-	 });
+	 });*/
 }
 UserInfoAssistant.prototype.denySuccess = function(response) {
 	if(response.responseJSON.user != undefined) {
@@ -818,12 +1202,22 @@ UserInfoAssistant.prototype.pingSuccess = function(response) {
 	}
 }
 UserInfoAssistant.prototype.pingFailed = function(response) {
-	Mojo.Log.error(response.responseText);
+	logthis(response.responseText);
 	Mojo.Controller.getAppController().showBanner("Error setting pings", {source: 'notification'});
 }
 
 
 UserInfoAssistant.prototype.addFriend = function(event) {
+	foursquarePost(this, {
+		endpoint: 'friend/sendrequest.json',
+		parameters: {uid: this.uid},
+		requiresAuth: true,
+		debug: false,
+		onSuccess: this.addSuccess.bind(this),
+		onFailure: this.addFailed.bind(this)
+	});
+
+/*
 	var url = 'https://api.foursquare.com/v1/friend/sendrequest.json';
 	var request = new Ajax.Request(url, {
 	   method: 'post',
@@ -832,7 +1226,7 @@ UserInfoAssistant.prototype.addFriend = function(event) {
 	   parameters: {uid:this.uid},
 	   onSuccess: this.addSuccess.bind(this),
 	   onFailure: this.addFailed.bind(this)
-	 });
+	 });*/
 }
 UserInfoAssistant.prototype.addSuccess = function(response) {
 	if(response.responseJSON.user != undefined) {
@@ -848,20 +1242,26 @@ UserInfoAssistant.prototype.addFailed = function(response) {
 
 
 UserInfoAssistant.prototype.getHistory = function(event) {
+	if(!this.checkinlist){
 	 foursquareGet(this, {
 	 	endpoint: 'history.json',
+	 	parameters: {l:'250'},
 	 	requiresAuth: true,
 	    onSuccess: this.historySuccess.bind(this),
 	    onFailure: this.historyFailed.bind(this)
 	 });
+	}else{
+		 	this.historySuccess(this.historyResponse);
+	}
 }
 
 UserInfoAssistant.prototype.historySuccess = function(response) {
 
+	this.historyResponse=response;
 	var j=response.responseJSON;
 	
 	if(j.checkins != null) {
-	this.controller.get("uhistory").show();
+	//this.controller.get("uhistory").show();
 		this.checkinlist=[];
 		for(var c=0;c<j.checkins.length;c++){
 			this.checkinlist.push(j.checkins[c]);
@@ -891,22 +1291,46 @@ UserInfoAssistant.prototype.historySuccess = function(response) {
 		this.controller.get("history-box").innerHTML='<div class="palm-row single"><div class="checkin-badge"><span>No recent check-ins yet.</span></div></div>';
 	}
 
-		this.controller.get("userScrim").hide();
-		this.controller.get("userSpinner").mojo.stop();
-		this.controller.get("userSpinner").hide();
+		this.userDone=true;
+		this.checkDone();
+
 
 }
 
 UserInfoAssistant.prototype.historyFailed = function(response) {
-		Mojo.Log.error("error getting history");
-		this.controller.get("userScrim").hide();
-		this.controller.get("userSpinner").mojo.stop();
-		this.controller.get("userSpinner").hide();
+		logthis("error getting history");
+		
+	this.userDone=true;
+	this.checkDone();
 
 }
 
+UserInfoAssistant.prototype.checkDone = function(){
+	logthis("ud="+this.userDone);
+	logthis("td="+this.tipsDone);
+	logthis("fd="+this.friendsDone);
+//	if(this.userDone && this.tipsDone && this.friendsDone){
+		this.controller.get("userScrim").hide();
+		this.controller.get("userSpinner").mojo.stop();
+		this.controller.get("userSpinner").hide();
+		
+		if(this.tabModel.choices.length==1){
+			this.controller.get("friendToggle").hide();
+		}else{
+			this.controller.get("friendToggle").show();
+		}
+//	}
+};
+
+UserInfoAssistant.prototype.startLoader = function(){
+		//this.controller.get("userScrim").show();
+		this.controller.get("userSpinner").mojo.start();
+		this.controller.get("userSpinner").show();
+
+};
+
 UserInfoAssistant.prototype.friendTapped = function(event) {
-	Mojo.Log.error("tapped!");
+	logthis("tapped!");
 	this.controller.stageController.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,event.item.id,this,true);
 }
 
@@ -915,16 +1339,6 @@ UserInfoAssistant.prototype.searchFriends = function(how,query) {
 	var url = 'https://api.foursquare.com/v1/findfriends/by'+how+'.json';
 	this.query=query;
 	this.how=how;
-/*	auth = _globals.auth;
-	var request = new Ajax.Request(url, {
-	   method: 'get',
-	   evalJSON: 'force',
-	   requestHeaders: {Authorization: auth}, 
-	   parameters: what,
-	   onSuccess: this.searchFriendsSuccess.bind(this),
-	   onFailure: this.getFriendsFailed.bind(this)
-	 });*/
-	 
 	 foursquareGet(this, {
 	 	endpoint: 'findfriends/by'+how+'.json',
 	 	requiresAuth: true,
@@ -1032,8 +1446,14 @@ UserInfoAssistant.prototype.handleCommand = function(event) {
       				break;
             }
             var scenes=this.controller.stageController.getScenes();
-        }
-    }
+        }else if(event.type===Mojo.Event.back && this.inOverview==false) {
+        	logthis("back");
+			event.preventDefault();
+			event.stopPropagation();
+			event.stop();
+	        this.showOverview();
+	    }
+}
 
 
 UserInfoAssistant.prototype.activate = function(event) {
@@ -1043,17 +1463,24 @@ UserInfoAssistant.prototype.deactivate = function(event) {
 }
 
 UserInfoAssistant.prototype.cleanup = function(event) {
-	Mojo.Event.stopListening(this.controller.get('mayorshipList'),Mojo.Event.listTap, this.listWasTapped.bind(this));
-	Mojo.Event.stopListening(this.controller.get('checkinHistory'),Mojo.Event.listTap, this.historyListWasTapped.bind(this));
+	Mojo.Event.stopListening(this.controller.get('mayorshipList'),Mojo.Event.listTap, this.listWasTappedBound);
+	Mojo.Event.stopListening(this.controller.get('checkinHistory'),Mojo.Event.listTap, this.historyListWasTappedBound);
+	Mojo.Event.stopListening(this.controller.get('user-mayorinfo'),Mojo.Event.tap, this.showMayorInfoBound);
+	Mojo.Event.stopListening(this.controller.get('user-badgeinfo'),Mojo.Event.tap, this.showBadgeInfoBound);
+	Mojo.Event.stopListening(this.controller.get('user-tipinfo'),Mojo.Event.tap, this.showTipInfoBound);
+	Mojo.Event.stopListening(this.controller.get('friendsList'),Mojo.Event.listTap, this.friendTappedBound);
+	Mojo.Event.stopListening(this.controller.get('friendsResultsList'),Mojo.Event.listTap, this.friendTappedBound);
+	Mojo.Event.stopListening(this.controller.get('infoList'),Mojo.Event.listTap, this.infoTappedBound);
+	Mojo.Event.stopListening(this.controller.get('user-tips'),Mojo.Event.listTap, this.tipTappedBound);
+	Mojo.Event.stopListening(this.controller.get('friendsList'),Mojo.Event.listAdd, this.addFriendsBound);
+	Mojo.Event.stopListening(this.controller.get("userPic"),Mojo.Event.tap, this.enlargeAvatarBound);
+	Mojo.Event.stopListening(this.controller.get("friendToggle"), Mojo.Event.propertyChange, this.toggleFriendsBound);
+	Mojo.Event.stopListening(this.controller.get("checkins-row"),Mojo.Event.tap, this.showHistoryBound);
+	Mojo.Event.stopListening(this.controller.get("friends-row"),Mojo.Event.tap, this.showFriendsBound);
+	Mojo.Event.stopListening(this.controller.get("more-row"),Mojo.Event.tap, this.showInfoBound);
+	Mojo.Event.stopListening(this.controller.get("leaderboard-row"),Mojo.Event.tap, this.showLeaderboardBound);
 
-	Mojo.Event.stopListening(this.controller.get('user-mayorinfo'),Mojo.Event.tap, this.showMayorInfo.bind(this));
-	Mojo.Event.stopListening(this.controller.get('user-badgeinfo'),Mojo.Event.tap, this.showBadgeInfo.bind(this));
-	Mojo.Event.stopListening(this.controller.get("tabButtons"), Mojo.Event.propertyChange, this.handleTabs.bind(this));
-	Mojo.Event.stopListening(this.controller.get('friendsList'),Mojo.Event.listTap, this.friendTapped.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('friendsResultsList'),Mojo.Event.listTap, this.friendTapped.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('infoList'),Mojo.Event.listTap, this.infoTapped.bindAsEventListener(this));
-	Mojo.Event.stopListening(this.controller.get('friendsList'),Mojo.Event.listAdd, this.addFriends.bind(this));
 	for(var b=0;b<this.badges_len;b++){
-		Mojo.Event.stopListening(this.controller.get('badge-'+b),Mojo.Event.tap, this.showBadgeTip.bind(this));
+		Mojo.Event.stopListening(this.controller.get('badge-'+b),Mojo.Event.tap, this.showBadgeTipBound);
 	}
 }

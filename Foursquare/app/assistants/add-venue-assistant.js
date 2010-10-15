@@ -1,7 +1,14 @@
-function AddVenueAssistant(a,ed,v) {
+function AddVenueAssistant(a,ed,v,vn) {
   this.auth=a;
   this.editing=ed;
   this.venue=v;
+  if(vn!="" && vn!=undefined){
+  	this.fakeVenue=vn;
+  	this.venueless=true;
+  }else{
+  	this.fakeVenue='';
+  	this.venueless=false;
+  }
   
   if(ed) {
   	this.bl="Save";
@@ -13,9 +20,7 @@ function AddVenueAssistant(a,ed,v) {
 	this.long=_globals.long;
   }
   this.refresh=true;
-  	   _globals.curmap=this;
-
-  this.searchKey='ABQIAAAAfKBxdZJp1ib9EdLiKILvVxS4B8uQk1auvfDbWvr0_ixC2Gr77hQW9SPsdN9MwAhpcUfQWOQ0VzxxaA';
+  _globals.curmap=this;
   
   this.categoryName="";
   this.categoryIcon="";
@@ -56,24 +61,14 @@ function AddVenueAssistant(a,ed,v) {
 AddVenueAssistant.prototype.setup = function(widget) {
   this.widget = widget;
 
-	NavMenu.setup(this,{buttons:'empty'});
-    var script = document.createElement("script");
-    script.src = "http://maps.google.com/maps/api/js?sensor=true&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxTDKxkGVU7_DJQo4uQ9UVD-uuNX9xRhyapmRm_kPta_TaiHDSkmvypxPQ&callback=mapLoaded";
-    script.type = "text/javascript";
-    document.getElementsByTagName("head")[0].appendChild(script);
+  NavMenu.setup(this,{buttons:'empty'});
 
-  // Setup button and event handler
- /*   this.controller.setupWidget("setCategory",
-    this.attributes = {},
-    this.catButtonModel = {
-      buttonLabel: "Choose Category...",
-      disabled: false
-    }
-  );*/
+  this.categoryTappedBound=this.categoryTapped.bindAsEventListener(this);
+  this.okTappedBound=this.okTapped.bindAsEventListener(this);
+  this.cancelTappedBound=this.cancelTapped.bindAsEventListener(this);
+  this.toggleMapBound=this.toggleMap.bindAsEventListener(this);
+  this.searchTappedBound=this.searchTapped.bindAsEventListener(this);
   
-
-
-  Mojo.Event.listen(this.controller.get('setCategory'), Mojo.Event.tap, this.categoryTapped.bindAsEventListener(this));
 
   this.controller.setupWidget("okButton",
     this.attributes = {type : Mojo.Widget.activityButton},
@@ -82,7 +77,7 @@ AddVenueAssistant.prototype.setup = function(widget) {
       disabled: false
     }
   );
-  Mojo.Event.listen(this.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
+  
 
   this.controller.setupWidget("cancelButton",
     this.attributes = {},
@@ -91,7 +86,6 @@ AddVenueAssistant.prototype.setup = function(widget) {
       disabled: false
     }
   );
-  Mojo.Event.listen(this.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
 
 
   this.controller.setupWidget("searchGoogle",
@@ -101,18 +95,47 @@ AddVenueAssistant.prototype.setup = function(widget) {
       disabled: false
     }
   );
-  Mojo.Event.listen(this.controller.get('searchGoogle'), Mojo.Event.tap, this.searchTapped.bindAsEventListener(this));
+  
+      this.controller.setupWidget("mapDrawer",
+        this.attributes = {
+            modelProperty: 'open',
+            unstyled: false
+        },
+        this.model = {
+            open: false
+        }
+    );
+  this.controller.setupWidget("toggleMapButton",
+    this.attributes = {},
+    this.CancelButtonModel = {
+      buttonLabel: "Edit Map Position",
+      disabled: false
+    }
+  );
+  
+  Mojo.Event.listen(this.controller.get('okButton'), Mojo.Event.tap, this.okTappedBound);
+  Mojo.Event.listen(this.controller.get('setCategory'), Mojo.Event.tap, this.categoryTappedBound);
+  Mojo.Event.listen(this.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTappedBound);
+  Mojo.Event.listen(this.controller.get('map'), Mojo.Event.tap, this.toggleMapBound);  
+  Mojo.Event.listen(this.controller.get('searchGoogle'), Mojo.Event.tap, this.searchTappedBound);
 
-  Mojo.Log.error("setup buttons");
+  logthis("setup buttons");
 
   
-	this.controller.setupWidget('venue-name', this.nameAttributes = {hintText:'Type here to Google Search',multiline:false,focus:true}, this.nameModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-address', this.addressAttributes = {hintText:'',multiline:false,focus:false}, this.addressModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-crossstreet', this.crossstreetAttributes = {hintText:'',multiline:false,focus:false}, this.crossstreetModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-city', this.cityAttributes = {hintText:'',multiline:false,focus:false}, this.cityModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-zip', this.zipAttributes = {hintText:'',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.zipModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-phone', this.phoneAttributes = {hintText:'',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, this.phoneModel = {value:'', disabled:false});
-	this.controller.setupWidget('venue-twitter', this.twitterAttributes = {hintText:'',multiline:false,focus:false}, this.twitterModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-name', this.nameAttributes = {hintText:'Type here to Google Search',multiline:false,focus:true}, 
+			this.nameModel = {value:this.fakeVenue, disabled:false});
+	this.controller.setupWidget('venue-address', this.addressAttributes = {hintText:'',multiline:false,focus:false}, 
+			this.addressModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-crossstreet', this.crossstreetAttributes = {hintText:'',multiline:false,focus:false}, 
+			this.crossstreetModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-city', this.cityAttributes = {hintText:'',multiline:false,focus:false}, 
+			this.cityModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-zip', this.zipAttributes = {hintText:'',multiline:false,focus:false,modifierState:Mojo.Widget.numLock},
+			 this.zipModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-phone', this.phoneAttributes = {hintText:'',multiline:false,focus:false,modifierState:Mojo.Widget.numLock}, 
+			this.phoneModel = {value:'', disabled:false});
+	this.controller.setupWidget('venue-twitter', this.twitterAttributes = {hintText:'',multiline:false,focus:false}, 
+			this.twitterModel = {value:'', disabled:false});
 
 
 	this.catsmainAttributes={choices:[{label:'',value:'-1'}]};
@@ -121,17 +144,6 @@ AddVenueAssistant.prototype.setup = function(widget) {
 		this.catsmainAttributes.choices.push({label:_globals.categories[c].nodename,value:c});
 	}
 
-	/*this.catssub1Attributes={choices:[]};
-	this.catssub1Model={value:''};
-	this.controller.setupWidget("venue-cat-sub1",
-		this.catssub1Attributes,this.catssub1Model
-	);
-
-	this.catssub2Attributes={choices:[]};
-	this.catssub2Model={value:''};
-	this.controller.setupWidget("venue-cat-sub2",
-		this.catssub2Attributes,this.catssub2Model
-	);*/
 
     this.controller.setupWidget("venue-state",
         this.stateattributes = {
@@ -196,11 +208,25 @@ AddVenueAssistant.prototype.setup = function(widget) {
         }
     );
 
-//	Mojo.Event.listen(this.controller.get("venue-cat-sub1"),Mojo.Event.propertyChange,this.loadSubSubCat.bindAsEventListener(this));
-
-	//zBar.hideToolbar();
 }
 
+AddVenueAssistant.prototype.scrollTest = function(a,b,c,d,e){
+	Mojo.Log.error("state="+Object.toJSON(this.controller.get('mojo-scene-add-venue-scene-scroller').mojo.getScrollPosition()));	
+	
+	var ss=this.controller.get('mojo-scene-add-venue-scene-scroller').mojo.getScrollPosition();
+	
+	if(ss.top < -132){
+		this.controller.get("map_canvas").show();
+		this.controller.get("map-info-banner").show();
+	}else{
+		this.controller.get("map_canvas").hide();
+		this.controller.get("map-info-banner").hide();
+	}
+};
+
+AddVenueAssistant.prototype.toggleMap = function(event) {
+	this.controller.stageController.pushScene({name: "add-venue-map",disableSceneScroller: true},this.lat,this.long,this);
+};
 
 AddVenueAssistant.prototype.initMap = function(event) {
 	var myOptions = {
@@ -222,32 +248,6 @@ AddVenueAssistant.prototype.setMarkers = function(map){
 	  	map: map,
 	  	draggable: true
 	});
-	//cmarker.setDraggable(true);
-	
-	/*google.maps.event.addListener(cmarker, 'mousedown', 
-  		function(e) {
-			logthis("mousedown");
-			var scroller=this.controller.getSceneScroller();
-			scroller.mojo.setMode("horizontal");
-		}.bind(this)
-	);
-	google.maps.event.addListener(cmarker, 'mouseup', 
-  		function(e) {
-			logthis("mouseup");
-			var scroller=this.controller.getSceneScroller();
-			scroller.mojo.setMode("vertical");
-		}.bind(this)
-	);
-	google.maps.event.addListener(cmarker, "dragstart", 
-  		function(e) {
-			logthis("drag start");
-		}.bind(this)
-	);
-	google.maps.event.addListener(cmarker, 'drag', 
-  		function(e) {
-			logthis("dragging");
-		}.bind(this)
-	);*/
 	google.maps.event.addListener(this.map, 'click', 
   		function(e) {
 			logthis("map clicked");
@@ -268,22 +268,10 @@ AddVenueAssistant.prototype.setMarkers = function(map){
 };
 
 AddVenueAssistant.prototype.activate = function() {
-/*	if (this.map === undefined) {
-		// Kick off google maps initialization
-		if(Maps==undefined){
-			if(!Maps.isLoaded()) {
-	//			this.spinnerModel.spinning = true;
-	//		    this.controller.modelChanged(this.spinnerModel);
-	
-	//		    this.controller.get("statusinfo").update("Loading Google Maps...");
-						
-				Maps.loadedCallback(this.initMap.bind(this));
-				initLoader();
-			}else{
-				this.initMap();
-			}
-		}
-	}*/
+	logthis("addvenue: activated");
+	logthis("av lat="+this.lat+", long="+this.long);
+
+	this.controller.get("map").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x150&sensor=false&markers=color:blue|"+this.lat+","+this.long+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA";
 
 	this.controller.get('venue-name').mojo.focus();
 	
@@ -321,7 +309,7 @@ AddVenueAssistant.prototype.activate = function() {
 		
 		
 	}else{
-		Mojo.Log.error("trying to get addy...lat="+_globals.lat+", long="+_globals.long);
+		logthis("trying to get addy...lat="+_globals.lat+", long="+_globals.long);
 		//try and get the reverse location...
 		this.controller.serviceRequest('palm://com.palm.location', {
 			method: "getReverseLocation",
@@ -337,7 +325,9 @@ function trim(stringToTrim) {
 	return stringToTrim.replace(/^\s+|\s+$/g,"");
 }
 
-
+AddVenueAssistant.prototype.aboutToActivate = function(callback) {
+	callback.defer();
+};
 AddVenueAssistant.prototype.gotLocation = function(event) {
 	//example response: 123 Abc Street ; Your Town, ST 12345 ; USA 
 	//we're worried about the middle line, so we get to do some fun parsing.
@@ -370,7 +360,7 @@ AddVenueAssistant.prototype.gotLocation = function(event) {
 }
 AddVenueAssistant.prototype.failedLocation = function(event) {
 	//don't worry about it. make them manually enter the info in.
-	Mojo.Log.error("error getting addy: "+event.errorCode);
+	logthis("error getting addy: "+event.errorCode);
 }
 
 AddVenueAssistant.prototype.okTapped = function() {
@@ -414,16 +404,6 @@ AddVenueAssistant.prototype.okTapped = function() {
 				primarycategoryid: pcat
 			};
 		}
-		/*var request = new Ajax.Request(url, {
-			method: 'post',
-			evalJSON: 'true',
-			requestHeaders: {
-				Authorization: _globals.auth
-			},
-			parameters: params,
-			onSuccess: this.venueSuccess.bind(this),
-			onFailure: this.venueFailed.bind(this)
-		});*/
 		foursquarePost(this,{
 			endpoint: ep,
 			requiresAuth: true,
@@ -437,7 +417,7 @@ AddVenueAssistant.prototype.okTapped = function() {
 
 AddVenueAssistant.prototype.venueSuccess = function(response) {
 	this.controller.get("okButton").mojo.deactivate();
-	Mojo.Log.error(response.responseText);
+	logthis(response.responseText);
 	
 	if(response.responseJSON.venue != undefined && !this.editing) {
 		Mojo.Controller.getAppController().showBanner("Venue saved to Foursquare!", {source: 'notification'});
@@ -454,14 +434,6 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 	if(response.responseJSON.error != undefined){
 		switch(response.responseJSON.error){
 			case "Possible Duplicate Venue":
-				/*this.controller.showAlertDialog({
-					onChoose: function(value) {},
-					title: $L("Uh-oh!"),
-					message: $L("This looks like it might be a duplicate venue."),
-					choices:[
-						{label:$L('OK'), value:"OK", type:'primary'}
-					]
-				});*/
 				var vname=this.nameModel.value;
 				var dialog = this.controller.showDialog({
 					template: 'listtemplates/dupeVenue',
@@ -484,8 +456,9 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 	
 	if(this.editing && response.responseJSON.error == undefined){
 				this.controller.showAlertDialog({
-					onChoose: function(value) {		this.controller.stageController.popScene("add-venue");
-}.bind(this),
+					onChoose: function(value) {
+							this.controller.stageController.popScene("add-venue");
+					}.bind(this),
 					title: $L("Edit Received"),
 					message: $L("Venue edits are sent to a queue for Super Users to approve, so your proposed changes will not be immediately seen. If a Super User approves your proposal, the changes will be incorporated."),
 					choices:[
@@ -499,41 +472,12 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 }
 
 
-AddVenueAssistant.prototype.promptCheckin = function(vid,vname) {
-	checkinDialog = this.controller.showDialog({
-		template: 'listtemplates/do-checkin',
-		assistant: new DoCheckinDialogAssistant(this,vid,vname)
-	});
 
-}
-
-AddVenueAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
-		var url = 'https://api.foursquare.com/v1/checkin.json';
-		var request = new Ajax.Request(url, {
-			method: 'post',
-			evalJSON: 'true',
-			requestHeaders: {
-				Authorization: _globals.auth
-			},
-			parameters: {
-				vid: id,
-				shout: s,
-				private: sf,
-				twitter: t,
-				facebook: fb
-			},
-			onSuccess: this.checkInSuccess.bind(this),
-			onFailure: this.checkInFailed.bind(this)
-		});
-}
 
 AddVenueAssistant.prototype.searchTapped = function(event) {
-		//logthis("q="+encodeURIComponent(this.nameModel.value));
-		//logthis("c="+_globals.lat+","+_globals.long);
 
 	if(this.nameModel.value.length>0){
 		var url = 'http://ajax.googleapis.com/ajax/services/search/local';
-		//logthis(url);
 		var request = new Ajax.Request(url, {
 			method: 'get',
 			evalJSON: 'force',
@@ -587,35 +531,11 @@ AddVenueAssistant.prototype.googleFailed = function(r){
 
 }
 
-AddVenueAssistant.prototype.checkInSuccess = function(response) {
-	Mojo.Log.error(response.responseText);
-	
-	var json=response.responseJSON;
-	this.controller.stageController.popScene("add-venue");
-	this.controller.stageController.pushScene({name: "checkin-result", transition: Mojo.Transition.crossFade},json,this.uid);
-
-}
-
-AddVenueAssistant.prototype.checkInFailed = function(response) {
-	this.controller.stageController.popScene("add-venue");
-	Mojo.Log.error('Check In Failed: ' + repsonse.responseText);
-	Mojo.Controller.getAppController().showBanner("Error checking in!", {source: 'notification'});
-}
-
-
 AddVenueAssistant.prototype.venueFailed = function(response) {
-	Mojo.Log.error(response.responseText);
+	logthis(response.responseText);
 	if(response.responseJSON.error != undefined){
 		switch(response.responseJSON.error){
 			case "Possible Duplicate Venue":
-				/*this.controller.showAlertDialog({
-					onChoose: function(value) {},
-					title: $L("Uh-oh!"),
-					message: $L("This looks like it might be a duplicate venue."),
-					choices:[
-						{label:$L('OK'), value:"OK", type:'primary'}
-					]
-				});*/
 				var vname=this.nameModel.value;
 				var dialog = this.controller.showDialog({
 					template: 'listtemplates/dupeVenue',
@@ -643,11 +563,11 @@ AddVenueAssistant.prototype.cancelTapped = function() {
 }
 
 AddVenueAssistant.prototype.cleanup = function(event) {
-	//zBar.showToolbar();
-  Mojo.Event.stopListening(this.controller.get('setCategory'), Mojo.Event.tap, this.categoryTapped.bindAsEventListener(this));
-  Mojo.Event.stopListening(this.controller.get('okButton'), Mojo.Event.tap, this.okTapped.bindAsEventListener(this));
-  Mojo.Event.stopListening(this.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTapped.bindAsEventListener(this));
-
+  Mojo.Event.stopListening(this.controller.get('okButton'), Mojo.Event.tap, this.okTappedBound);
+  Mojo.Event.stopListening(this.controller.get('setCategory'), Mojo.Event.tap, this.categoryTappedBound);
+  Mojo.Event.stopListening(this.controller.get('cancelButton'), Mojo.Event.tap, this.cancelTappedBound);
+  Mojo.Event.stopListening(this.controller.get('map'), Mojo.Event.tap, this.toggleMapBound);  
+  Mojo.Event.stopListening(this.controller.get('searchGoogle'), Mojo.Event.tap, this.searchTappedBound);
 }
 
 AddVenueAssistant.prototype.loadSubCat = function(event) {
@@ -691,55 +611,7 @@ AddVenueAssistant.prototype.loadSubSubCat = function(event) {
 AddVenueAssistant.prototype.categoryTapped = function(event){
 	//generate items list
 	this.refresh=false;
-	Mojo.Log.error("catlength="+_globals.categories.length);
+	logthis("catlength="+_globals.categories.length);
 	this.controller.stageController.pushScene("categories",this);
 	
-	
-	/*
-	var items=[];
-	for(var i =0; i<_globals.categories.length; i++){
-		var a={};
-		a.label=$L(_globals.categories[i].nodename);
-		a.command=_globals.categories[i].id;
-		a.secondaryIconPath=_globals.categories[i].iconurl;
-		
-		var subitems=[];
-		for(var s=0;s<_globals.categories[i].categories.length;s++){
-			var b={};
-			b.label=$L(_globals.categories[i].categories[s].nodename);
-			b.command=b.label+"|||"+_globals.categories[i].categories[s].id;
-			b.secondaryIconPath=_globals.categories[i].categories[s].iconurl;
-			
-			if(_globals.categories[i].categories[s].categories != undefined){
-				var subsub=[{label:$L('Use: '+b.label), command: b.command}];
-				for(var t=0; t<_globals.categories[i].categories[s].categories.length; t++){
-					var c={};
-					c.label=_globals.categories[i].categories[s].categories[t].nodename;
-					c.command=c.label+"|||"+_globals.categories[i].categories[s].categories[t].id;
-					c.secondaryIconPath=_globals.categories[i].categories[s].categories[t].iconurl;
-					subsub.push(c);
-				}
-				
-				b.items=subsub;
-			}
-			subitems.push(b);
-		}
-		
-		a.items=subitems;
-		items.push(a);
-
-	}
-
-	this.controller.popupSubmenu({
-		onChoose:function(choice){
-			var data=choice.split("|||");
-			this.categoryId=data[1];
-			this.catButtonModel.buttonLabel=data[0];
-			this.controller.modelChanged(this.catButtonModel);
-			
-		}.bind(this),
-       	placeNear:this.controller.get(event.target),
-		items: items
-	});
-*/
 }

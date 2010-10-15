@@ -8,11 +8,7 @@ function MetaListAssistant(w,la,lo,a,c,s) {
 }
 
 MetaListAssistant.prototype.setup = function() {
-	/* this function is for setup tasks that have to happen when the scene is first created */
 		NavMenu.setup(this,{buttons:'empty'});
-	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
-	
-	/* setup widgets here */
     this.controller.setupWidget("overlaySpinner",
          this.attributes = {
              spinnerSize: 'large'
@@ -27,8 +23,8 @@ MetaListAssistant.prototype.setup = function() {
 					      {itemTemplate:'listtemplates/overlayItems'},
 					      this.resultsModel);
 	
-	/* add event handlers to listen to events from widgets */
-	Mojo.Event.listen(this.controller.get('results-meta-list'),Mojo.Event.listTap, this.listTapped.bindAsEventListener(this));
+	this.listTappedBound=this.listTapped.bindAsEventListener(this);
+	Mojo.Event.listen(this.controller.get('results-meta-list'),Mojo.Event.listTap, this.listTappedBound);
 	
 	if(this.what=="banks"){
 		this.controller.get("pagetitle").update("NEARBY BANKS AND ATMs");
@@ -111,7 +107,7 @@ MetaListAssistant.prototype.parkingSuccess = function(response) {
 
 	//there's a stupid dot in one of the object properties that effs all this up. gotta fix it.
 	var j=eval("("+response.responseText.replace(/view.listing/ig,"viewlisting").replace(/distance-from-origin/ig,"distance")+")");
-	Mojo.Log.error(response.responseText);
+	logthis(response.responseText);
 	var entities=j.entity;
 	
 	if(entities.length>0) {
@@ -133,7 +129,7 @@ MetaListAssistant.prototype.parkingSuccess = function(response) {
 		this.controller.modelChanged(this.resultsModel);
 		this.controller.get("results-meta-list").show();
 	}else{
-		Mojo.Log.error("no parking");
+		logthis("no parking");
 		this.controller.get("overlay-content").show();
 		this.controller.get("results-meta-list").hide();
 		this.controller.get("overlay-content").innerHTML='There are no nearby <br/>parking lots.';
@@ -172,16 +168,11 @@ MetaListAssistant.prototype.listTapped = function(event) {
 
 
 MetaListAssistant.prototype.activate = function(event) {
-	/* put in event handlers here that should only be in effect when this scene is active. For
-	   example, key handlers that are observing the document */
 };
 
 MetaListAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
 };
 
 MetaListAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
+	Mojo.Event.listen(this.controller.get('results-meta-list'),Mojo.Event.listTap, this.listTappedBound);
 };

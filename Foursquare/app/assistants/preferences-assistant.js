@@ -5,8 +5,6 @@ function PreferencesAssistant(ps) {
 PreferencesAssistant.prototype.setup = function() {
 	NavMenu.setup(this,{buttons:'navOnly'});
 
-	//this.controller.setupWidget('goLogin', this.accattributes = {}, this.loginBtnModel = {label:'Set up account...', disabled:false});
-	//this.controller.setupWidget('goFlickr', this.flickrattributes = {}, this.flickrBtnModel = {label:'Set Up Flickr Account', disabled:false});
 	this.controller.setupWidget("sliderGPS",
     	this.slideattributes = {
         	minValue: -1000,
@@ -20,19 +18,6 @@ PreferencesAssistant.prototype.setup = function() {
 	        disabled: false
     	});
 
- /*   this.controller.setupWidget("numVenuesPicker",
-          this.numattributes = {
-
-              modelProperty: 'value',
-              min: 10,
-              max: 50
- 
-          },
-          this.nummodel = {
-              value: 15
-          });
-          */
-          
     this.cookieData=new Mojo.Model.Cookie("notifications");
 	var credentials=this.cookieData.get();
 	var notifs=(credentials)? credentials.notifs: '0';
@@ -163,19 +148,36 @@ PreferencesAssistant.prototype.setup = function() {
         disabled: false
         }
     );
+    
+    this.onLoginTappedBound=this.onLoginTapped.bind(this);
+    this.chooseRingtoneBound=this.chooseRingtone.bind(this);
+    this.onFlickrTappedBound=this.onFlickrTapped.bind(this);
+    this.onFBTwitterTappedBound=this.onFBTwitterTapped.bind(this);
+    this.handleSliderBound=this.handleSlider.bind(this);
+    this.handleNumPickerBound=this.handleNumPicker.bind(this);
+    this.handleUnitsBound=this.handleUnits.bind(this);
+    this.handleStatsBound=this.handleStats.bind(this);
+    this.handleAutocloseBound=this.handleAutoclose.bind(this);
+    this.handleTwitterBound=this.handleTwitter.bind(this);
+    this.handleHousesBound=this.handleHouses.bind(this);
+    this.handleAlertTypeBound=this.handleAlertType.bind(this);
+    this.handleNotifsBound=this.handleNotifs.bind(this);
+    
          
-	Mojo.Event.listen(this.controller.get("fsq-account-row"), Mojo.Event.tap, this.onLoginTapped.bind(this));
-	Mojo.Event.listen(this.controller.get("ringtone-select"), Mojo.Event.tap, this.chooseRingtone.bind(this));
-	Mojo.Event.listen(this.controller.get("flickr-account-row"), Mojo.Event.tap, this.onFlickrTapped.bind(this));
-	Mojo.Event.listen(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSlider.bind(this));
-	Mojo.Event.listen(this.controller.get("numVenuesPicker"), Mojo.Event.propertyChange, this.handleNumPicker.bind(this));
-	Mojo.Event.listen(this.controller.get("units"), Mojo.Event.propertyChange, this.handleUnits.bind(this));
-	Mojo.Event.listen(this.controller.get("sendstats"), Mojo.Event.propertyChange, this.handleStats.bind(this));
-	Mojo.Event.listen(this.controller.get("autoclose"), Mojo.Event.propertyChange, this.handleAutoclose.bind(this));
-	Mojo.Event.listen(this.controller.get("twitter"), Mojo.Event.propertyChange, this.handleTwitter.bind(this));
-	Mojo.Event.listen(this.controller.get("houses"), Mojo.Event.propertyChange, this.handleHouses.bind(this));
-	Mojo.Event.listen(this.controller.get("alert-type"), Mojo.Event.propertyChange, this.handleAlertType.bind(this));
-	Mojo.Event.listen(this.controller.get("chkNotifications"), Mojo.Event.propertyChange, this.handleNotifs.bind(this));
+	Mojo.Event.listen(this.controller.get("fsq-account-row"), Mojo.Event.tap, this.onLoginTappedBound);
+	Mojo.Event.listen(this.controller.get("ringtone-select"), Mojo.Event.tap, this.chooseRingtoneBound);
+	Mojo.Event.listen(this.controller.get("flickr-account-row"), Mojo.Event.tap, this.onFlickrTappedBound);
+	Mojo.Event.listen(this.controller.get("twitter-account-row"), Mojo.Event.tap, this.onFBTwitterTappedBound);
+	Mojo.Event.listen(this.controller.get("facebook-account-row"), Mojo.Event.tap, this.onFBTwitterTappedBound);
+	Mojo.Event.listen(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSliderBound);
+	Mojo.Event.listen(this.controller.get("numVenuesPicker"), Mojo.Event.propertyChange, this.handleNumPickerBound);
+	Mojo.Event.listen(this.controller.get("units"), Mojo.Event.propertyChange, this.handleUnitsBound);
+	Mojo.Event.listen(this.controller.get("sendstats"), Mojo.Event.propertyChange, this.handleStatsBound);
+	Mojo.Event.listen(this.controller.get("autoclose"), Mojo.Event.propertyChange, this.handleAutocloseBound);
+	Mojo.Event.listen(this.controller.get("twitter"), Mojo.Event.propertyChange, this.handleTwitterBound);
+	Mojo.Event.listen(this.controller.get("houses"), Mojo.Event.propertyChange, this.handleHousesBound);
+	Mojo.Event.listen(this.controller.get("alert-type"), Mojo.Event.propertyChange, this.handleAlertTypeBound);
+	Mojo.Event.listen(this.controller.get("chkNotifications"), Mojo.Event.propertyChange, this.handleNotifsBound);
 
 	var slideval=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy)*-1: 0;
 	this.slidemodel.value=slideval;
@@ -439,6 +441,18 @@ PreferencesAssistant.prototype.onFlickrTapped = function() {
 
 }
 
+PreferencesAssistant.prototype.onFBTwitterTapped = function() {
+	this.controller.showAlertDialog({
+	    onChoose: function(value) {},
+	    title: $L("Facebook and Twitter"),
+	    allowHTMLMessage: true,
+	    message: $L("To link your Facebook and/or Twitter accounts with foursquare, you must do so by visiting <i>http://foursquare.com/settings</i> on your desktop (or laptop) computer."),
+	    choices:[
+	        {label:$L("OK"), value:"med"}
+	    ]
+	}); 
+}
+
 PreferencesAssistant.prototype.deactivate = function(event) {
 }
 PreferencesAssistant.prototype.handleCommand = function(event) {
@@ -465,6 +479,11 @@ PreferencesAssistant.prototype.handleCommand = function(event) {
 					this.controller.stageController.popScene();
 					this.prevScene.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
+                case "do-Todos":
+                	var thisauth=auth;
+                	this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "todos", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
                 case "do-Shout":
                 	break;
                 case "do-Leaderboard":
@@ -490,12 +509,18 @@ PreferencesAssistant.prototype.handleCommand = function(event) {
 		}
 }
 PreferencesAssistant.prototype.cleanup = function(event) {
-	Mojo.Event.stopListening(this.controller.get("fsq-account-row"), Mojo.Event.tap, this.onLoginTapped.bind(this));
-	Mojo.Event.stopListening(this.controller.get("ringtone-select"), Mojo.Event.tap, this.chooseRingtone.bind(this));
-	Mojo.Event.stopListening(this.controller.get("flickr-account-row"), Mojo.Event.tap, this.onFlickrTapped.bind(this));
-	Mojo.Event.stopListening(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSlider.bind(this));
-	Mojo.Event.stopListening(this.controller.get("numVenuesPicker"), Mojo.Event.propertyChange, this.handleNumPicker.bind(this));
-	Mojo.Event.stopListening(this.controller.get("units"), Mojo.Event.propertyChange, this.handleUnits.bind(this));
-	Mojo.Event.stopListening(this.controller.get("alert-type"), Mojo.Event.propertyChange, this.handleAlertType.bind(this));
-	Mojo.Event.stopListening(this.controller.get("chkNotifications"), Mojo.Event.propertyChange, this.handleNotifs.bind(this));
+	Mojo.Event.stopListening(this.controller.get("fsq-account-row"), Mojo.Event.tap, this.onLoginTappedBound);
+	Mojo.Event.stopListening(this.controller.get("ringtone-select"), Mojo.Event.tap, this.chooseRingtoneBound);
+	Mojo.Event.stopListening(this.controller.get("flickr-account-row"), Mojo.Event.tap, this.onFlickrTappedBound);
+	Mojo.Event.stopListening(this.controller.get("twitter-account-row"), Mojo.Event.tap, this.onFBTwitterTappedBound);
+	Mojo.Event.stopListening(this.controller.get("facebook-account-row"), Mojo.Event.tap, this.onFBTwitterTappedBound);
+	Mojo.Event.stopListening(this.controller.get("sliderGPS"), Mojo.Event.propertyChange, this.handleSliderBound);
+	Mojo.Event.stopListening(this.controller.get("numVenuesPicker"), Mojo.Event.propertyChange, this.handleNumPickerBound);
+	Mojo.Event.stopListening(this.controller.get("units"), Mojo.Event.propertyChange, this.handleUnitsBound);
+	Mojo.Event.stopListening(this.controller.get("sendstats"), Mojo.Event.propertyChange, this.handleStatsBound);
+	Mojo.Event.stopListening(this.controller.get("autoclose"), Mojo.Event.propertyChange, this.handleAutocloseBound);
+	Mojo.Event.stopListening(this.controller.get("twitter"), Mojo.Event.propertyChange, this.handleTwitterBound);
+	Mojo.Event.stopListening(this.controller.get("houses"), Mojo.Event.propertyChange, this.handleHousesBound);
+	Mojo.Event.stopListening(this.controller.get("alert-type"), Mojo.Event.propertyChange, this.handleAlertTypeBound);
+	Mojo.Event.stopListening(this.controller.get("chkNotifications"), Mojo.Event.propertyChange, this.handleNotifsBound);
 }
