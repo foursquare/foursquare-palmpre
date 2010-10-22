@@ -54,6 +54,8 @@ var NavMenu={
 					for(var r=0;r<reqs.length;r++){
 							Mojo.Event.listen(reqs[r],Mojo.Event.tap,this.userReqTapped.bindAsEventListener(this));						
 					}
+
+					Mojo.Event.listen(this.document.getElementById("help"),Mojo.Event.tap,this.showHelp.bindAsEventListener(this));						
 					
 			        NavMenu.menuPanelVisibleTop = NavMenu.theMenu.offsetTop;
 			        NavMenu.theMenu.style.top = (0 - NavMenu.theMenu.offsetHeight - NavMenu.theMenu.offsetTop) + 'px';
@@ -241,6 +243,20 @@ var NavMenu={
 					var uid=w.readAttribute('userid');
 					this.hideMenu(function(){
 						this.that.controller.stageController.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,uid,this,true);
+					}.bind(this));
+
+
+				},
+	showHelp: function(event){
+					this.hideMenu(function(){
+				         var stageArguments = {name: "helpStage", lightweight: true};
+				         var pushMainScene=function(stage){
+				         	this.metatap=false;
+							stage.pushScene({name:"help",transition:Mojo.Transition.zoomFade});
+				         
+				         };
+				        var appController = Mojo.Controller.getAppController();
+						appController.createStageWithCallback(stageArguments, pushMainScene.bind(this.that), "card");
 					}.bind(this));
 
 

@@ -7,6 +7,7 @@ function FriendsListAssistant(a, ud, un, pw,i,la,lo,ps,ss,what) {
 	 this.lat=la;
 	 this.long=lo;
 	 this.prevScene=ps;
+	 this.metatap=false;
 	 
 	 switch(what) {
 	 	case "feed":
@@ -70,6 +71,9 @@ FriendsListAssistant.prototype.setup = function() {
        _globals.ammodel);
         
     
+	this.stageActivateBound=this.stageActivate.bind(this);
+	
+	Mojo.Event.listen(this.controller.stageController.document,Mojo.Event.activate, this.stageActivateBound);
 
 
     this.controller.setupWidget("spinnerId",
@@ -99,6 +103,10 @@ FriendsListAssistant.prototype.setup = function() {
     });
 
 
+	this.keyDownHandlerBound=this.keyDownHandler.bind(this);
+	this.keyUpHandlerBound=this.keyUpHandler.bind(this);
+	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandlerBound);
+    this.doc.addEventListener("keyup", this.keyUpHandlerBound, true);
 
 
 	this.showUserInfoBound=this.showUserInfo.bind(this);
@@ -120,6 +128,28 @@ function make_base_auth(user, pass) {
   var hash = Base64.encode(tok);
   return "Basic " + hash;
 }
+FriendsListAssistant.prototype.keyDownHandler = function(event) {
+		var key=event.originalEvent.keyCode;
+		logthis("key="+key);
+		if (key == 57575) {
+			this.metatap = true;
+		}
+}
+
+FriendsListAssistant.prototype.keyUpHandler = function(event) {
+		var key=event.keyCode;
+		logthis("key="+key);
+		if (key == 57575) {
+			this.metatap = false;
+		}
+}
+
+FriendsListAssistant.prototype.stageActivate = function(event) {
+			NavMenu.setup(this,{buttons: 'navOnly'});
+
+};
+
+
 FriendsListAssistant.prototype.groupVenues = function(data){
 	return data.grouping;
 }
@@ -336,13 +366,33 @@ FriendsListAssistant.prototype.feedSuccess = function(response) {
 
 FriendsListAssistant.prototype.showUserInfo = function(event) {
 	var uid=event.target.readAttribute("data");
-	this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade, disableSceneScroller: false},this.auth,uid,null,true);
+	if(!this.metatap){
+		this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade, disableSceneScroller: false},this.auth,uid,null,true);
+	}else{
+         var stageArguments = {name: "mainStage"+uid, lightweight: true};
+         var pushMainScene=function(stage){
+         	this.metatap=false;
+			stage.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade, disableSceneScroller: false},this.auth,uid,null,true);      
+         };
+        var appController = Mojo.Controller.getAppController();
+		appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");	
+	}
 }
 
 FriendsListAssistant.prototype.showVenueInfo = function(event){
 	var vid=event.target.readAttribute("data");
 	logthis("venue clicked: "+vid);
-	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.feedList[vid].venue,_globals.username,_globals.password,_globals.uid,true);
+	if(!this.metatap){
+		this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.feedList[vid].venue,_globals.username,_globals.password,_globals.uid,true);
+	}else{
+         var stageArguments = {name: "mainStage"+vid, lightweight: true};
+         var pushMainScene=function(stage){
+         	this.metatap=false;
+			stage.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.feedList[vid].venue,_globals.username,_globals.password,_globals.uid,true);    
+         };
+        var appController = Mojo.Controller.getAppController();
+		appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");		
+	}
 
 }
 

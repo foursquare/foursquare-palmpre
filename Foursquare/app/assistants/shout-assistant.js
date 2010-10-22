@@ -45,6 +45,9 @@ ShoutAssistant.prototype.setup = function() {
   this.attachUpBound=function(){this.controller.get("attachicon").removeClassName("pressed");}.bindAsEventListener(this);
   this.shoutKeyPressBound=this.shoutKeyPress.bindAsEventListener(this);
   
+	this.stageActivateBound=this.stageActivate.bind(this);
+	
+	Mojo.Event.listen(this.controller.stageController.document,Mojo.Event.activate, this.stageActivateBound);
 
   	logthis("2");
 
@@ -144,6 +147,10 @@ ShoutAssistant.prototype.setup = function() {
 
 
 }
+ShoutAssistant.prototype.stageActivate = function(event) {
+			NavMenu.setup(this,{buttons: 'navOnly'});
+
+};
 
 ShoutAssistant.prototype.activate = function(event) {
 	/*NavMenu.setThat(this);*/

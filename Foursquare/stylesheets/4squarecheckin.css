@@ -1526,6 +1526,7 @@ body.zblueb .thin-header {
 	background: url(../images/menu/button-bg.png) no-repeat left top;
 	position: relative;
 }
+
 .menu-button.selected {
 	background-position: left -82px;
 }
@@ -1544,6 +1545,11 @@ body.zblueb .thin-header {
 	height: 48px;
 	margin: 0 auto;
 }
+.menu-button .helpicon {
+	width: 48px;
+	height: 48px;
+	margin: 7px auto;
+}
 .menu-button .caption {
 	font-size: 14px;
 	text-align: center;
@@ -1556,6 +1562,12 @@ body.zblueb .thin-header {
 .menu-row-spacer {
 	height: 10px;
 	clear: both;
+}
+
+.help-area {
+	float: left;
+	width: 180px;
+	padding-left: 3px;
 }
 
 .innershadow {
@@ -1591,6 +1603,34 @@ body.zblueb .thin-header {
 .inrow {
 	padding: 2px;
 }
+
+
+
+.help{
+	color: #000;
+	background: transparent;
+	padding: 2px;
+	font-size: 15px;
+	text-align: right;
+}
+.help.selected {
+	color: #fff;
+	background: #4b4c4d;
+	padding: 2px;
+}
+.help-text {
+	color: #39a7c3;
+	font-weight: bold;
+
+}
+
+.help-area a {
+	color: #39a7c3;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+
 
 
 
@@ -2125,4 +2165,33 @@ img.right-arrow {
 	padding: 5px;
 	color: #5a5a5a;
 	font-size: 16px;
+}
+
+.grey-text {
+	color: #5a5a5a;
+	font-size: 16px;
+	padding: 15px 5px 0 5px;
+}
+
+
+.wt-page {
+	float: left;
+	width: 310px;
+	padding-left: 2px;
+	padding-right: 2px;
+}
+
+#page-number {
+	width: 100px;
+	font-size: 15px;
+	text-align: center;
+	position: fixed;
+	bottom: 10px;
+	left: 110px;
+	z-index: 99999;
+	
+}
+
+.walkthrough-content {
+	padding-bottom: 45px;
 }

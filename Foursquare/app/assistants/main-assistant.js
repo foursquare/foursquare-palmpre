@@ -32,13 +32,16 @@ MainAssistant.prototype.setup = function() {
 	
 	this.controller.setupWidget('goLogin', this.attributes = {type:Mojo.Widget.activityButton}, this.loginBtnModel = {label:'Log In', disabled:false});
 	this.controller.setupWidget('goSignup', this.attributes = {}, this.signupBtnModel = {label:'Need an account? Sign up!', disabled:false});
+	this.controller.setupWidget('goHelp', this.attributes = {}, this.helpBtnModel = {label:'Help and Info', disabled:false});
 	
 	this.onLoginTappedBound=this.onLoginTapped.bind(this);
 	this.onSignupTappedBound=this.onSignupTapped.bind(this);
+	this.onHelpTappedBound=this.onHelpTapped.bind(this);
 	this.keyDownHandlerBound=this.keyDownHandler.bind(this);
 	
 	Mojo.Event.listen(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTappedBound);
 	Mojo.Event.listen(this.controller.get("goSignup"), Mojo.Event.tap, this.onSignupTappedBound);
+	Mojo.Event.listen(this.controller.get("goHelp"), Mojo.Event.tap, this.onHelpTappedBound);
     this.controller.document.addEventListener("keyup", this.keyDownHandlerBound, true);
 
 		logthis("hasweb="+_globals.hasWeb);
@@ -70,6 +73,17 @@ MainAssistant.prototype.onSignupTapped = function(event){
 
 }
 
+MainAssistant.prototype.onHelpTapped = function(event){
+     var stageArguments = {name: "helpStage", lightweight: true};
+     var pushMainScene=function(stage){
+     	this.metatap=false;
+		stage.pushScene({name:"help",transition:Mojo.Transition.zoomFade});
+     
+     };
+    var appController = Mojo.Controller.getAppController();
+	appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");
+
+};
 
 var auth;
 

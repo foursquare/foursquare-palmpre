@@ -11,6 +11,7 @@ function VenuedetailAssistant(venue,u,p,i,fui,ps,fm,fl) {
 	   this.fromMap=fm;
 	   this.fromLaunch=fl;
 	   this.inOverview=true;
+	   this.metatap=false;
 }
 VenuedetailAssistant.prototype.aboutToActivate = function(callback) {
 	callback.defer();     //makes the setup behave like it should.
@@ -48,6 +49,7 @@ VenuedetailAssistant.prototype.setup = function() {
              mode: 'horizontal-snap'
          },
          this.scroll3Model = {
+         	snapIndex: 0
          });
 
 
@@ -218,6 +220,13 @@ VenuedetailAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get('tips-list'),Mojo.Event.listTap, this.tipListTappedBound);
 	Mojo.Event.listen(this.controller.get("specialScroller"), Mojo.Event.propertyChange, this.specialScrollBound);
 
+
+	this.keyDownHandlerBound=this.keyDownHandler.bind(this);
+	this.keyUpHandlerBound=this.keyUpHandler.bind(this);
+	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandlerBound);
+    this.doc.addEventListener("keyup", this.keyUpHandlerBound, true);
+
+
 	this.controller.get("meta-overlay").hide();
 	this.controller.get("results-meta-list").hide();
 	
@@ -247,6 +256,22 @@ function make_base_auth(user, pass) {
   var hash = Base64.encode(tok);
   return "Basic " + hash;
 }
+VenuedetailAssistant.prototype.keyDownHandler = function(event) {
+		var key=event.originalEvent.keyCode;
+		logthis("key="+key);
+		if (key == 57575) {
+			this.metatap = true;
+		}
+}
+
+VenuedetailAssistant.prototype.keyUpHandler = function(event) {
+		var key=event.keyCode;
+		logthis("key="+key);
+		if (key == 57575) {
+			this.metatap = false;
+		}
+}
+
 
 VenuedetailAssistant.prototype.specialScroll = function(event) {
 	if(this.scroll3Model.snapIndex==0){
@@ -268,7 +293,17 @@ VenuedetailAssistant.prototype.specialScroll = function(event) {
 
 
 VenuedetailAssistant.prototype.flipMayor = function(what) {
-	this.controller.stageController.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,this.mayorId,this,true);
+	if(this.metatap){
+         var stageArguments = {name: "mainStage"+this.mayorId, lightweight: true};
+         var pushMainScene=function(stage){
+         	this.metatap=false;
+			stage.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,this.mayorId,this,true);         
+         };
+        var appController = Mojo.Controller.getAppController();
+		appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");
+	}else{
+		this.controller.stageController.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,this.mayorId,this,true);
+	}
 }
 VenuedetailAssistant.prototype.flipPeople = function(what) {
 	this.swapTabs(2);

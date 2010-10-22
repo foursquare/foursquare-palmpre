@@ -54,6 +54,9 @@ NearbyTipsAssistant.prototype.setup = function() {
                  ]
     });
 
+	this.stageActivateBound=this.stageActivate.bind(this);
+	
+	Mojo.Event.listen(this.controller.stageController.document,Mojo.Event.activate, this.stageActivateBound);
 
     
     _globals.ammodel.items[0].disabled=false;
@@ -63,6 +66,12 @@ NearbyTipsAssistant.prototype.setup = function() {
     this.getTips();
 
 }
+
+NearbyTipsAssistant.prototype.stageActivate = function(event) {
+			NavMenu.setup(this,{buttons: 'navOnly'});
+
+};
+
 
 NearbyTipsAssistant.prototype.getTips = function() {
 //	if(_globals.tipsList==undefined || _globals.reloadTips==true) {

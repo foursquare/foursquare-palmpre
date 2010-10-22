@@ -118,5 +118,21 @@
     {
         "scenes": "todos",
         "source": "app/assistants/todos-assistant.js"
+    },
+    {
+        "scenes": "help",
+        "source": "app/assistants/help-assistant.js"
+    },
+    {
+        "scenes": "contact",
+        "source": "app/assistants/contact-assistant.js"
+    },
+    {
+        "scenes": "walkthrough",
+        "source": "app/assistants/walkthrough-assistant.js"
+    },
+    {
+        "scenes": "view-walkthrough",
+        "source": "app/assistants/view-walkthrough-assistant.js"
     }
 ]

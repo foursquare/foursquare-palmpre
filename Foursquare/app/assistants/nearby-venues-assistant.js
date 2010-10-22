@@ -10,6 +10,7 @@ function NearbyVenuesAssistant(a, ud, un, pw,i,ss,q,what) {
 	 this.query=q;
 	 this.dosearch=false;
 	 this.oldCaption="Nearby";
+	 this.metatap=false;
 	 
 	 _globals.userData=ud;
 	 _globals.username=un;
@@ -130,7 +131,9 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	this.gotLocationAgainBound=this.gotLocationAgain.bind(this);
 	this.loadVenuesBound=this.loadVenues.bind(this);
 	this.venuelessCheckinBound=this.venuelessCheckin.bind(this);
+	this.stageActivateBound=this.stageActivate.bind(this);
 	
+	Mojo.Event.listen(this.controller.stageController.document,Mojo.Event.activate, this.stageActivateBound);
 	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenueSearchBound);
 	Mojo.Event.listen(this.controller.get('search-checkin'),Mojo.Event.tap, this.venuelessCheckinBound);
 	Mojo.Event.listen(this.controller.get('search-add-venue'),Mojo.Event.tap, this.addNewVenueBound);
@@ -243,6 +246,12 @@ function make_base_auth(user, pass) {
   var hash = Base64.encode(tok);
   return "Basic " + hash;
 }
+
+NearbyVenuesAssistant.prototype.stageActivate = function(event) {
+			NavMenu.setup(this,{buttons: 'venues'});
+
+};
+
 NearbyVenuesAssistant.prototype.showRefresh = function(event) {
 	this.controller.get("smallSpinner").hide();
 	this.controller.get("banner_text").update("Better accuracy! ("+roundNumber(_globals.hacc,2)+"m)");
@@ -681,8 +690,20 @@ NearbyVenuesAssistant.prototype.performSearch = function(query) {
 NearbyVenuesAssistant.prototype.listWasTapped = function(event) {
 	this.controller.get("sendField").hide();
 	this.searchShowing=false;		
+	
+	if(!this.metatap){
+		this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid,false,this);
+	}else{
+         var stageArguments = {name: "mainStage"+event.item.id, lightweight: true};
+         var pushMainScene=function(stage){
+         	this.metatap=false;
+			stage.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid,false,this);
+         
+         };
+        var appController = Mojo.Controller.getAppController();
+		appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");
 
-	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade, disableSceneScroller: true},event.item,this.username,this.password,this.uid,false,this);
+	}
 }
 
 NearbyVenuesAssistant.prototype.listHideItem = function(event) {
@@ -734,6 +755,15 @@ NearbyVenuesAssistant.prototype.keyDownHandler = function(event) {
 		this.searchShowing=false;		
 	
 	}
+	
+	
+		if (key == 57575) {
+			logthis("meta down");
+			this.metatap = true;
+		}
+		
+		logthis(event.metaKey);
+		
 }
 
 NearbyVenuesAssistant.prototype.onKeyPressHandler = function(event) {
@@ -741,6 +771,7 @@ NearbyVenuesAssistant.prototype.onKeyPressHandler = function(event) {
 }
 
 NearbyVenuesAssistant.prototype.keyUpHandler = function(event) {
+	logthis("keyup");
 	var key=event.keyCode;
 //logthis("ku="+key);
 	if(this.textModel.value){
@@ -759,6 +790,12 @@ NearbyVenuesAssistant.prototype.keyUpHandler = function(event) {
 			this.searchShowing=false;		
 		}
 	}
+	
+		if (key==57575) {
+			logthis("meta up");
+			this.metatap = false;
+		}
+
 }
 
 
@@ -982,7 +1019,8 @@ NearbyVenuesAssistant.prototype.showMenu = function(event){
 
 NearbyVenuesAssistant.prototype.activate = function(event) {
    // this.controller.get("sendField").mojo.blur();
-   NavMenu.setThat(this,{buttons:'venues'});
+   logthis("activated");
+   NavMenu.setThat(this);
    
    if(event!=undefined){
 	   if(event.search!=undefined){
@@ -1026,10 +1064,11 @@ NearbyVenuesAssistant.prototype.activate = function(event) {
 	var cdata=this.cookie.get();
 	var ver=(cdata)? cdata.version: "";
 	if(ver!=Mojo.appInfo.version){
-		var dialog = this.controller.showDialog({
+		/*var dialog = this.controller.showDialog({
 			template: 'listtemplates/whatsnew',
 			assistant: new WhatsNewDialogAssistant(this)
-		});
+		});*/
+		this.controller.stageController.pushScene({name:"view-walkthrough",transition:Mojo.Transition.zoomFade},_globals.whatsnew);
 
 	}
 	

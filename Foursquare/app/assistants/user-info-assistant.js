@@ -20,6 +20,7 @@ function UserInfoAssistant(a,u,ps,ff) {
 		this.userDone=false;
 		this.friendsDone=false;
 		this.tipsDone=false;
+		this.metatap=false;
 }
 
 UserInfoAssistant.prototype.aboutToActivate = function(callback) {
@@ -154,6 +155,12 @@ UserInfoAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("more-row"),Mojo.Event.tap, this.showInfoBound);
 	Mojo.Event.listen(this.controller.get("leaderboard-row"),Mojo.Event.tap, this.showLeaderboardBound);
 
+
+	this.keyDownHandlerBound=this.keyDownHandler.bind(this);
+	this.keyUpHandlerBound=this.keyUpHandler.bind(this);
+	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandlerBound);
+    this.doc.addEventListener("keyup", this.keyUpHandlerBound, true);
+
 	this.controller.get("uhistory").hide();
 	if(this.fromFriends){
 		//this.controller.get("uinfo").show();
@@ -182,6 +189,21 @@ function make_base_auth(user, pass) {
   var tok = user + ':' + pass;
   var hash = Base64.encode(tok);
   return "Basic " + hash;
+}
+UserInfoAssistant.prototype.keyDownHandler = function(event) {
+		var key=event.originalEvent.keyCode;
+		logthis("key="+key);
+		if (key == 57575) {
+			this.metatap = true;
+		}
+}
+
+UserInfoAssistant.prototype.keyUpHandler = function(event) {
+		var key=event.keyCode;
+		logthis("key="+key);
+		if (key == 57575) {
+			this.metatap = false;
+		}
 }
 
 UserInfoAssistant.prototype.showLeaderboard = function(event) {
@@ -1059,14 +1081,32 @@ UserInfoAssistant.prototype.denyFailed = function(response) {
 }
 
 UserInfoAssistant.prototype.listWasTapped = function(event) {
-	
-	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,_globals.username,_globals.password,_globals.uid,true);
+	if(!this.metatap){
+		this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,_globals.username,_globals.password,_globals.uid,true);
+	}else{
+         var stageArguments = {name: "mainStage"+event.item.id, lightweight: true};
+         var pushMainScene=function(stage){
+         	this.metatap=false;
+			stage.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item,_globals.username,_globals.password,_globals.uid,true);         
+         };
+        var appController = Mojo.Controller.getAppController();
+		appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");		
+	}
 }
 
 
 UserInfoAssistant.prototype.historyListWasTapped = function(event) {
-	
-	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item.venue,_globals.username,_globals.password,_globals.uid,true);
+	if(!this.metatap){
+		this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item.venue,_globals.username,_globals.password,_globals.uid,true);
+	}else{
+         var stageArguments = {name: "mainStage"+event.item.venue.id, lightweight: true};
+         var pushMainScene=function(stage){
+         	this.metatap=false;
+			stage.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},event.item.venue,_globals.username,_globals.password,_globals.uid,true);   
+         };
+        var appController = Mojo.Controller.getAppController();
+		appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");				
+	}
 }
 
 UserInfoAssistant.prototype.infoTapped = function(event) {
@@ -1330,8 +1370,17 @@ UserInfoAssistant.prototype.startLoader = function(){
 };
 
 UserInfoAssistant.prototype.friendTapped = function(event) {
-	logthis("tapped!");
-	this.controller.stageController.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,event.item.id,this,true);
+	if(!this.metatap){
+		this.controller.stageController.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,event.item.id,this,true);
+	}else{
+         var stageArguments = {name: "mainStage"+event.item.id, lightweight: true};
+         var pushMainScene=function(stage){
+         	this.metatap=false;
+			stage.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,event.item.id,this,true);
+         };
+        var appController = Mojo.Controller.getAppController();
+		appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");					
+	}
 }
 
 UserInfoAssistant.prototype.searchFriends = function(how,query) {
