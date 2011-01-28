@@ -1,6 +1,6 @@
 {
 	"id": "com.foursquare.foursquare",
-	"version": "2.0.0",
+	"version": "2.2.1",
 	"vendor": "foursquare",
 	"noWindow" : "true",
 	"timingEnabled": "true",
@@ -9,7 +9,10 @@
 	"title": "foursquare",
 	"icon": "icon_64x64.png",
 	"splashBackground": "images/splash.png",
+	"splashIcon": "images/splash-icon.png",
 	"keywords":["foursquare","4sq","map","places","restaurants","bars","food"],
+	"dockMode": true,
+	"touchstoneMode": "enabled",
 	"universalSearch": {
 			"search": {
 				"displayName":"foursquare",

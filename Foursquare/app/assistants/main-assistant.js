@@ -3,64 +3,116 @@ function MainAssistant(expressLogin,credentials,fp) {
 	   this.expressLogin=expressLogin;
 	   this.credentials=credentials;
 	   this.fromPrefs=fp;
+	   this.gpsDone=false;
+	   this.loginDone=false;
 
-	   if(credentials) {
-		   this.username=this.credentials.username;
-		   this.auth=this.credentials.auth;
-		   if(this.auth==undefined) { //using old plaintext version of the app...
-		   	this.password=this.credentials.password;
-		   	this.auth=make_base_auth(this.username,this.password);
-		   }
-		//   logthis("auth="+this.auth);
-	   }
+        this.cookieData=new Mojo.Model.Cookie("oauth");
+		var credentials=this.cookieData.get();
+
+		if(credentials){
+			logthis("creds="+credentials.token);
+			this.token=credentials.token;
+			_globals.token=this.token;
+			this.expressLogin=true;
+		}else{
+			logthis("no creds");
+			this.token='';
+			this.expressLogin=false;
+		}
+
 	   
 	   this.gotGPS=false;
 	   this.loggedIn=false;
-	   _globals.firstLoad=false;
+	   _globals.firstLoad=true;
 	   this.wrongcreds=false;
 	   
 }
 
 MainAssistant.prototype.setup = function() {
 	_globals.mainLoaded=true;
+
 	
+	this.gpsSuccessBound=this.gpsSuccess.bind(this);
+//	this.controller.serviceRequest('palm://com.palm.location', {
+	fsq.Metrix.ServiceRequest.request('palm://com.palm.location', {
+	    method:"getCurrentPosition",
+	    parameters:{accuracy:1, maximumAge: 0, responseTime: 1},
+	    onSuccess: this.gpsSuccessBound,
+	    onFailure: this.failedLocation.bind(this)
+	    }
+	); 
 	
+/*    this.controller.setupWidget("loginSpinner",
+        this.attributes = {
+            spinnerSize: "small"
+        },
+        this.model = {
+            spinning: true 
+        }
+    ); 
+
+	this.controller.get("loginSpinner").hide();*/
+
+  	this.spinnerAttr = {
+		superClass: 'fsq_spinner_hidden',
+		mainFrameCount: 31,
+		fps: 20,
+		frameHeight: 50
+	}
+	this.spinnerModel = {
+		spinning: true
+	}
+	this.controller.setupWidget('loginSpinner', this.spinnerAttr, this.spinnerModel);
+//	this.controller.get("loginSpinner").hide();
+
  
- 
-	this.controller.setupWidget('username', this.attributes = {hintText:'Email/Phone',textCase: Mojo.Widget.steModeLowerCase}, this.usernameModel = {value:'', disabled:false});
+/*	this.controller.setupWidget('username', this.attributes = {hintText:'Email/Phone',textCase: Mojo.Widget.steModeLowerCase}, this.usernameModel = {value:'', disabled:false});
 	this.controller.setupWidget('password', this.attributes = {hintText:'Password'}, this.passwordModel = {value:'', disabled:false});
 	
-	this.controller.setupWidget('goLogin', this.attributes = {type:Mojo.Widget.activityButton}, this.loginBtnModel = {label:'Log In', disabled:false});
-	this.controller.setupWidget('goSignup', this.attributes = {}, this.signupBtnModel = {label:'Need an account? Sign up!', disabled:false});
-	this.controller.setupWidget('goHelp', this.attributes = {}, this.helpBtnModel = {label:'Help and Info', disabled:false});
+	this.controller.setupWidget('goLogin', this.attributes = {type:Mojo.Widget.activityButton}, this.loginBtnModel = {label:'Log In', disabled:false});*/
+
+//	this.controller.setupWidget('goSignup', this.attributes = {}, this.signupBtnModel = {label:'Need an account? Sign up!', disabled:false});
+//	this.controller.setupWidget('goHelp', this.attributes = {}, this.helpBtnModel = {label:'Help and Info', disabled:false});
 	
 	this.onLoginTappedBound=this.onLoginTapped.bind(this);
 	this.onSignupTappedBound=this.onSignupTapped.bind(this);
 	this.onHelpTappedBound=this.onHelpTapped.bind(this);
 	this.keyDownHandlerBound=this.keyDownHandler.bind(this);
 	
-	Mojo.Event.listen(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTappedBound);
-	Mojo.Event.listen(this.controller.get("goSignup"), Mojo.Event.tap, this.onSignupTappedBound);
-	Mojo.Event.listen(this.controller.get("goHelp"), Mojo.Event.tap, this.onHelpTappedBound);
-    this.controller.document.addEventListener("keyup", this.keyDownHandlerBound, true);
+	Mojo.Event.listen(this.controller.get("login-button"), Mojo.Event.tap, this.onLoginTappedBound);
+	Mojo.Event.listen(this.controller.get("login-signup"), Mojo.Event.tap, this.onSignupTappedBound);
+	Mojo.Event.listen(this.controller.get("login-help"), Mojo.Event.tap, this.onHelpTappedBound);
+//    this.controller.document.addEventListener("keyup", this.keyDownHandlerBound, true);
 
-		logthis("hasweb="+_globals.hasWeb);
-		if (this.expressLogin) {
-			this.controller.get("loginfields").style.visibility="hidden";
-			this.controller.get("main").removeClassName("palm-hasheader");
-			this.controller.get("main").style.background="url(SPLASH_boy_transparent.png) no-repeat left top";
-	
-			this.login(this.username,this.password);
-		}     	
 	_globals.gpsStatus=this.controller.get("gps-status");
+
+	_globals.loginFail=this.loginRequestFailed.bind(this);
+
+	if (this.expressLogin && this.fromPrefs!=true) {
+		this.controller.get("login-button").style.visibility="hidden";
+
+		 foursquareGet(this,{
+		 	endpoint: 'venues/categories',
+		 	requiresAuth: true,
+		 	ignoreErrors: true,
+		 	parameters: {},
+		 	onSuccess: _globals.categorySuccess.bind(this),
+		 	onFailure: _globals.categoryFailed.bind(this)
+		 });
+		this.login();
+	}else{
+		logthis("spinner should hide");
+/*		if(this.controller.get("loginSpinner").hide()){
+			logthis("yay!");
+		}else{
+			logthis("booo!");
+		}*/
+	} 	
+
 }
 
 MainAssistant.prototype.onLoginTapped = function(event){
-	
-	this.username=this.usernameModel.value;
-	this.password=this.passwordModel.value;
-	
-	this.login(this.usernameModel.value, this.passwordModel.value)
+	this.controller.stageController.pushScene("oauth",this.fromPrefs);
 }
 
 MainAssistant.prototype.onSignupTapped = function(event){
@@ -107,25 +159,17 @@ MainAssistant.prototype.callInProgress = function(xmlhttp) {
 
 
 MainAssistant.prototype.login = function(uname, pass){
+	logthis("logging in");
+ 	this.controller.get("loginSpinner").style.visibility='visible';
+	//this.controller.get("loginSpinner").mojo.start();
  
-	var url = "https://api.foursquare.com/v1/user.json";
-	//var url="http://192.168.1.141/user.json"; //use this to test server being down
-	if(this.wrongcreds){
-		auth=make_base_auth(uname, pass);
-	}else{
-		auth = (this.expressLogin)? _globals.auth: make_base_auth(uname, pass);
-	}
+	var url="https://api.foursquare.com/v2/multi?requests="+encodeURIComponent("/users/self,/settings/all,/users/requests")+"&oauth_token="+this.token;
 	
-	
-	this.controller.get('signupbutton').hide();
-	
-	this.controller.get('message').innerHTML = 'Logging <b>'+uname+'</b> in to Foursquare...';
-	this.controller.get("gps-status").innerHTML="Getting location...";
-	
+	//this.controller.get('signupbutton').hide();
+		
 	this.request = new Ajax.Request(url, {
 	   method: 'get',
 	   evalJSON: 'true',
-	   requestHeaders: {Authorization:auth},
 	   onSuccess: this.loginRequestSuccess.bind(this),
 	   onFailure: this.loginRequestFailed.bindAsEventListener(this,false),
 	   onCreate: function(request){
@@ -142,58 +186,41 @@ MainAssistant.prototype.login = function(uname, pass){
 var userData;
 
 MainAssistant.prototype.loginRequestSuccess = function(response) {
-	if(response.status!=0){
-		if(response.responseJSON.error==undefined){
-			this.controller.window.clearTimeout(this.timeout);
-			userData = response.responseJSON.user;
-			var disp=(response.responseJSON.user.checkin != undefined)? response.responseJSON.user.checkin.display: "Logged in!";
-			this.controller.get('message').innerHTML = disp;
-			var uid=response.responseJSON.user.id;
-			var savetw=response.responseJSON.user.settings.sendtotwitter;
-			var savefb=response.responseJSON.user.settings.sendtofacebook;
-		 	var ping=_globals.swf; //response.responseJSON.user.settings.pings;
-			_globals.uid=uid;
-			_globals.username=this.username;
-			_globals.password=this.password;
-			_globals.city="";//city;
+logthis("login ok");
+logthis(response.responseText);
+	var j=response.responseJSON;
+	if(j.meta.code==200){
+		this.controller.window.clearTimeout(this.timeout);
+		userData = j.response.responses[0].response.user;
+		var settings=j.response.responses[1].response.settings;
+		var fname=userData.firstName;
+		var lname=(userData.lastName)? ' '+userData.lastName: '';
+		this.controller.get("message").update(fname + lname);
 		
-			this.cookieData=new Mojo.Model.Cookie("credentials");
-			this.cookieData.put({
-				username: this.username,
-				password: "",
-				auth: auth,
-				uid: uid,
-				savetotwitter: savetw,
-				savetofacebook: savefb,
-				ping: ping,
-				cityid: 0,
-				city: ""
-			});
-			this.loggedIn=true;
-			if(this.fromPrefs){
-				_globals.reloadVenues=true;
-				_globals.reloadFriends=true;
-				_globals.reloadTips=true;
-				
-				this.controller.stageController.popScene('preferences');
-				this.controller.stageController.popScene('main');
-			}else{
-				if(_globals.gotGPS){
-					_globals.firstLoad=true;
-					this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
-				}else{
-					this.gpscheck=this.controller.window.setInterval(function(){
-						if(_globals.gotGPS){
-							_globals.firstLoad=true;
-							this.controller.stageController.swapScene('nearby-venues',auth,userData,this.username,this.password,uid);
-						}
-					}.bind(this),200);
-				}
-			
-			}
-		}else{
-			this.loginRequestFailed(response,true);
+		var uid=userData.id;
+		var savetw=settings.sendToTwitter;
+		var savefb=settings.sendToFacebook;
+		var getPings=settings.receivePings;
+		logthis(Object.toJSON(settings));
+		var getComments=settings.receiveCommentPings;
+		
+		
+		//handle friend requests
+		_globals.requests='';
+		for(var f=0;f<j.response.responses[2].response.requests.length;f++){
+			var html=Mojo.View.render({template:'listtemplates/friend-requests',object:j.response.responses[2].response.requests[f]});
+			_globals.requests+=html;
 		}
+		logthis("reqs="+_globals.requests);
+		
+		_globals.uid=uid;
+		_globals.settings=settings;
+		_globals.userData=userData;
+		_globals.username=fname + lname;
+		this.loggedIn=true;
+		
+		this.loginDone=true;
+		this.proceed();
 	}else{
 		this.loginRequestFailed(response,true);
 	}
@@ -202,6 +229,8 @@ MainAssistant.prototype.connectionTimedOut = function() {
 };
 
 MainAssistant.prototype.loginRequestFailed = function(response,timeout,noConnection) {
+	logthis(response.responseText);
+
 	auth = undefined;
 	try{
 		this.controller.get('goLogin').mojo.deactivate();
@@ -209,9 +238,12 @@ MainAssistant.prototype.loginRequestFailed = function(response,timeout,noConnect
 	catch(e){
 		
 	}
-	this.controller.get('main').style.background="";
-	this.controller.get("loginfields").style.visibility="visible";
-	var msg="";
+	
+ 	this.controller.get("loginSpinner").style.visibility='hidden';
+
+	//this.controller.get('main').style.background="";
+	//this.controller.get("loginfields").style.visibility="visible";
+	/*var msg="";
 	var resetcredentials=true;
 	if(response.responseJSON != undefined){
 		if(response.responseJSON.ratelimited != undefined) {
@@ -225,8 +257,31 @@ MainAssistant.prototype.loginRequestFailed = function(response,timeout,noConnect
 			this.wrongcreds=false;
 			msg='Couldn\'t log you in for some reason. Try again later.';
 		}
+	}*/
+	if(!timeout){
+		switch(response.responseJSON.meta.code){
+			case 401:
+				this.controller.get("login-button").style.visibility="visible";
+				break;
+			default:
+				this.controller.showAlertDialog({
+					onChoose: function(value) {
+						if(value=="retry"){
+							this.login();
+						}
+					}.bind(this),
+					title: $L("Error"),
+					message: $L(response.responseJSON.meta.errorDetail+"<br/>Endpoint: Login"),
+					allowHTMLMessage: true,
+					choices:[
+						{label:$L('Try Again'), value:"retry", type:'primary'},
+						{label:$L('D\'oh!'), value:"OK", type:'primary'}
+					]
+				});
+				break;
+		}
 	}
-	if(resetcredentials){
+/*	if(resetcredentials){
 		var eauth=_globals.auth.replace("Basic ","");
 		var plaintext=Base64.decode(eauth);
 		var creds=plaintext.split(":");
@@ -237,11 +292,26 @@ MainAssistant.prototype.loginRequestFailed = function(response,timeout,noConnect
 		this.passwordModel.value=pw;
 		this.controller.modelChanged(this.usernameModel);
 		this.controller.modelChanged(this.passwordModel);
-	}
+	}*/
 	
 	if(timeout){
 		this.wrongcreds=false;
 		msg='Foursquare appears to be down. Try again later.<br/><a href="http://status.foursquare.com/">Check Status of foursquare</a>';
+		this.controller.showAlertDialog({
+			onChoose: function(value) {
+				if(value=="retry"){
+					this.login();
+				}
+			}.bind(this),
+			title: $L("Error"),
+			message: $L('Foursquare appears to be down. Try again later.<br/><a href="http://status.foursquare.com/">Check Status of foursquare</a>'),
+			allowHTMLMessage: true,
+			choices:[
+				{label:$L('Try Again'), value:"retry", type:'primary'},
+				{label:$L('D\'oh!'), value:"OK", type:'primary'}
+			]
+		});
+
 	}
 	if(noConnection){
 		this.wrongcreds=false;
@@ -268,9 +338,31 @@ MainAssistant.prototype.activate = function(event) {
    	if(!this.fromPrefs) {
 		_globals.main=this;
 	}
+	
+	if(event){
+		if(event.token){
+			//start logging in!
+			_globals.token=event.token;
+			this.token=event.token;
+			this.controller.get("login-button").style.visibility='hidden';
+			this.controller.get("loginSpinner").style.visibility='visible';
+			this.login();
+		}else{
+//			this.controller.get("loginSpinner").hide();
+		}
+	}else{
+//		this.controller.get("loginSpinner").hide();	
+	}
 }
 
 
+MainAssistant.prototype.proceed = function(){
+	if(this.loginDone && this.gpsDone){
+		logthis("logged in and got gps");
+		this.controller.get("loginSpinner").mojo.stop();
+		this.controller.stageController.swapScene('nearby-venues');
+	}
+};
 
 
 
@@ -279,12 +371,79 @@ MainAssistant.prototype.activate = function(event) {
 
 
 
+MainAssistant.prototype.gpsSuccess = function(event) {
+	logthis("got gps response");
+	if(event.errorCode==0){
+		logthis("gps is ok");
+		
+		_globals.lat=event.latitude;
+		_globals.long=event.longitude;
+		_globals.hacc=event.horizAccuracy;
+		_globals.vacc=event.vertAccuracy;
+		_globals.altitude=event.altitude;
+		_globals.gps=event;
+		
+		
 
+		
+		this.gpsDone=true;
+		this.proceed();
+	}else{
+		this.failedLocation(event);
+	}
+};
 
 MainAssistant.prototype.failedLocation = function(event) {
-	this.controller.get('gps-status').innerHTML = 'failed to get location: ' + event.errorCode;
+	var msg='';
+	switch(event.errorCode){
+		case 1:
+			msg='Your GPS timed out. Try using your phone outside or restarting your phone. (EC1)';
+			break;
+		case 2:
+			msg="Your position is unavailable. Satellites could not be located. (EC2)";
+			break;
+		case 3:
+			msg="Your GPS returned an unknown error. Try restarting your phone. (EC3)";
+			break;
+		case 5:
+			msg="You have Location Services turned off. Please turn them on and restart foursquare. (EC5)";
+			break;
+		case 6:
+			msg="GPS permission was denied. You have not accepted the terms of use for the Google Location Service. (EC6)";
+			break;
+		case 7:
+			msg="foursquare is already awaiting a GPS response and asked for another. Try restarting your phone. (EC7)";
+			break;
+		case 8:
+			msg="foursquare was denied GPS access for this session. Please restart your phone and allow foursquare access when prompted. (EC8)";
+			break;
+	}
+
+
+	this.controller.showAlertDialog({
+		onChoose: function(value) {
+			if(value=="retry"){
+				fsq.Metrix.ServiceRequest.request('palm://com.palm.location', {
+				    method:"getCurrentPosition",
+				    parameters:{accuracy:1, maximumAge: 0, responseTime: 1},
+				    onSuccess: this.gpsSuccessBound,
+				    onFailure: this.failedLocation.bind(this)
+				    }
+				); 
+			}
+		}.bind(this),
+		title: $L("GPS Error"),
+		message: $L(msg),
+		allowHTMLMessage: true,
+		choices:[
+			{label:$L('Try Again'), value:"retry", type:'primary'},
+			{label:$L('D\'oh!'), value:"OK", type:'primary'}
+		]
+	});
+
+//	this.controller.get('gps-status').innerHTML = 'failed to get location: ' + event.errorCode;
 	logthis('failed to get location: ' + event.errorCode);
-	Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
+//	Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
 
 }
 
@@ -294,8 +453,8 @@ MainAssistant.prototype.deactivate = function(event) {
 
 MainAssistant.prototype.cleanup = function(event) {
 	this.controller.window.clearInterval(this.gpscheck);
-	Mojo.Event.stopListening(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTappedBound);
-	Mojo.Event.stopListening(this.controller.get("goSignup"), Mojo.Event.tap, this.onSignupTappedBound);
+//	Mojo.Event.stopListening(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTappedBound);
+//	Mojo.Event.stopListening(this.controller.get("goSignup"), Mojo.Event.tap, this.onSignupTappedBound);
     this.controller.document.removeEventListener("keyup", this.keyDownHandlerBound, true);
 }
 

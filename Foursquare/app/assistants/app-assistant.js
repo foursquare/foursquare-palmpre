@@ -18,10 +18,6 @@ AppAssistant.prototype.setup = function() {
     this.setWakeup();
   
 	
-	_globals.GPS = new Location(_globals.gotLocation);
-	_globals.GPS.start();
-	var now=(new Date().getTime());
-	_globals.gpsStart=now;
 };
 
 /********HANDLE NOTIFICATIONS****************/
@@ -64,13 +60,39 @@ AppAssistant.prototype.setWakeup = function() {
     }
 };
 
+AppAssistant.prototype.prelaunch = function(){
+	//remove to keep feeds working
+//	_globals.db.discard("feed",function(){logthis("feed discarded");},function(){logthis("error discarding feed");});
 
+
+	var now=(new Date().getTime());
+	_globals.gpsStart=now;
+	_globals.nearbyVenues=undefined;
+	_globals.reloadVenues=true;
+	_globals.userData={};
+	_globals.firstLoad=false;
+	_globals.gpsokay=true;
+	_globals.retryingGPS=false;
+		
+	foursquareGet(this,{
+	 	endpoint: 'users/self',
+	 	requiresAuth: true,
+	 	ignoreErrors: true,
+	 	parameters: {},
+	 	onSuccess: _globals.userSuccess.bind(this),
+	 	onFailure: _globals.userFailed.bind(this),
+	 	requiresAuth: true
+	});
+
+};
 
 /***********HANDLE LAUNCH**************/
 AppAssistant.prototype.handleLaunch = function (launchParams) {
     logthis("ReLaunch");
     logthis("launchParams: "+Object.toJSON(launchParams));
  
+ 
+ 	/****************cache stages******************/
     var cardStageController = this.controller.getStageController("mainStage");
     var appController = Mojo.Controller.getAppController();
 
@@ -81,32 +103,26 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
     }
 
     var dashStageController = this.controller.getStageController("dashboard");
-    
-	 foursquareGet(this,{
-	 	endpoint: 'categories.json',
-	 	requiresAuth: false,
-	 	parameters: {},
-	 	onSuccess: _globals.categorySuccess.bind(this),
-	 	onFailure: _globals.categoryFailed.bind(this)
-	 });
+	/*********************************************/    
 
-	this.getHistory();
+//	this.getHistory();
 
-		 		        this.cookieData=new Mojo.Model.Cookie("credentials");
-				var credentials=this.cookieData.get();
 
-				if(credentials){
 
-					_globals.auth=credentials.auth;
-					_globals.uid=credentials.uid;
-					_globals.swf=credentials.swf || "1";
-				}else{
-				
-					credentials={username:'',auth:''};
-				}
-				
-				this.username=credentials.username;
-				_globals.auth=credentials.auth;
+	/******************load credentials*****************/
+    this.cookieData=new Mojo.Model.Cookie("oauth");
+	var credentials=this.cookieData.get();
+	if(credentials){
+		_globals.auth=credentials.auth;
+		_globals.uid=credentials.uid;
+		_globals.swf=credentials.swf || "1";
+	}else{
+		credentials={username:'',auth:''};
+	}
+	this.username=credentials.username;
+	_globals.auth=credentials.auth;
+	/**************************************************/
+
 
 
     if (!launchParams) {
@@ -123,39 +139,29 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
             // once it is done loading. It is passed the new stage controller
             // as the first parameter.
             logthis("mainstage doesn't exist; first run");
-				var now=(new Date().getTime());
-				_globals.gpsStart=now;
-				_globals.nearbyVenues=undefined;
-				_globals.reloadVenues=true;
-				_globals.userData={};
-				_globals.firstLoad=false; //////////////
-				_globals.gpsokay=true;
-				_globals.retryingGPS=false;
-				
-			/*	 foursquareGet(this,{
-				 	endpoint: 'user.json',
-				 	parameters: {},
-				 	onSuccess: _globals.userSuccess.bind(this),
-				 	onFailure: _globals.userFailed.bind(this),
-				 	requiresAuth: true
-				 });     */
-						var url = "https://api.foursquare.com/v1/user.json";
-						var request = new Ajax.Request(url, {
-						   method: 'get',
-						   evalJSON: 'true',
-						   requestHeaders: {Authorization:_globals.auth},
-						   onSuccess: _globals.userSuccess.bind(this),
-						   onFailure: _globals.userFailed.bind(this)
-						 });
 				    
-				 
-				 
-				 this.loadScene('main');    
+			this.prelaunch();				 
+			/***********load main scene if we're doing a normal launch*******************/	 
+			this.loadScene('main');    
         }
-    }
-    else {
-        logthis("com.foursquare.foursquare -- Wakeup Call", launchParams.action);
 
+
+
+
+
+
+
+	/****************launchParams have been supplied***********************/
+    }else {
+        logthis("com.foursquare.foursquare -- Wakeup Call", launchParams.action);
+		
+		/*************handle exhibition mode*****************/
+		if(launchParams.dockMode || launchParams.touchstoneMode){
+			this.launchTouchstone();
+		}
+
+
+		/*************handle actions**************************/
 	    switch (launchParams.action) {
 			case "search":   //JUST TYPE
 				logthis("search request");
@@ -173,30 +179,8 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 		            // once it is done loading. It is passed the new stage controller
 		            // as the first parameter.
 			            logthis("mainstage doesn't exist; search request");
-						var now=(new Date().getTime());
-						_globals.gpsStart=now;
-						_globals.nearbyVenues=undefined;
-						_globals.reloadVenues=true;
-						_globals.userData={};
-						_globals.firstLoad=false; //////////////
-						_globals.gpsokay=true;
-						_globals.retryingGPS=false;
-						
-						/* foursquareGet({
-						 	endpoint: 'user.json',
-						 	onSuccess: _globals.userSuccess.bind(this),
-						 	onFailure: _globals.userFailed.bind(this),
-						 	requiresAuth: true
-						 });*/
-						var url = "https://api.foursquare.com/v1/user.json";
-						var request = new Ajax.Request(url, {
-						   method: 'get',
-						   evalJSON: 'true',
-						   requestHeaders: {Authorization:_globals.auth},
-						   onSuccess: _globals.userSuccess.bind(this),
-						   onFailure: _globals.userFailed.bind(this)
-						 });
-			
+					
+					this.prelaunch();
 			
 		            this.loadScene('main');
 		            
@@ -219,31 +203,8 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 		            // once it is done loading. It is passed the new stage controller
 		            // as the first parameter.
 		            logthis("loading shit");
-						var now=(new Date().getTime());
-						_globals.gpsStart=now;
-						//logthis("here");
-						_globals.nearbyVenues=undefined;
-						_globals.reloadVenues=true;
-						_globals.userData={};
-						_globals.firstLoad=false; //////////////
-						_globals.gpsokay=true;
-						_globals.retryingGPS=false;
-						 
-						 /*foursquareGet({
-						 	endpoint: 'user.json',
-						 	onSuccess: _globals.userSuccess.bind(this),
-						 	onFailure: _globals.userFailed.bind(this),
-						 	requiresAuth: true
-						 });*/
-						var url = "https://api.foursquare.com/v1/user.json";
-						var request = new Ajax.Request(url, {
-						   method: 'get',
-						   evalJSON: 'true',
-						   requestHeaders: {Authorization:_globals.auth},
-						   onSuccess: _globals.userSuccess.bind(this),
-						   onFailure: _globals.userFailed.bind(this)
-						 });
-						 
+					
+					this.prelaunch();
 					
 					this.loadScene('main');			
 			
@@ -254,30 +215,28 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 		    // UPDATE FEEDS
 		    case "feedUpdate" :
 		    	//turn off GPS:
-		    	_globals.GPS.stop();
+		    	//_globals.GPS.stop();
 		        // Set next wakeup alarm
+				_globals.loadPrefs();
 		        this.setWakeup();
+				this.prelaunch();
 		        
-		        this.cookieData=new Mojo.Model.Cookie("credentials");
-				var credentials=this.cookieData.get();
-				if(credentials){
-					_globals.auth=credentials.auth;
-					_globals.uid=credentials.uid;
-					_globals.swf=credentials.swf || "1";
+		        this.cookieData=new Mojo.Model.Cookie("lastUpdate");
+				var lu=this.cookieData.get();
+				if(lu){
+					this.lastUpdate=lu.lastUpdate;
+				}else{
+					var now = new Date;
+					this.lastUpdate =Math.round(now.getTime()/1000)-10800; //subtract 3 hours
 				}
-				this.username=credentials.username;
-				_globals.auth=credentials.auth;
 		
 		
 		        // Update the feed list
 				foursquareGet(this,{
-					endpoint: 'checkins.json',
+					endpoint: 'checkins/recent',
 					requiresAuth: true,
-					parameters: {geolat:_globals.lat, 
-						geolong:_globals.long, 
-						geohacc:_globals.hacc,
-						geovacc:_globals.vacc, 
-						geoalt:_globals.altitude},
+					debug: true,
+					parameters: {afterTimestamp: this.lastUpdate, filterPings: 1},
 					onSuccess: this.feedSuccess.bind(this),
 					onFailure: this.feedFailed.bind(this)
 				});
@@ -285,43 +244,13 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 	        
 	        // NOTIFICATION
 	        case "notification" :
-				_globals.GPS = new Location(_globals.gotLocation);
-				_globals.GPS.start();
-				var now=(new Date().getTime());
-				_globals.gpsStart=now;
-				_globals.nearbyVenues=undefined;
-				_globals.reloadVenues=true;
-				_globals.userData={};
-				_globals.firstLoad=false; //////////////
-				_globals.gpsokay=true;
-				_globals.retryingGPS=false;
-		        this.cookieData=new Mojo.Model.Cookie("credentials");
-				var credentials=this.cookieData.get();
-				if(credentials){
-					_globals.auth=credentials.auth;
-					_globals.uid=credentials.uid;
-					_globals.swf=credentials.swf || "1";
-				}
+				//_globals.GPS = new Location(_globals.gotLocation);
+				//_globals.GPS.start();
 				
 				_globals.loadPrefs();
 				
 				//also grab user settings in bg
-				/* foursquareGet({
-				 	endpoint: 'user.json',
-				 	onSuccess: this.userSuccess.bind(this),
-				 	onFailure: this.userFailed.bind(this),
-				 	requiresAuth: true
-				 });*/
-				 
-						var url = "https://api.foursquare.com/v1/user.json";
-						var request = new Ajax.Request(url, {
-						   method: 'get',
-						   evalJSON: 'true',
-						   requestHeaders: {Authorization:_globals.auth},
-						   onSuccess: _globals.userSuccess.bind(this),
-						   onFailure: _globals.userFailed.bind(this)
-						 });
-
+				this.prelaunch();
 	
 	
 	            if (cardStageController) {
@@ -384,6 +313,19 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 	        case "url":
 				var shorturl=launchParams.url;
 				var appController = Mojo.Controller.getAppController();
+		        this.cookieData=new Mojo.Model.Cookie("oauth");
+				var credentials=this.cookieData.get();
+		
+				if(credentials){
+					logthis("creds="+credentials.token);
+					this.token=credentials.token;
+					_globals.token=this.token;
+					this.expressLogin=true;
+				}else{
+					logthis("no creds");
+					this.token='';
+					this.expressLogin=false;
+				}
 
 				if(shorturl.indexOf("foursquare.com/venue")>-1){
 		   			var s=shorturl.indexOf("venue/")+6;
@@ -399,6 +341,7 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 					   evalJSON: 'true',
 					   onSuccess: function(r){
 					   		var longurl=r.responseJSON.data.expand[0].long_url;
+					   		logthis("longurl="+longurl);
 	
 					   		if(longurl.indexOf("foursquare.com/venue")>-1){
 					   			var s=longurl.indexOf("venue/")+6;
@@ -407,6 +350,19 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 									function(){logthis("launched");}.bind(this),
 									function(){logthis("launch failed");}.bind(this)
 								);
+							}else if(longurl.indexOf("foursquare.com")>-1 && longurl.indexOf("/checkin/")>-1){
+								logthis("is checkin");
+								var s=longurl.indexOf("checkin/")+8;
+								var e=longurl.indexOf("?s=");
+								var len=e-s;
+								var cid=longurl.substr(s,len);
+								
+								if(cardStageController){ //app already opened
+									cardStageController.pushScene("view-checkin",{checkin:cid});
+									cardStageController.activate();
+								}else{
+									this.loadScene("view-checkin",{checkin:cid});
+								}
 					   		}else{				   			
 								 appController.open({target: longurl},function(){
 									 	_globals.GPS.stop();
@@ -471,8 +427,8 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 	                // Create a callback function to set up a new main stage,
 	                // push the feedList scene and then the appropriate story list
 	                var pushMainScene2 = function(stageController) {
-						_globals.GPS = new Location(_globals.gotLocation);
-						_globals.GPS.start();
+						//_globals.GPS = new Location(_globals.gotLocation);
+						//_globals.GPS.start();
 						var now=(new Date().getTime());
 						_globals.gpsStart=now;
 						_globals.nearbyVenues=undefined;
@@ -541,18 +497,22 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 };
 
 
-AppAssistant.prototype.loadScene = function(scene) {
+AppAssistant.prototype.loadScene = function(scene,params) {
             var pushMainScene = function(stageController) {
-				this.cookieData=new Mojo.Model.Cookie("credentials");
+				this.cookieData=new Mojo.Model.Cookie("oauth");
 				var credentials=this.cookieData.get();
 	
-	
-				if (_globals.loadPrefs()){		
-					zBar.stageController=stageController;		
-					stageController.pushScene(scene,true,credentials);
+				if(scene=="main"){
+					if (_globals.loadPrefs()){		
+						zBar.stageController=stageController;		
+						stageController.pushScene(scene,true,credentials);
+					}else{
+						zBar.stageController=stageController;
+						stageController.pushScene(scene,false);
+					}
 				}else{
 					zBar.stageController=stageController;
-					stageController.pushScene(scene,false);
+					stageController.pushScene(scene,params);				
 				}
 	
             };
@@ -573,7 +533,7 @@ AppAssistant.prototype.feedSuccess = function(r) {
 	//see if we've got a stored list of old checkins
 	_globals.db.get("feed",function(d){
 		//found an old feed
-		if(d) {var f=d.checkins;}
+		if(d) {var f=d.recent;}
 		if(!f){
 		
 			var f=[];
@@ -593,26 +553,26 @@ AppAssistant.prototype.doFeedData = function(data,r){
 	var newitems=[];
 	
 	//run through array of newly downloaded checkins
-	var newfeed=r.responseJSON.checkins;
+	var newfeed=r.responseJSON.response.recent;
 	if(newfeed){
 		if(oldfeed.length>0){
 			for(var f=0;f<newfeed.length;f++) {
 				var inarray=false;
 				for(var of=0;of<oldfeed.length;of++){
 					if(oldfeed[of].id==newfeed[f].id){
-						Mojo.Log.error("checkin for %i is old (ping=%i)",newfeed[f].user.firstname,newfeed[f].ping);
-						Mojo.Log.error("old id=%i, new id=%i",oldfeed[of].id,newfeed[f].id);
 
 						inarray=true;
 						break;
 					}else{
 					}			
 				}
-				if(!inarray && newfeed[f].ping && (newfeed[f].venue || newfeed[f].shout)){
+				if(!inarray && (newfeed[f].venue || newfeed[f].shout)){
 					newitems.push(newfeed[f]);
 					inarray=false;
 				} //if the checkin is really new, add it to the newitems array
 				else{
+					//if we got an old checkin again, it probably has a comment
+					
 				}
 			}
 		}else{
@@ -625,9 +585,23 @@ AppAssistant.prototype.doFeedData = function(data,r){
 			feed: newfeed
 		});*/
 		this.newitems=newitems;
-		_globals.db.add("feed",r.responseJSON,function(r){logthis("add OK");this.doDashboard();}.bind(this),function(r){logthis("add FAIL");this.doDashboard();}.bind(this));
+		_globals.db.add("feed",r.responseJSON.response,function(r){logthis("add OK");this.doDashboard();}.bind(this),function(r){logthis("add FAIL");this.doDashboard();}.bind(this));
 	}
 }	
+
+AppAssistant.prototype.launchTouchstone = function(params){
+	var dockStage = this.controller.getStageController('dock');
+	if (dockStage) {
+		dockStage.window.focus();
+	} else {
+		var f = function(stageController) {
+			stageController.pushScene('exhibition', {dockmode:true});
+			//Mojo.Log.error("exhibition");
+		}.bind(this);
+		this.controller.createStageWithCallback({name: 'dock', lightweight: true}, f, "dockMode");	
+	}
+//Mojo.Log.error("exhibition");
+};
 	
 	
 AppAssistant.prototype.doDashboard = function(){

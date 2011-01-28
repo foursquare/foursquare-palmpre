@@ -134,5 +134,37 @@
     {
         "scenes": "view-walkthrough",
         "source": "app/assistants/view-walkthrough-assistant.js"
+    },
+    {
+        "scenes": "oauth",
+        "source": "app/assistants/oauth-assistant.js"
+    },
+    {
+        "scenes": "attach-photo",
+        "source": "app/assistants/attach-photo-assistant.js"
+    },
+    {
+        "scenes": "venue-photos",
+        "source": "app/assistants/venue-photos-assistant.js"
+    },
+    {
+        "scenes": "view-photo",
+        "source": "app/assistants/view-photo-assistant.js"
+    },
+    {
+        "scenes": "view-checkin",
+        "source": "app/assistants/view-checkin-assistant.js"
+    },
+    {
+        "scenes": "badges",
+        "source": "app/assistants/badges-assistant.js"
+    },
+    {
+        "scenes": "view-badge",
+        "source": "app/assistants/view-badge-assistant.js"
+    },
+    {
+        "scenes": "exhibition",
+        "source": "app/assistants/exhibition-assistant.js"
     }
 ]

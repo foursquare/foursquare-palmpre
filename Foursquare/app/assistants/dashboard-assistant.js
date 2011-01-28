@@ -2,8 +2,8 @@ function DashboardAssistant(feedlist) {
     this.list = feedlist;
    // this.index = selectedFeedIndex;
    logthis("item 0="+Object.toJSON(this.list[0]));
-   var lname=(this.list[0].user.lastname)? this.list[0].user.lastname: "";
-    this.title = this.list[0].user.firstname + " " + lname;
+   var lname=(this.list[0].user.lastName)? this.list[0].user.lastName: "";
+    this.title = this.list[0].user.firstName + " " + lname;
     logthis("this.title="+this.title);
     if(this.list[0].venue != undefined){ //normal checkin
     	this.message="@ " + this.list[0].venue.name;
@@ -100,8 +100,8 @@ DashboardAssistant.prototype.showStory = function() {
             this.storyIndex = 0;
         }
     
-    	var lname=(this.list[this.storyIndex].user.lastname)? this.list[this.storyIndex].user.lastname: "";
-    	this.title = this.list[this.storyIndex].user.firstname + " " + lname;
+    	var lname=(this.list[this.storyIndex].user.lastName)? this.list[this.storyIndex].user.lastName: "";
+    	this.title = this.list[this.storyIndex].user.firstName + " " + lname;
 	    if(this.list[this.storyIndex].venue != undefined){ //normal checkin
     		this.message="@ " + this.list[this.storyIndex].venue.name;
 	    }else if(this.list[this.storyIndex].shout!=undefined){ //just a shout
@@ -125,8 +125,8 @@ DashboardAssistant.prototype.updateDashboard = function(newitems) {
 	if(newitems){
 		this.list=newitems;
 	}
-	var lname=(this.list[0].user.lastname)? this.list[0].user.lastname: "";
-    this.title = this.list[0].user.firstname + " " + lname;
+	var lname=(this.list[0].user.lastName)? this.list[0].user.lastName: "";
+    this.title = this.list[0].user.firstName + " " + lname;
     if(this.list[0].venue != undefined){ //normal checkin
     	this.message="@ " + this.list[0].venue.name;
     }else if(this.list[0].shout!=undefined){ //just a shout

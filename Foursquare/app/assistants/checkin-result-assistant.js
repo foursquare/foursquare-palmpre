@@ -1,6 +1,7 @@
-function CheckinResultAssistant( checkinJSON,i) {
+function CheckinResultAssistant( checkinJSON,i,isshout) {
 	this.json=checkinJSON;
 	this.uid=i;	
+	this.isShout=isshout;
 }
 
 CheckinResultAssistant.prototype.aboutToActivate = function(callback){
@@ -28,6 +29,8 @@ CheckinResultAssistant.prototype.setup = function() {
 	else{
 	   this.controller.get("checkin-widgets").style.minHeight="327px"; //372
 	}
+	
+	if(this.isShout){this.controller.get("result-header").update("SHOUTED!");}
 
 	this.initData(this.json);
 	
@@ -36,27 +39,72 @@ CheckinResultAssistant.prototype.setup = function() {
 CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 //	checkinJSON.checkin.created="";
 //logthis(Object.toJSON(checkinJSON.checkin));
-
 	//set the title message
-	this.controller.get('checkin-display').innerHTML = checkinJSON.checkin.message;
 	this.controller.get('scores-box').innerHTML=" ";
+	this.noscores=true;
+	this.nomayor=true;
+	this.notip=true;
+	this.badgeHTML='';
+	this.scoresHTML='';
+
+	//parse array
+	var notifs=checkinJSON.notifications;
+	
+	//var notifs=[{"type":"message","item":{"message":"OK! We've got you @ Test Venue. You've been here 10 times."}},{"type":"mayorship","item":{"type":"nochange","checkins":3,"message":"You're still the Mayor of Test Venue! (3 check-ins in the past two months)","image":"http://foursquare.com/img/crown.png"}},{"type":"badge","item":{"badge":{"id":"4c4f08667a0803bbb0202ab7","name":"Local","description":"You've been at the same place 3x in one week!","image":{"prefix":"http://foursquare.com/img/badge/","sizes":[57,114,300],"name":"/local.png"}}}},{"type":"score","item":{"scores":[{"points":1,"icon":"/img/scoring/2.png","message":"First stop tonight"}],"total":1}}];
+	
+	for(var n=0;n<notifs.length;n++){
+		switch(notifs[n].type){
+			case "message":
+				this.controller.get('checkin-display').innerHTML=notifs[n].item.message;
+				break;
+			case "mayorship":
+				this.nomayor=false;
+				//handle different mayrship notification types
+				switch(notifs[n].item.type){
+					case "nochange":						
+						break;
+					case "new":
+						break;
+					case "stolen":
+						break;
+				}
+				//test days behind
+//				notifs[n].item.daysBehind=10;
+				
+				this.controller.get('checkin-mayorship').innerHTML = '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+notifs[n].item.image+'" width="50" height="50"  class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 180px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+notifs[n].item.message+'	</div><br class="breaker"/></div>';
+				if(notifs[n].item.daysBehind){
+					this.controller.get('checkin-mayorship').innerHTML += '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><div class="days-away" style="float: left; padding-top:18px;margin-left: 5px;width:48px;height:30px;font-size: 20px;color:#000;text-align:center;background:url(images/calendar.png) no-repeat left top;">'+notifs[n].item.daysBehind+'</div><div style="float: left;margin-left: 10px; width: 180px; padding-top: 0px; padding-bottom:0px;font-size:16px;">You are now '+notifs[n].item.daysBehind+' days away from becoming the Mayor!</div><br class="breaker"/></div>';
+				}
+				break;
+			case "score": //{"type":"score","item":{"scores":[{"points":1,"icon":"/img/scoring/2.png","message":"First stop today"}],"total":1}}
+				var scores=notifs[n].item.scores;
+				var totalpoints=notifs[n].item.total;
+				this.noscores=false;
+				break;
+			case "badge":
+				var badge=notifs[n].item.badge;
+				var badge_name=badge.name;
+				var badge_icon=badge.image.prefix+badge.image.sizes[0]+badge.image.name;
+				var badge_text=badge.description;
+				this.badgeHTML += 	'<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+badge_icon+'" width="32" height="32"  class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 195px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+badge_name+': '+badge_text+'	</div><br class="breaker"/></div>';
+				
+				break;
+			case "tipAlert":
+				this.notip=false;
+				this.tip=notifs[n].item.tip;
+				break;
+		}
+	}
+
 	
 	//set the individual scores - handle changes in JSON response...
-	if(checkinJSON.checkin.scoring != undefined){
-		var scores=checkinJSON.checkin.scoring.score;
-	}else if(checkinJSON.checkin.scores != undefined){
-		var scores=checkinJSON.checkin.scores;
-	}else{
-		var scores=undefined;
-	}
 	if(scores != undefined) {
-		var totalpoints=0;
+		//var totalpoints=0;
 		for(var i = 0; i < scores.length; i++) {
-			if (checkinJSON.checkin.scores[i] != undefined) { 
-				var imgpath = scores[i].icon;
-				totalpoints+=parseInt(scores[i].points);
+			if (scores[i] != undefined) { 
+				var imgpath = (scores[i].icon.indexOf("http://")!=-1)? scores[i].icon: "http://foursquare.com"+scores[i].icon;
 				var msg = '+' + scores[i].points + ' ' +scores[i].message;
-				this.controller.get('scores-box').innerHTML += '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+imgpath+'" width="20" height="20" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 210px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+msg+'	</div><br class="breaker"/></div>';
+				this.scoresHTML += '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+imgpath+'" width="20" height="20" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 210px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+msg+'	</div><br class="breaker"/></div>';
 //'<div class="palm-row single"><div class="checkin-score-item"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';
 			}
 		}
@@ -65,36 +113,14 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 	}else{
 		this.noscores=true;
 	}
-
 	
-	//badges? we need stinkin' badges!
-	if(checkinJSON.checkin.badges != undefined) {
-		for(var b = 0; b < checkinJSON.checkin.badges.length;b++) {
-			var badge_name=checkinJSON.checkin.badges[b].name;
-			var badge_icon=checkinJSON.checkin.badges[b].icon;
-			var badge_text=checkinJSON.checkin.badges[b].description;
-			this.controller.get('scores-box').innerHTML += 	'<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+badge_icon+'" width="32" height="32"  class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 195px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+badge_name+': '+badge_text+'	</div><br class="breaker"/></div>';
-//'<div class="palm-row single"><div class="checkin-badge-item"><img align="absmiddle" src="'+badge_icon+'" width="32" height="32" /> <span>'+badge_name+': '+badge_text+'</span></div></div>';
-		}
-	}
+	this.controller.get("scores-box").update(this.scoresHTML+this.badgeHTML);
 
-	
-	//handle mayorship. the response lets us know whether we're the new mayor, still the mayor, or some other dork still is the mayor.
-	//the response also already has some language for this information ("Congrats! You're still the mayor!") so
-	//I don't see the need to handle the different mayorships. maybe in the future if we make the check-in result super bad-ass.
-	if(checkinJSON.checkin.mayor != undefined) {
-		this.controller.get('checkin-mayorship').innerHTML = '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="images/crown_50x50.png" width="50" height="50"  class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 180px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+checkinJSON.checkin.mayor.message+'	</div><br class="breaker"/></div>';
-	//'<div class="palm-row single"><span>'+checkinJSON.checkin.mayor.message+'</span></div>';
-		this.nomayor=false;
-
-	}else{
-		this.nomayor=true;
-	}
 	
 
 
 	//specials!
-	if(checkinJSON.checkin.specials != undefined) {
+/*	if(checkinJSON.checkin.specials != undefined) {
 	logthis("has specials");
 		for(var b = 0; b < checkinJSON.checkin.specials.length;b++) {
 			logthis("in loop");
@@ -131,7 +157,7 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 				spt=spt+" Nearby";
 				special_venue="@ "+checkinJSON.checkin.specials[b].venue.name;
 			}*/
-			logthis("im here");
+			/*logthis("im here");
 			if(special_kind=="nearby"){
 				logthis("is nearby");
 				spt=spt+" Nearby";
@@ -153,7 +179,7 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			//special_venue="@ Venue Name (123 Venue St.)";
 			this.controller.get('checkin_specials').innerHTML += '<div class="checkin-special"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class="palm-list special-list"><div class="">'+special_msg+unlock_msg+'<div class="checkin-venue">'+special_venue+'</div></div></div></div>';
 		}
-	}
+	}*/
 
 	
 	//some checkins have a tips block. we should handle that
@@ -170,8 +196,9 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			id: 468853
 		}
 	];*/
-	checkinJSON.checkin.created="";
-	if(checkinJSON.checkin.tips != undefined){
+if(1==1){	
+	//checkinJSON.checkin.created="";
+	if(!this.notip){
 		logthis("there's a tip!");
 	    this.controller.setupWidget("tipScroller",
          this.scrollAttributes = {
@@ -205,18 +232,19 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 
 		//logthis(Object.toJSON(checkinJSON.checkin.tips);
 		//if(checkinJSON.checkin.tips.length != undefined){
-			var tip=checkinJSON.checkin.tips[0];
-			this.tip=tip;
+			//var tip=checkinJSON.checkin.tips[0];
+			//this.tip=tip;
+			var tip=this.tip;
 			var here=false;
 			if(tip.venue != undefined){
 				var tipvenuename=tip.venue.name;
 				var tipvenueid=tip.venue.id;
-				if(tipvenueid==checkinJSON.checkin.venue.id){
+				if(tipvenueid==checkinJSON.response.checkin.venue.id){
 					here=true;
 				}
 			}else{
 				here=true;
-				var tipvenuename=checkinJSON.checkin.venue.name;
+				var tipvenuename=checkinJSON.response.checkin.venue.name;
 			}
 			var tiptext=tip.text;
 			if(here){
@@ -224,8 +252,8 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			}else{
 				tiptext="Since you're so close to "+tipvenuename+": "+tiptext;
 			}
-			var tipuserfn=tip.user.firstname;
-			var tipuserln=(tip.user.lastname!=undefined)? tip.user.lastname: "";
+			var tipuserfn=tip.user.firstName;
+			var tipuserln=(tip.user.lastName!=undefined)? tip.user.lastName: "";
 			var tipuserpic=tip.user.photo;
 			
 			/*this.controller.showAlertDialog({
@@ -273,7 +301,7 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			
 		//}
 	}
-	
+}//fake comment end	
 
 }
 
@@ -283,16 +311,16 @@ CheckinResultAssistant.prototype.okTappedCheckin = function() {
 
 CheckinResultAssistant.prototype.tipDone = function() {
 		foursquarePost(this,{
-			endpoint: 'tip/markdone.json',
-			parameters: {tid: this.tip.id},
+			endpoint: 'tips/'+this.tip.id+'/markdone',
+			parameters: {},
 			requiresAuth: true,
 			debug: true,
 			onSuccess: function(r){
 				logthis("todo ok");
 				var j=r.responseJSON;
 				logthis(j);
-				var todo=j.tip;
-				if(todo){
+				//var todo=j.meta.code;
+				if(j.meta.code==200 || j.meta.code=="200"){
 					this.controller.get("pop-tip").hide();
 					this.controller.get("userScrim").hide();
 				}else{
@@ -308,16 +336,16 @@ CheckinResultAssistant.prototype.tipDone = function() {
 }
 CheckinResultAssistant.prototype.tipRemove = function() {
 		foursquarePost(this,{
-			endpoint: 'tip/unmark.json',
-			parameters: {tid: this.tip.id},
+			endpoint: 'tips/'+this.tip.id+'/unmark',
+			parameters: {},
 			requiresAuth: true,
 			debug: true,
 			onSuccess: function(r){
 				logthis("todo ok");
 				var j=r.responseJSON;
 				logthis(j);
-				var todo=j.tip;
-				if(todo){
+				//var todo=j.tip;
+				if(j.meta.code==200 || j.meta.code=="200"){
 					this.controller.get("pop-tip").hide();
 					this.controller.get("userScrim").hide();
 				}else{
@@ -334,16 +362,16 @@ CheckinResultAssistant.prototype.tipRemove = function() {
 }
 CheckinResultAssistant.prototype.tipAdd = function() {
 		foursquarePost(this,{
-			endpoint: 'tip/marktodo.json',
-			parameters: {tid: this.tip.id},
+			endpoint: 'tips/'+this.tip.id+'/marktodo',
+			parameters: {},
 			requiresAuth: true,
 			debug: true,
 			onSuccess: function(r){
 				logthis("todo ok");
 				var j=r.responseJSON;
 				logthis(j);
-				var todo=j.tip;
-				if(todo){
+				//var todo=j.tip;
+				if(j.meta.code==200 || j.meta.code=="200"){
 					this.controller.get("pop-tip").hide();
 					this.controller.get("userScrim").hide();
 				}else{

@@ -1,0 +1,35 @@
+<div id="main" class="about-dialog no-palm-hasheader fsq-hasheader">
+	<div class="thin-header-redux" style="z-index: 99999">
+		<div class="letterpress">
+		<div class="thin-blue-header" id="todo-header">CHECK-IN</div>
+		</div>
+	</div>
+
+	<br class="breaker-small"/>
+
+
+	<div class="grey-bg" id="wrapper">
+		<div x-mojo-element="Spinner" id="overlaySpinner" class="fsq_spinner" name="spinnerName" style="position: fixed;top:200px;left:120px;"></div>
+		<div id="elements" style="display:none;padding-bottom: 60px;">
+			<div class="darkerbg" style="color:#fff;padding-bottom: 3px;margin-bottom: 7px;margin-top: 15px;">
+				<div id="checkin" class="result row"></div>
+			</div>
+			
+			<div id="photoBank"></div>
+			
+			<div id="commentBank"></div>
+		
+		</div>
+	</div>
+</div>
+<div class="innershadow"></div>
+
+<div class="palm-list" id="comment-box">
+	<div class="palm-row last">
+		<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true" style="background-color:#fff;">
+			<div class="title">
+					<div x-mojo-element="TextField" id="txtComment"></div>
+			</div>
+		</div>
+	</div>
+</div>

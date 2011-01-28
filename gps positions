@@ -1,0 +1,11 @@
+NOLA:
+luna-send -n 1 luna://com.palm.pmradiosimulator/set_position {\"lat\":\"29.950955927128003\",\"long\":\"-90.08098125457764\"}
+
+KENNER:
+luna-send -n 1 luna://com.palm.pmradiosimulator/set_position {\"lat\":\"30.034390\",\"long\":\"-90.233172\"}
+
+SUNNYVALE:
+luna-send -n 1 luna://com.palm.pmradiosimulator/set_position {\"lat\":\"37.3926298\",\"long\":\"-122.0416903\"}
+
+NEW YORK:
+luna-send -n 1 luna://com.palm.pmradiosimulator/set_position {\"lat\":\"40.72822629818531\",\"long\":\"-73.99107456207275\"}

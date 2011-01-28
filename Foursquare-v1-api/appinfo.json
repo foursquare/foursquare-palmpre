@@ -1,0 +1,25 @@
+{
+	"id": "com.foursquare.foursquare",
+	"version": "2.0.18",
+	"vendor": "foursquare",
+	"noWindow" : "true",
+	"timingEnabled": "true",
+	"type": "web",
+	"main": "index.html",
+	"title": "foursquare",
+	"icon": "icon_64x64.png",
+	"splashBackground": "images/splash.png",
+	"keywords":["foursquare","4sq","map","places","restaurants","bars","food"],
+	"universalSearch": {
+			"search": {
+				"displayName":"foursquare",
+				"url":"com.foursquare.foursquare",
+				"launchParam":{"action":"search","query":"#{searchTerms}"}
+			},
+			"action": {
+				"displayName":"Shout!",
+				"url":"com.foursquare.foursquare",
+				"launchParam":{"action":"shout","text":"#{searchTerms}"}
+			}
+		}
+}

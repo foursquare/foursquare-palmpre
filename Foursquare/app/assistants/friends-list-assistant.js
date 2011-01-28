@@ -24,6 +24,7 @@ function FriendsListAssistant(a, ud, un, pw,i,la,lo,ps,ss,what) {
 	 		break;
 	 }
 	 this.showSearch=ss;
+	 
 }
 FriendsListAssistant.prototype.aboutToActivate = function(callback) {
 	callback.defer();     //makes the setup behave like it should.
@@ -55,9 +56,12 @@ FriendsListAssistant.prototype.setup = function() {
 	this.resultsModel = {items: [], listTitle: $L('Results')};
 	this.controller.setupWidget('sendField', this.textFieldAtt, this.textModel);
     
+    
 	this.controller.setupWidget('results-friends-list', 
 					      {itemTemplate:'listtemplates/friendItems',dividerFunction: this.groupVenues,dividerTemplate: 'listtemplates/dividertemplate'},
 					      this.resultsModel);
+	this.listTappedBound=this.listTapped.bind(this);
+	Mojo.Event.listen(this.controller.get("results-friends-list"),Mojo.Event.listTap, this.listTappedBound);
 
 
 
@@ -76,13 +80,23 @@ FriendsListAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.stageController.document,Mojo.Event.activate, this.stageActivateBound);
 
 
-    this.controller.setupWidget("spinnerId",
+    /*this.controller.setupWidget("spinnerId",
          this.attributes = {
              spinnerSize: 'large'
          },
          this.model = {
              spinning: true 
-         });
+         });*/
+  	this.spinnerAttr = {
+		superClass: 'fsq_spinner',
+		mainFrameCount: 31,
+		fps: 20,
+		frameHeight: 50
+	}
+	this.spinnerModel = {
+		spinning: true
+	}
+	this.controller.setupWidget('spinnerId', this.spinnerAttr, this.spinnerModel);
 
 
     this.controller.setupWidget(Mojo.Menu.commandMenu,
@@ -103,10 +117,10 @@ FriendsListAssistant.prototype.setup = function() {
     });
 
 
-	this.keyDownHandlerBound=this.keyDownHandler.bind(this);
-	this.keyUpHandlerBound=this.keyUpHandler.bind(this);
-	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandlerBound);
-    this.doc.addEventListener("keyup", this.keyUpHandlerBound, true);
+	//this.keyDownHandlerBound=this.keyDownHandler.bind(this);
+	//this.keyUpHandlerBound=this.keyUpHandler.bind(this);
+	//this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandlerBound);
+    //this.doc.addEventListener("keyup", this.keyUpHandlerBound, true);
 
 
 	this.showUserInfoBound=this.showUserInfo.bind(this);
@@ -117,6 +131,10 @@ FriendsListAssistant.prototype.setup = function() {
 	this.controller.modelChanged(_globals.ammodel);
 
     this.controller.get("message").hide();
+	 if(_globals.lat==undefined){
+		_globals.relogin();
+	 }
+
     this.getFeed();
 
 }
@@ -128,6 +146,8 @@ function make_base_auth(user, pass) {
   var hash = Base64.encode(tok);
   return "Basic " + hash;
 }
+
+
 FriendsListAssistant.prototype.keyDownHandler = function(event) {
 		var key=event.originalEvent.keyCode;
 		logthis("key="+key);
@@ -146,6 +166,12 @@ FriendsListAssistant.prototype.keyUpHandler = function(event) {
 
 FriendsListAssistant.prototype.stageActivate = function(event) {
 			NavMenu.setup(this,{buttons: 'navOnly'});
+			this.metatap=false;
+	if(_globals.showShout){
+    	var thisauth="";
+		this.controller.stageController.pushScene({name: "shout", transition: Mojo.Transition.zoomFade},thisauth,"",this,_globals.jtShout);
+	}
+
 
 };
 
@@ -193,8 +219,8 @@ FriendsListAssistant.prototype.hardRefresh = function(event) {
 	this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},this.auth,_globals.userData,this.username,this.password,this.uid,this.lat,this.long,this);
 }
 
-FriendsListAssistant.prototype.listWasTapped = function(event) {
-	
+FriendsListAssistant.prototype.listTapped = function(event) {
+	/*
 	//see if there's a link in the shout
 	var shout=event.item.shout || "";
 	var urlmatch=/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
@@ -226,7 +252,11 @@ FriendsListAssistant.prototype.listWasTapped = function(event) {
 			
 	}else{
 		this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.crossFade, disableSceneScroller: false},this.auth,event.item.id,null,true);
-	}
+	}*/
+	logthis("tapped");
+		this.controller.stageController.pushScene({name: "view-checkin", transition: Mojo.Transition.zoomFade, disableSceneScroller: false},{checkin:event.item.checkinId});
+	
+	
 }
 
 
@@ -237,42 +267,88 @@ FriendsListAssistant.prototype.setBools = function(what) {
 	this.showSearch=(what=="search")? true: false;
 }
 
-FriendsListAssistant.prototype.getFeed = function(event) {
-	if(this.feedList==undefined) {
-		_globals.reloadFriends=false;
-		_globals.friendList=undefined;
-	 	foursquareGet(this, {
-	 		endpoint: 'checkins.json',
-	 		requiresAuth: true,
-		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude},
-		   onSuccess: this.feedSuccess.bind(this),
-		   onFailure: this.getFriendsFailed.bind(this)	 		
-	 	});
-	}else{
-		if(this.showList){
-			var l=_globals.friendList;
-			this.controller.get("fmenu-caption").update("List");
-			if(l==undefined){this.getFriends();}
-		}
-		if(this.showPending){
-			var l=_globals.requestList;
-			this.controller.get("fmenu-caption").update("Pending");
-			if(l==undefined){this.onPendingFriends();}
-		}
-		if(this.showFeed){
-			var l=_globals.feedList;
-			this.controller.get("fmenu-caption").update("Feed");
-		}
-		this.resultsModel.items=l;
-		this.controller.modelChanged(this.resultsModel);
-		this.lat=_globals.lat;
-		this.long=_globals.long;
+function roundNumber(num, dec) {
+	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
+	return result;
+}
 
-		this.controller.get("spinnerId").mojo.stop();
-		this.controller.get("spinnerId").hide();
-		this.controller.get('resultListBox').style.display = 'block';
+
+FriendsListAssistant.prototype.gotLocation = function(event){
+	if(event.errorCode == 0) {
+		//check their prefs. if the results are good enough, carry on
+		//otherwise, repoll the gps
+		this.controller.get('getting-gps-alert').hide();
+		this.lat=event.latitude;
+		this.long=event.longitude;
+		this.hacc=event.horizAccuracy;
+		this.vacc=event.vertAccuracy;
+		this.altitude=event.altitude;
+		_globals.lat=this.lat;
+		_globals.long=this.long;
+		_globals.hacc=this.hacc;
+		_globals.vacc=this.vacc;
+		_globals.altitude=this.altitude;
+		_globals.gps=event;
+		_globals.accuracy="&plusmn;"+roundNumber(this.hacc,2)+"m";
+
+		this.getFeed();
+	} else {
+		this.controller.get('getting-gps-alert').hide();
+		Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
 	}
+};
+
+FriendsListAssistant.prototype.failedLocation = function(event) {
+	logthis('failed to get location: ' + event.errorCode);
+	Mojo.Controller.getAppController().showBanner("Location services required!", {source: 'notification'});
+};
+
+FriendsListAssistant.prototype.getFeed = function(event) {
+	if(_globals.lat==undefined){
+		this.controller.get('getting-gps-alert').show();
+		this.controller.serviceRequest('palm://com.palm.location', {
+			method: "getCurrentPosition",
+			parameters: {accuracy: 1, maximumAge:0, responseTime: 1},
+			onSuccess: this.gotLocation.bind(this),
+			onFailure: this.failedLocation.bind(this)
+		});	
+	}else{
+
+		if(this.feedList==undefined) {
+			_globals.reloadFriends=false;
+			_globals.friendList=undefined;
+		 	foursquareGet(this, {
+		 		endpoint: 'checkins/recent',
+		 		requiresAuth: true,
+			   parameters: {ll:_globals.lat+","+_globals.long},
+			   onSuccess: this.feedSuccess.bind(this),
+			   onFailure: this.getFriendsFailed.bind(this)	 		
+		 	});
+		}else{
+			if(this.showList){
+				var l=_globals.friendList;
+				this.controller.get("fmenu-caption").update("List");
+				if(l==undefined){this.getFriends();}
+			}
+			if(this.showPending){
+				var l=_globals.requestList;
+				this.controller.get("fmenu-caption").update("Pending");
+				if(l==undefined){this.onPendingFriends();}
+			}
+			if(this.showFeed){
+				var l=_globals.feedList;
+				this.controller.get("fmenu-caption").update("Feed");
+			}
+			this.resultsModel.items=l;
+			this.controller.modelChanged(this.resultsModel);
+			this.lat=_globals.lat;
+			this.long=_globals.long;
 	
+			this.controller.get("spinnerId").mojo.stop();
+			this.controller.get("spinnerId").hide();
+			this.controller.get('resultListBox').style.display = 'block';
+		}
+	}
 }
 
 FriendsListAssistant.prototype.feedSuccess = function(response) {
@@ -286,31 +362,77 @@ FriendsListAssistant.prototype.feedSuccess = function(response) {
 		//Got Results... JSON responses vary based on result set, so I'm doing my best to catch all circumstances
 		this.feedList = [];
 		this.looping=false;
-		if(response.responseJSON.checkins != undefined && response.responseJSON.checkins != null && response.responseJSON.checkins.length>0) {
-			for(var f=0;f<response.responseJSON.checkins.length;f++) {
-				this.feedList.push(response.responseJSON.checkins[f]);
-				this.feedList[f].id=response.responseJSON.checkins[f].user.id;
+		var j=response.responseJSON.response;
+		
+		if(j.recent.length>0) {
+			for(var f=0;f<j.recent.length;f++) {
+				this.feedList.push(j.recent[f]);
+				logthis(Object.toJSON(j.recent[f]));
+				//this.feedList[f].id=j.recent[f].user.id;
+				this.feedList[f].checkinId=j.recent[f].id;
+				logthis("uid="+this.feedList[f].id+", juid="+j.recent[f].user.id);
+				logthis("id="+this.feedList[f].checkinId+", jid="+j.recent[f].id);
+								
 				this.feedList[f].idx=f;
-				this.feedList[f].firstname=response.responseJSON.checkins[f].user.firstname;
-				this.feedList[f].lastname=response.responseJSON.checkins[f].user.lastname;
-				this.feedList[f].photo=response.responseJSON.checkins[f].user.photo;
-				this.feedList[f].checkin=(response.responseJSON.checkins[f].venue != undefined)? response.responseJSON.checkins[f].venue.name: "";
-				this.feedList[f].at=(response.responseJSON.checkins[f].venue != undefined)? "@ ": "";
-				this.feedList[f].geolat=(response.responseJSON.checkins[f].venue != undefined)? response.responseJSON.checkins[f].venue.geolat: "";
-				this.feedList[f].geolong=(response.responseJSON.checkins[f].venue != undefined)? response.responseJSON.checkins[f].venue.geolong: "";
-				
-				this.feedList[f].shout=(response.responseJSON.checkins[f].shout != undefined)? "\n"+response.responseJSON.checkins[f].shout: "";
+				this.feedList[f].firstname=j.recent[f].user.firstName;
+				this.feedList[f].lastname=j.recent[f].user.lastName;
+				this.feedList[f].photo=j.recent[f].user.photo;
+
+				switch(j.recent[f].type){
+					case "checkin":
+						this.feedList[f].checkin=j.recent[f].venue.name;
+						this.feedList[f].geolat=j.recent[f].venue.location.lat;
+						this.feedList[f].geolong=j.recent[f].venue.location.lng;
+						this.feedList[f].at="@ ";
+						break;
+					case "shout":
+						this.feedList[f].checkin="";
+						this.feedList[f].geolat=(j.recent[f].location.lat)? j.recent[f].location.lat: 0;
+						this.feedList[f].geolong=(j.recent[f].location.lng)? j.recent[f].location.lng: 0;
+						this.feedList[f].at="";
+						break;
+					case "venueless":
+						this.feedList[f].checkin=j.recent[f].location.name;
+						this.feedList[f].geolat=(j.recent[f].location.lat)? j.recent[f].location.lat: 0;
+						this.feedList[f].geolong=(j.recent[f].location.lng)? j.recent[f].location.lng: 0;
+						this.feedList[f].at="@ ";
+						break;
+				}
+				this.feedList[f].shout=(j.recent[f].shout != undefined)? "\n"+j.recent[f].shout: "";
 				var urlmatch=/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
 				this.feedList[f].shout=this.feedList[f].shout.replace(urlmatch,'<a href="$1" class="listlink">$1</a>');
 				
-				this.feedList[f].mayorcrown=(response.responseJSON.checkins[f].ismayor=="true")? '<img src="images/crown_smallgrey.png"/> ': "";
+				this.feedList[f].mayorcrown=(j.recent[f].isMayor=="true" || j.recent[f].isMayor==true)? '<img src="images/crown_smallgrey.png"/> ': "";
+				
+				if(j.recent[f].source){
+					if(j.recent[f].source.name.indexOf('foursquare for')>-1){
+						this.feedList[f].source=(j.recent[f].source)? 'via '+j.recent[f].source.name+'': '';			
+					}else{
+						this.feedList[f].source=(j.recent[f].source)? 'via <a class="fakelink" href="'+j.recent[f].source.url+'">'+j.recent[f].source.name+'</a>': '';
+					
+					}
+				}
+				
+				//handle photos and comments
+				var html='';
+				if(j.recent[f].photos.count>0){
+					html+='<img src="images/tip-hasphoto.png" width="16" height="13" align="middle">'+j.recent[f].photos.count;
+				}
+				
+				if(j.recent[f].comments.count>0){
+					html+='<img src="images/hascomments.png" width="15" height="14" align="middle">'+j.recent[f].comments.count;
+				}else{
+					html+='<img src="images/nocomments.png" width="15" height="14" align="middle">+';				
+				}
+				
+				this.feedList[f].comments=html;
 				
 				//handle time
-				if(response.responseJSON.checkins[f].created != undefined) {
+				if(j.recent[f].createdAt != undefined) {
 					var now = new Date;
-					var later = new Date(response.responseJSON.checkins[f].created);
+					var later = new Date(j.recent[f].createdAt*1000);
 					var offset = later.getTime() - now.getTime();
-					this.feedList[f].when=this.relativeTime(offset) + " ago";
+					this.feedList[f].when=this.relativeTime(offset).replace("about ","") + " ago";
 					
 					//group this based on time
 					var minsago=(Math.abs(offset)/1000)/60;
@@ -336,7 +458,7 @@ FriendsListAssistant.prototype.feedSuccess = function(response) {
 			this.controller.get('resultListBox').style.display = 'block';
 			
 			
-			this.userlinks=this.controller.document.querySelectorAll(".userLink");
+		/*	this.userlinks=this.controller.document.querySelectorAll(".userLink");
 			for(var e=0;e<this.userlinks.length;e++) {
 				var eid=this.userlinks[e].id;
 				Mojo.Event.listen(this.controller.get(eid),Mojo.Event.tap,this.showUserInfoBound);
@@ -347,7 +469,7 @@ FriendsListAssistant.prototype.feedSuccess = function(response) {
 				var eid=this.venuelinks[e].id;
 				Mojo.Event.listen(this.controller.get(eid),Mojo.Event.tap,this.showVenueInfoBound);
 				logthis("#########added event to "+eid)
-			}
+			}*/
 
 		}else{
 			this.controller.get("search-msg").innerHTML="No recent check-ins";
@@ -367,12 +489,12 @@ FriendsListAssistant.prototype.feedSuccess = function(response) {
 FriendsListAssistant.prototype.showUserInfo = function(event) {
 	var uid=event.target.readAttribute("data");
 	if(!this.metatap){
-		this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade, disableSceneScroller: false},this.auth,uid,null,true);
+		this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade, disableSceneScroller: false},this.auth,uid,this,true);
 	}else{
          var stageArguments = {name: "mainStage"+uid, lightweight: true};
          var pushMainScene=function(stage){
          	this.metatap=false;
-			stage.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade, disableSceneScroller: false},this.auth,uid,null,true);      
+			stage.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade, disableSceneScroller: false},this.auth,uid,null,false);      
          };
         var appController = Mojo.Controller.getAppController();
 		appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");	
@@ -383,12 +505,12 @@ FriendsListAssistant.prototype.showVenueInfo = function(event){
 	var vid=event.target.readAttribute("data");
 	logthis("venue clicked: "+vid);
 	if(!this.metatap){
-		this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.feedList[vid].venue,_globals.username,_globals.password,_globals.uid,true);
+		this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: false},this.feedList[vid].venue,_globals.username,_globals.password,_globals.uid,true);
 	}else{
          var stageArguments = {name: "mainStage"+vid, lightweight: true};
          var pushMainScene=function(stage){
          	this.metatap=false;
-			stage.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},this.feedList[vid].venue,_globals.username,_globals.password,_globals.uid,true);    
+			stage.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: false},this.feedList[vid].venue,_globals.username,_globals.password,_globals.uid,true);    
          };
         var appController = Mojo.Controller.getAppController();
 		appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");		
@@ -437,11 +559,11 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 				case "do-Profile":
                 case "do-Badges":
                 	var thisauth=auth;
-					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade},thisauth,"");
+					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
                 case "do-Shout":
                 	var thisauth=auth;
-					this.controller.stageController.pushScene({name: "shout", transition: Mojo.Transition.zoomFade},thisauth,"",this);
+					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Tips":
                 	var thisauth=auth;
@@ -497,7 +619,7 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
 FriendsListAssistant.prototype.activate = function(event) {
 	NavMenu.setThat(this);
     this.controller.get("sendField").mojo.blur();
-	this.controller.window.setTimeout(function(){_globals.GPS.stop();}.bind(this),5000);
+//	this.controller.window.setTimeout(function(){_globals.GPS.stop();}.bind(this),5000);
 
 	if(_globals.friendList!=undefined) {
 		this.controller.get("spinnerId").mojo.stop();

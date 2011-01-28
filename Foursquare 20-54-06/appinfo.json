@@ -1,0 +1,9 @@
+{
+	"id": "com.zhephree.foursquare",
+	"version": "1.0.0",
+	"vendor": "Zhephree",
+	"type": "web",
+	"main": "index.html",
+	"title": "Foursquare",
+	"icon": "icon.png"
+}

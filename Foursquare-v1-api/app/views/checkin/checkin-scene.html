@@ -1,0 +1,107 @@
+<div id="main" class="checkin-main fsq-hasheader">
+	<div class="thin-header-redux">
+		<div class="letterpress">
+		<div class="thin-blue-header">CHECK-IN</div>
+		</div>
+	</div>
+
+	<br class="breaker-small"/>
+	<div id="checkin-widgets" class="grey-bg">
+		<div id="checkin-info"></div>
+   		<div class="palm-row first">
+			<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+				<div class="title" style="position:relative;background:#fff;">
+      				<div x-mojo-element="TextField" id="shout" style="width:83%;"></div>
+	      			<span class="clear-button label" id="attach" style="position: absolute; right: 0px; top: 2px;"><div class="attach-button" id="attachicon"></div></span>
+					<div id="img-preview" style="display: none;padding:0;margin:0;">
+						<img src="" width="100" id="img">
+						<div id="remove-button"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="charCount" id="charCount" style="text-align:right;">140</div>
+		<div class="palm-row single" x-mojo-tap-highlight="momentary" id="photorow">
+			<div class="palm-row-wrapper">
+				<div x-mojo-element="ListSelector" id="photohostList" class="listselectorClass"  name="listselectorName"></div>		
+			</div>
+		</div>
+		<div class="darkerbg" style="color:#fff;padding-bottom: 3px;margin-top: 15px;">
+			<div class="title" style="margin-top: -4px;">
+				<div x-mojo-element="CheckBox" id="chkShowFriends" class="checkboxClass left" name="checkboxName"></div> 
+				<div class="left chkLabel">Show Your Friends</div>
+			</div>
+		</div>
+		<div class="darkerbg" style="color:#fff;padding-bottom: 3px;margin-bottom: 7px;margin-top: 10px;">
+			<div class="left chkLabel" style="float: left; width: 150px;">Share with...</div>
+			<div class="right" style="float: right; width: 100px;">
+				<div id="share-facebook" class="share-button fbook"></div>
+				<div id="share-twitter" class="share-button twit"></div>
+				<br class="breaker-small"/>
+			</div>
+			<br class="breaker-small"/>
+		</div>
+
+		<div x-mojo-element="Button" class="fsq-button palmbutton primary" id="okButton"></div>
+
+	</div>		
+
+
+</div>
+
+
+<!--
+
+<div class="black-text-not" id="docheckin-fields" style="display:none;width:260px;">
+	<div class="not-palm-group" id='docheckingroup'>
+<!--	<div class="palm-group-title" x-mojo-loc=''>Go ahead and check-in here?</div>-->
+<!--		<div class="palm-list">
+	   		<div class="palm-row single">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+	      				<div x-mojo-element="TextField" id="shout" style="width:83%;"></div>
+		      			<span class="clear-button label" id="attach" style="position: absolute; right: 44px; top: 2px;"><div class="attach-button" id="attachicon"></div></span>
+						<div id="img-preview" style="display: none;padding:0;margin:0;">
+							<img src="" width="100" id="img">
+							<div id="remove-button"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="palm-dark">
+				<div class="palm-group unlabeled" id="listborder" style="display:none;">
+					<div class="palm-list">
+						<div class="palm-row-single" x-mojo-tap-highlight="momentary">
+							<div class="palm-row-wrapper">
+								<div x-mojo-element="ListSelector" id="photohostList" class="listselectorClass"  name="listselectorName"></div>				
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+	<div class="palm-row single small-bot-margin">
+		<div class="palm-row-wrapper">
+			<div class="title">
+				<div x-mojo-element="CheckBox" id="chkShowFriends" class="checkboxClass left" name="checkboxName"></div> <div class="left chkLabel">Show Your Friends</div>
+			</div>
+		</div>
+	</div>
+	<div class="palm-row single small-bot-margin">
+		<div class="palm-row-wrapper">
+			<div class="title">
+				<div x-mojo-element="CheckBox" id="chkTwitter" class="checkboxClass left" name="checkboxName"></div> <div class="left chkLabel">Ping Twitter</div>
+			</div>
+		</div>
+	</div>
+	<div class="palm-row single">
+		<div class="palm-row-wrapper">
+			<div class="title">
+				<div x-mojo-element="CheckBox" id="chkFacebook" class="checkboxClass left" name="checkboxName"></div> <div class="left chkLabel">Ping Facebook</div>
+			</div>
+		</div>
+	</div>
+		</div>
+
+	</div>
+</div>-->

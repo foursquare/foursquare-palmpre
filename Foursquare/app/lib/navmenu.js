@@ -7,9 +7,11 @@ var NavMenu={
 				if(params){
 					var lc=(params.lastCommand)? params.lastCommand: undefined;
 					var view_buttons=(params.buttons)? params.buttons: 'defaults';
+					var class=(params.class)? ' '+params.class: '';
 				}else{
 					var lc=undefined;
 					var view_buttons="defaults";
+					var class='';
 				}
 				
 				logthis("buttons="+view_buttons);
@@ -93,7 +95,7 @@ var NavMenu={
 			try{
 		        that.controller.setupWidget(Mojo.Menu.viewMenu,
 		        {
-		            menuClass: 'no-fade navbar-menu'
+		            menuClass: 'no-fade navbar-menu'+class
 		        },
 		        {
 		            visible: true,
@@ -326,6 +328,48 @@ var NavMenu={
 							    width: 80,
 							    command: 'nothing',
 							    iconPath: "",
+							    label: " "
+							
+							},
+							{
+							    command: 'gototop',
+							    width: 158,
+							    iconPath: 'images/menu/foursquare-logo.png'
+							},
+							{
+							    width: 80,
+							    command: 'nothing',
+							    iconPath: "",
+							    label: " "
+							}
+							
+							],
+				checkindetail: [
+							{
+							    width: 80,
+							    command: 'add-photo',
+							    iconPath: "images/menu/button-photo.png",
+							    label: " "
+							
+							},
+							{
+							    command: 'gototop',
+							    width: 158,
+							    iconPath: 'images/menu/foursquare-logo.png'
+							},
+							{
+							    width: 80,
+							    command: 'nothing',
+							    iconPath: "",
+							    label: " "
+							}
+							
+							],
+				badges: [
+							{
+							    width: 80,
+							    command: 'swap-group',
+							    iconPath: "images/allbadges.png",
 							    label: " "
 							
 							},

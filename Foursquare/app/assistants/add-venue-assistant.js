@@ -12,8 +12,8 @@ function AddVenueAssistant(a,ed,v,vn) {
   
   if(ed) {
   	this.bl="Save";
-	this.lat=this.venue.geolat;
-	this.long=this.venue.geolong;
+	this.lat=this.venue.location.lat;
+	this.long=this.venue.location.lng;
   }else{
   	this.bl="Add";
     this.lat=_globals.lat;
@@ -25,32 +25,32 @@ function AddVenueAssistant(a,ed,v,vn) {
   this.categoryName="";
   this.categoryIcon="";
   if(ed){
-    if(this.venue.primarycategory.id){
+    if(this.venue.categories.length>0){
 	for(var i =0; i<_globals.categories.length; i++){
-		if(_globals.categories[i].id==this.venue.primarycategory.id){
-			this.categoryName=_globals.categories[i].nodename;
-			this.categoryIcon=_globals.categories[i].iconurl;
+		if(_globals.categories[i].id==this.venue.categories[0].id){
+			this.categoryName=_globals.categories[i].name;
+			this.categoryIcon=_globals.categories[i].icon;
 			break;
 		}
 		for(var s=0;s<_globals.categories[i].categories.length;s++){
-			if(_globals.categories[i].categories[s].id==this.venue.primarycategory.id){
-				this.categoryName=_globals.categories[i].categories[s].nodename;
-				this.categoryIcon=_globals.categories[i].categories[s].iconurl;
+			if(_globals.categories[i].categories[s].id==this.venue.categories[0].id){
+				this.categoryName=_globals.categories[i].categories[s].name;
+				this.categoryIcon=_globals.categories[i].categories[s].icon;
 				break;
 			}
 			
 			if(_globals.categories[i].categories[s].categories != undefined){
 				for(var t=0; t<_globals.categories[i].categories[s].categories.length; t++){
-					if(_globals.categories[i].categories[s].categories[t].id==this.venue.primarycategory.id){
-						this.categoryName=_globals.categories[i].categories[t].nodename;
-						this.categoryIcon=_globals.categories[i].categories[t].iconurl;
+					if(_globals.categories[i].categories[s].categories[t].id==this.venue.categories[0].id){
+						this.categoryName=_globals.categories[i].categories[t].name;
+						this.categoryIcon=_globals.categories[i].categories[t].icon;
 						break;
 					}
 				}		
 			}
 		}
 	}
-	_globals.selectedCat=this.venue.primarycategory.id;
+	_globals.selectedCat=this.venue.categories[0].id;
 	}
   }
 	
@@ -280,25 +280,25 @@ AddVenueAssistant.prototype.activate = function() {
 		this.nameModel.value=this.venue.name;
 		this.controller.modelChanged(this.nameModel);
 
-		this.addressModel.value=this.venue.address;
+		this.addressModel.value=this.venue.location.address;
 		this.controller.modelChanged(this.addressModel);
 
-		this.crossstreetModel.value=this.venue.crossstreet;
+		this.crossstreetModel.value=this.venue.location.crossStreet;
 		this.controller.modelChanged(this.crossstreetModel);
 
-		this.cityModel.value=this.venue.city;
+		this.cityModel.value=this.venue.location.city;
 		this.controller.modelChanged(this.cityModel);
 
-		this.zipModel.value=this.venue.zip;
+		this.zipModel.value=this.venue.location.postalCoad;
 		this.controller.modelChanged(this.zipModel);
 
-		this.phoneModel.value=this.venue.phone;
+		this.phoneModel.value=this.venue.contact.phone;
 		this.controller.modelChanged(this.phoneModel);
 
-		this.twitterModel.value=this.venue.twitter;
+		this.twitterModel.value=this.venue.contact.twitter;
 		this.controller.modelChanged(this.twitterModel);
 
-		this.statemodel.value=this.venue.state;
+		this.statemodel.value=this.venue.location.state;
 		this.controller.modelChanged(this.statemodel);
 
 		this.controller.get("selectedCat").update('<img src="'+this.categoryIcon+'" align="top"/> '+this.categoryName);
@@ -370,44 +370,41 @@ AddVenueAssistant.prototype.okTapped = function() {
 		if(!this.editing) {
 			pcat=_globals.selectedCat;
 			var url = 'https://api.foursquare.com/v1/addvenue.json';
-			var ep="addvenue.json";
-			var params={
-				name: this.nameModel.value,
-				address: this.addressModel.value,
-				crossstreet: this.crossstreetModel.value,
-				city: this.cityModel.value,
-				state: this.statemodel.value,
-				zip: this.zipModel.value,
-				geolat: _globals.lat,
-				geolong: _globals.long,
-				phone: this.phoneModel.value,
-				twitter: this.twitterModel.value,
-				primarycategoryid: pcat
-			};
+			var ep="venues/add";
+			
+			var params={};
+			if(this.nameModel.value!=''){params.name=this.nameModel.value;}
+			if(this.addressModel.value!=''){params.address=this.addressModel.value;}
+			if(this.crossstreetModel.value!=''){params.crossStreet=this.crossstreetModel.value;}
+			if(this.cityModel.value!=''){params.city=this.cityModel.value;}
+			if(this.statemodel.value!=''){params.state=this.statemodel.value;}
+			if(this.zipModel.value!=''){params.zip=this.zipModel.value;}
+			params.ll=_globals.lat+','+_globals.long;
+			if(this.phoneModel.value!=''){params.phone=this.phoneModel.value;}
+			if(this.twitterModel.value!=''){params.twitter=this.twitterModel.value;}
+			if(pcat.length>0){params.primaryCategoryId=pcat;}
 		}else{
 			pcat=_globals.selectedCat;
 			var url = 'https://api.foursquare.com/v1/venue/proposeedit.json';
-			var ep="venue/proposeedit.json";
-			var params={
-				name: this.nameModel.value,
-				address: this.addressModel.value,
-				crossstreet: this.crossstreetModel.value,
-				city: this.cityModel.value,
-				state: this.statemodel.value,
-				zip: this.zipModel.value,
-				cityid: credentials.cityid,
-				phone: this.phoneModel.value,
-				twitter: this.twitterModel.value,
-				geolat: _globals.lat,
-				geolong: _globals.long,
-				vid: this.venue.id,
-				primarycategoryid: pcat
-			};
+			var ep="venues/"+this.venue.id+"/proposeedit";
+			
+			var params={};
+			if(this.nameModel.value!=''){params.name= this.nameModel.value;}
+			if(this.addressModel.value!=''){params.address=this.addressModel.value;}
+			if(this.crossstreetModel.value!=''){params.crossStreet=this.crossstreetModel.value;}
+			if(this.cityModel.value!=''){params.city=this.cityModel.value;}
+			if(this.statemodel.value!=''){params.state=this.statemodel.value;}
+			if(this.zipModel.value!=''){params.zip=this.zipModel.value;}
+			if(this.phoneModel.value!=''){params.phone=this.phoneModel.value;}
+			if(this.twitterModel.value!=''){params.twitter=this.twitterModel.value;}
+			params.ll=_globals.lat+','+_globals.long;
+			if(pcat.length>0){params.primaryCategoryId=pcat;}
 		}
 		foursquarePost(this,{
 			endpoint: ep,
 			requiresAuth: true,
 			parameters: params,
+			debug: true,
 			onSuccess: this.venueSuccess.bind(this),
 			onFailure: this.venueFailed.bind(this),
 			ignoreErrors: true
@@ -419,19 +416,19 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 	this.controller.get("okButton").mojo.deactivate();
 	logthis(response.responseText);
 	
-	if(response.responseJSON.venue != undefined && !this.editing) {
+	if(response.responseJSON.response.venue != undefined && !this.editing) {
 		Mojo.Controller.getAppController().showBanner("Venue saved to Foursquare!", {source: 'notification'});
 	
-		var vid=response.responseJSON.venue.id;
-		var vname=response.responseJSON.venue.name;
+		var vid=response.responseJSON.response.venue.id;
+		var vname=response.responseJSON.response.venue.name;
 	
 		this.controller.stageController.popScene("add-venue");
 
-		this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},response.responseJSON.venue,_globals.username,_globals.password,_globals.uid);
+		this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.crossFade, disableSceneScroller: true},response.responseJSON.response.venue,_globals.username,_globals.password,_globals.uid,true,this,false,false);
 	
 	}
 	
-	if(response.responseJSON.error != undefined){
+	if(response.responseJSON.meta.errorType != undefined){
 		switch(response.responseJSON.error){
 			case "Possible Duplicate Venue":
 				var vname=this.nameModel.value;
@@ -454,7 +451,7 @@ AddVenueAssistant.prototype.venueSuccess = function(response) {
 		}
 	}
 	
-	if(this.editing && response.responseJSON.error == undefined){
+	if(this.editing && response.responseJSON.meta.errorType == undefined){
 				this.controller.showAlertDialog({
 					onChoose: function(value) {
 							this.controller.stageController.popScene("add-venue");

@@ -60,9 +60,9 @@ var ServiceRequestWrapper = Class.create({
         optionsIn.onComplete && optionsIn.onComplete(response);
     },
     cancelHandler: function(optionsIn, requestId, original) 
-    {logthis("cancelhandler() started");
+    {
         return function() 
-        {logthis("attempting to cancel request");
+        {
             delete this.requests[requestId];
 
             original.apply(this, arguments);

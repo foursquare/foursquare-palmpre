@@ -1,16 +1,13 @@
 <div id="main" class="no-palm-hasheader centered fsq-hasheader">
 	<div class="thin-header-redux">
 		<div class="letterpress">
-<!--			<div class="white-text">Places</div>
-			<div class="dark-shadow">Places</div>-->
 			<div class="thin-blue-header">PLACES</div>
-			<div class="refresh-button" id="venue-refresh" style="display: none;"></div>
-			<div class="map-button" id="venue-map" style="display: none;"></div>
 			<div id="sendField" x-mojo-element="TextField" style="position: fixed; top:50px; left: 0px;display:none;z-index:999999;width: 320px;font-size: 16px;"></div>
 		</div>
 	</div>
 	<br class="breaker-small"/>
-<!--	<br/>-->
+
+<!--
 <div x-mojo-element="Drawer" id="drawerId" class="drawerClass" name="drawerName">
 	<div class="palm-group" style="display:none;" id="searchgroup">
 		<div class="palm-group-title" x-mojo-loc=''>Search Venues</div>
@@ -26,6 +23,8 @@
 	</div>
 	<div id="go_button" x-mojo-element="Button"></div>
 </div>
+
+-->
 <div id='message' style='padding: 0 20px;display:none;'></div>
 <div id="gps_banner" style="display:none;height: 27px;padding-top:8px;">
 	<span id="banner_text"></span>
@@ -33,7 +32,7 @@
 	<span id="refresh-venues" class="vtip">Refresh</span>
 	<br class="breaker-small"/>
 </div>
-<div x-mojo-element="Spinner" id="spinnerId" class="spinnerClass" name="spinnerName"></div>
+<div x-mojo-element="Spinner" id="spinnerId" class="fsq_spinner" name="spinnerName"></div>
 <div id="debuginfo" style="font-size: 14px;"></div>
 <div id="recommend" style="display: none;">recommend</div>
 <div class="fsq-divider" style="display: none;" id="noresults">No Search Results Found</div>
@@ -67,8 +66,7 @@
 <div id="accuracy" class="small-text blue-box"></div>
 <div id="log"></div>
 
-<br/><br/><br/><br/><br/><br/>
-
+<br>
 </div>
 <div id="menuhere" style="float: right; position: fixed; top: 30px;right:0px;"></div>
 

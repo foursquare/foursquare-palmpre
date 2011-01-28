@@ -1,0 +1,14 @@
+<div class='result row' x-mojo-tap-highlight='momentary' style="padding:0; padding-bottom: 7px; padding-top: 3px;">
+	<!--<img src="#{photo}" width="48" height="48"  class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/>-->
+	<div style="float: left;margin-left: 3px; width: 300px; padding-top: 0px; padding-bottom:0px;font-size:16px;">
+		<div class="user-checkin-header truncating-text">
+			<!--#{-mayorcrown} <span class="fakelink userLink" id="user-#{id}" data="#{id}">#{firstname} #{lastname} </span>-->
+			#{at}<span class="fakelink venueLink" id="venue-#{venue.id}" data="#{idx}">#{checkin}</span>
+		</div>
+		<div class='friend-shout'>#{-shout}</div>
+		<div class='friend-checkin'><span class="timeago" id="whenfield#{id}">#{when}</span> <span class="friend-source">#{-source}</span></div>
+		<div class="friend-footer">
+			<div class="friend-comments">#{-comments}</div>
+		</div>
+	</div><br class="breaker"/>
+</div>

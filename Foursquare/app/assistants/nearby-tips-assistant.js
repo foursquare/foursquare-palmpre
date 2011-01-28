@@ -26,13 +26,26 @@ NearbyTipsAssistant.prototype.setup = function() {
        _globals.amattributes,
        _globals.ammodel);
     
-    this.controller.setupWidget("spinnerId",
+/*    this.controller.setupWidget("spinnerId",
          this.attributes = {
              spinnerSize: 'large'
          },
          this.model = {
              spinning: true 
-         });
+         });*/
+  	this.spinnerAttr = {
+		superClass: 'fsq_spinner',
+		mainFrameCount: 31,
+		fps: 20,
+		frameHeight: 50
+	}
+	this.spinnerModel = {
+		spinning: true
+	}
+	this.controller.setupWidget('spinnerId', this.spinnerAttr, this.spinnerModel);
+	this.controller.get("spinnerId").show();
+
+         
     this.controller.setupWidget(Mojo.Menu.commandMenu,
     	this.attributes = {
 	        spacerHeight: 0,
@@ -69,6 +82,11 @@ NearbyTipsAssistant.prototype.setup = function() {
 
 NearbyTipsAssistant.prototype.stageActivate = function(event) {
 			NavMenu.setup(this,{buttons: 'navOnly'});
+	if(_globals.showShout){
+    	var thisauth="";
+		this.controller.stageController.pushScene({name: "shout", transition: Mojo.Transition.zoomFade},thisauth,"",this,_globals.jtShout);
+	}
+
 
 };
 
@@ -85,9 +103,9 @@ NearbyTipsAssistant.prototype.getTips = function() {
 		_globals.tipsList=undefined;
 	this.get='nearby';
 		 foursquareGet(this,{
-		 	endpoint: 'tips.json',
+		 	endpoint: 'tips/search',
 		 	requiresAuth: true,
-		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude, filter: 'nearby'},
+		   parameters: {ll:_globals.lat+","+_globals.long, filter: 'nearby'},
 		   onSuccess: this.getTipsSuccess.bind(this),
 		   onFailure: this.getTipsFailed.bind(this)		 	
 		 });
@@ -111,9 +129,9 @@ NearbyTipsAssistant.prototype.getFriendTips = function() {
 
 		this.get='friends';
 		 foursquareGet(this,{
-		 	endpoint: 'tips.json',
+		 	endpoint: 'tips/search',
 		 	requiresAuth: true,
-		   parameters: {geolat:_globals.lat, geolong:_globals.long, geohacc:_globals.hacc,geovacc:_globals.vacc, geoalt:_globals.altitude, filter: 'friends'},
+		   parameters: {ll:_globals.lat+","+_globals.long, filter: 'friends'},
 		   onSuccess: this.getTipsSuccess.bind(this),
 		   onFailure: this.getTipsFailed.bind(this)		 	
 		 });
@@ -139,10 +157,10 @@ NearbyTipsAssistant.prototype.listDelete = function(event){
 	var tip=event.item.id;
 	
 		foursquarePost(this,{
-			endpoint: 'tip/unmark.json',
-			parameters: {tid: tip},
+			endpoint: 'tips/'+tip+'/unmark',
+			parameters: {},
 			requiresAuth: true,
-			debug: false,
+			debug: true,
 			onSuccess: this.unmarkTipSuccess.bind(this),
 			onFailure: this.markTipFailed.bind(this)
 		});
@@ -168,7 +186,7 @@ NearbyTipsAssistant.prototype.markTipSuccess = function(response){
 	}
 }
 NearbyTipsAssistant.prototype.unmarkTipSuccess = function(response){
-	if(response.responseJSON.tip!=undefined){
+	if(response.responseJSON.meta.code!=200){
 		Mojo.Controller.getAppController().showBanner("Tip was unmarked!", {source: 'notification'});
 	}else{
 		Mojo.Controller.getAppController().showBanner("Error unmarking tip!", {source: 'notification'});
@@ -216,7 +234,7 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 	
 	logthis("tips are done");
 	
-	if (response.responseJSON == undefined) {
+/*	if (response.responseJSON == undefined) {
 		logthis("###tips are effed!");
 		var t=response.responseText;
 		t=t.replace('"group":null,"type":"Nearby",',"");
@@ -226,7 +244,8 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 		var j=response.responseJSON;
 		
 		
-	}
+	}*/
+	var j=response.responseJSON.response;
 	
 	logthis(Object.toJSON(j));
 	
@@ -244,7 +263,7 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 				for(var t=0;t<tarray.length;t++) {
 				logthis("2loop");
 					this.tipsList.push(tarray[t]);
-					var dist=this.tipsList[this.tipsList.length-1].distance;
+					var dist=this.tipsList[this.tipsList.length-1].venue.location.distance;
 					if(_globals.units=="si") {					
 						var amile=0.000621371192;
 						dist=roundNumber(dist*amile,1);
@@ -262,10 +281,10 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 					this.tipsList[this.tipsList.length-1].unit=unit;
 					//this.tipsList[this.tipsList.length-1].grouping=grouping;
 					
-					var created=this.tipsList[this.tipsList.length-1].created;
-					if(this.tipsList[this.tipsList.length-1].created != undefined) {
+					var created=this.tipsList[this.tipsList.length-1].createdAt;
+					if(this.tipsList[this.tipsList.length-1].createdAt != undefined) {
 						var now = new Date;
-						var later = new Date(this.tipsList[this.tipsList.length-1].created);
+						var later = new Date(this.tipsList[this.tipsList.length-1].createdAt*1000);
 						var offset = later.getTime() - now.getTime();
 						var when=this.relativeTime(offset) + " ago";
 					}else{
@@ -273,7 +292,12 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 					}
 					this.tipsList[this.tipsList.length-1].when=when;
 				logthis("4");
-					
+					if(this.tipsList[this.tipsList.length-1].photo!=undefined){
+						this.tipsList[this.tipsList.length-1].hasphoto='inline';
+					}else{
+						this.tipsList[this.tipsList.length-1].hasphoto='none';
+					}
+
 					
 					if(this.tipsList[this.tipsList.length-1].status){
 						if(this.tipsList[this.tipsList.length-1].status=="todo"){
@@ -286,11 +310,11 @@ NearbyTipsAssistant.prototype.getTipsSuccess = function(response) {
 					}
 				logthis("5");
 
-					var fs=this.tipsList[this.tipsList.length-1].user.friendstatus;
+					var fs=this.tipsList[this.tipsList.length-1].user.relationship;
 					if(fs!=undefined){
-						logthis("fs="+this.tipsList[this.tipsList.length-1].user.friendstatus);
+						logthis("fs="+this.tipsList[this.tipsList.length-1].user.relationship);
 					}else{
-						logthis("nope! user="+this.tipsList[this.tipsList.length-1].user.firstname);
+						logthis("nope! user="+this.tipsList[this.tipsList.length-1].user.firstName);
 					}
 
 				logthis("6");
@@ -356,7 +380,7 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
 				case "do-Profile":
                 case "do-Badges":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.pushScene({name: "user-info", transition: Mojo.Transition.zoomFade},thisauth,"");
+					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
                 case "do-Todos":
                 	var thisauth=auth;
@@ -364,7 +388,7 @@ NearbyTipsAssistant.prototype.handleCommand = function(event) {
                 	break;
                 case "do-Shout":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.pushScene({name: "shout", transition: Mojo.Transition.zoomFade},thisauth,"",this);
+					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;

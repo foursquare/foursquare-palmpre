@@ -1,0 +1,9 @@
+<img src="#{photo}" width="32" height="32"  class="friend-avatar" style="float: left; margin-left: 5px;"/>
+<div style="float: left;margin-left: 3px; width: 220px; padding-top: 0px; padding-bottom:0px;font-size:15px;">
+	<div class="user-checkin-header truncating-text">
+		#{-mayorcrown} <span class="fakelink userLink" id="user-#{user.id}" data="#{user.id}">#{firstname} #{lastname} </span>
+		#{at}<span class="fakelink venueLink" id="venue-#{venue.id}" data="#{venue.id}">#{checkin}</span>
+	</div>
+	<div class='friend-shout'>#{-shout}</div>
+	<div class='friend-checkin'><span class="timeago" id="whenfield#{id}">#{when}</span> <span class="friend-source">#{-source}</span></div>
+</div><br class="breaker"/>

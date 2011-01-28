@@ -1,14 +1,14 @@
-<div class='result row' x-mojo-tap-highlight='momentary' style="position: relative;padding:0;padding-top:5px;padding-left: 7px; padding-right: 7px;border-bottom: 0px solid #e7e7e7;">
+<div class='result row' x-mojo-tap-highlight='momentary' style="position: relative;padding:0;padding-top:5px;padding-left: 7px; padding-right: 7px;border-bottom: 0px solid #e7e7e7;background-color:#{bgcolor};">
 	<div style="position: relative;">
 		<div class="venue-category">
-			<div class="venue-cat-icon"><img src="#{primarycategory.iconurl}"/></div>
+			<div class="venue-cat-icon"><img src="#{primarycategory.icon}"/></div>
 			<!--<div class="venue-cat-name">#{primarycategory.nodename}</div>-->
 		</div>
 		<div class="venue-info-wrap">
 			<div class="venue-name truncating-text capitalize"><span>#{-mayoricon}</span>#{name}</div>
-			<div class='venue-address truncating-text capitalize' id="address-#{id}">#{address} #{crossstreet}</div>
+			<div class='venue-address truncating-text capitalize' id="address-#{id}">#{location.address} #{crossstreet}</div>
 			<div class="venue-footer">
-				#{distance} #{unit} <img class="people-icon" src="images/people-#{peopleicon}.png"/> #{stats.herenow} #{herepeople} #{-specialimage}
+				#{distance} #{unit} <img class="people-icon" src="images/people-#{peopleicon}.png"/> #{hereNow.count} #{herepeople} #{-specialimage}
 			</div>
 		</div>
 		<!--<div class='fsq-venue-distance'>

@@ -1,0 +1,25 @@
+<div class="result row aTip" x-mojo-tap-highlight='momentary' style="position: relative;padding:0;padding-top:5px;padding-left: 4px; padding-right: 2px;border-bottom: 0px solid #e7e7e7;">
+	<div>
+	<img src="#{photo}" id="tip-pic-#{uid}-#{t}" width="48" class="friend-avatar"  user="#{user.username}" data="#{user.id}" style="display: block;float:left;"/>
+	<div style="float:right;width:240px;margin-right: 4px;" class="wh-wrap">
+		<div class="wh-info">
+			<span class="wh-user" user="#{user.username}" data="#{user.id}">#{user.username}</span>
+			<span class="wh-time">#{createdFormatted}</span>
+		</div>
+		<div class="wh-shout">
+			#{-text}
+			<span class="wh-shout-tail"></span>
+		</div>
+		<div class="tip-stats">
+			<span class="done">#{stats.donecount}</span>
+			<span class="todo">#{stats.todocount}</span>			
+		</div>
+		<!--<div class="tip-buttons" style="width:100%;margin:5px auto 5px -20px">
+			<span class="vtip tipsave" id="tip-save-#{t}" data="#{tipid}">Save Tip</span>
+			<span class="vtip-black tipdone" id="tip-done-#{t}" data="#{tipid}">I've Done This</span>
+		</div>-->
+	</div>
+	<br class="breaker"/>
+	</div>
+</div>
+<!--<div style="height: 15px; "></div>-->

@@ -1,0 +1,13 @@
+<div class="darkerbg" style="color:#fff;padding-bottom: 3px;margin-bottom: 7px;margin-top: 15px;">
+	<img src="#{user.photo}" width="32" height="32"  class="friend-avatar" style="float: left;margin-left: 5px;"/>
+	<div style="float: left;margin-left: 3px; width: 220px; padding-top: 0px; padding-bottom:0px;font-size:15px;">
+		<div class="user-checkin-header truncating-text">
+			<span class="fakelink userLink" id="user-#{id}" data="#{id}">#{user.firstName} #{user.lastName} </span>
+		</div>
+		<div class='friend-shout'>#{-text}</div>
+		<div class='friend-checkin'><span class="timeago" id="whenfield#{id}">#{when}</span></div>
+		<div class="friend-footer">
+			#{-deletebutton}
+		</div>
+	</div><br class="breaker"/>
+</div>

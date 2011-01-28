@@ -1,0 +1,9 @@
+foursquare "2.0" changelog
+tapping a tag in venue detail scene pops the scene and performs a search for the tag;
+added venue search support in Just Type;
+add JT Quick Action to send a shout;
+removed unused images from package;
+rewrote most of the AppAssistant for speed;
+removed lots of comments and useless code;
+VenueDetail: shows badge showing number of tips and people checked-in on command menu;
+User-facing references to TweetPhoto changed to Plixi;

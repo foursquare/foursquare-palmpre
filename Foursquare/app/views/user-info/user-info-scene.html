@@ -16,12 +16,12 @@
 	</div>	-->
 	<div class="palm-page-header-nope multi-line-nope" id="userHeader">
 		<div class="palm-page-header-wrapper-nope">
-			<div id="userAvatar" style="width: 90px;float:left;">
-				<img id="userPic" width="80" height="80" data="" alt="" src="" class="friend-avatar" />
+			<div id="userAvatar" style="width: 82px;float:left; margin-top: 45px;">
+				<img id="userPic" width="72" height="72" data="" alt="" src="" class="friend-avatar" />
 				<!--<img id="userPicBorder" src="images/roundedCorner.png" class="userLink" data="" alt="" />-->
 				
 			</div>
-			<div style="width: 180px; float: left; padding-left: 7px;">
+			<div style="width: 180px; float: left; padding-left: 7px; margin-top: 45px;">
 			    <div id="userName" class="title left" ></div>                         
 				<div id="userCity" class=""></div>
 				
@@ -54,7 +54,19 @@
 	  <div id="overview">
 		<div class="palm-list">
 			
-			<div class="palm-row" id="checkins-row">
+			<div class="palm-row" id="todos-row" style="display: none;">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="todo-count">items on To-Do list</div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+				</div>
+			</div>
+
+			<div class="palm-row" id="checkins-row" style="display: none;">
 				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
 					<div class="venue-left">
 						<div class="medium-bold" id="checkin-count">checkins</div>
@@ -78,12 +90,24 @@
 					<br class="breaker">
 				</div>
 			</div>
+			
+			<div class="palm-row" id="venuehistory-row" style="display: none;">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold">Where Have I Been?</div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+				</div>
+			</div>
 
 			<div class="palm-row" id="more-row">
 				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
 					<div class="venue-left">
 						<div class="medium-bold" id="more-text">More info</div>
-						<div class="subtext" id="more-subtext">Contact, Ping Settings</div>
+						<div class="subtext" id="more-subtext"><span id="friendshipinfo" style="display:none;"></span>Contact, Ping Settings</div>
 					</div>
 					<div class="venue-right">
 						<img src="images/right.png" width="32" height="32" class="right-arrow">
@@ -131,7 +155,18 @@
 
 	<div class="palm-group-nope" id='uhistory' style="padding-top: 5px; display:none;">
 		<!--<div id='history-title' class="palm-group-title" x-mojo-loc=''>History</div>-->
+		<div class="fsq-divider">Check-in History (Last 30 Days)</div>
 		<div id="checkinHistory" x-mojo-element="List" >
+			<!--<div id='history-box' class='listWhiteBox'>
+			</div>-->
+		</div>
+	</div>
+
+	<div class="palm-group-nope" id='venuehistory' style="padding-top: 5px; display:none;">
+		<!--<div id='history-title' class="palm-group-title" x-mojo-loc=''>History</div>-->
+		<div class="fsq-divider">Where Have I Been?</div>
+		<div x-mojo-element="RadioButton" id="venuehistoryToggle" class="radiobuttonClass" name="radiobuttonName"></div>
+		<div id="venueHistory" x-mojo-element="List" >
 			<!--<div id='history-box' class='listWhiteBox'>
 			</div>-->
 		</div>
@@ -141,6 +176,15 @@
 	<div class="fsq-divider">Tips</div>
 		<div id="tips-notice" class="notice" style="display: none; margin-top: 50px;"></div>
 		<div id="user-tips" x-mojo-element="List" >
+			<!--<div id='history-box' class='listWhiteBox'>
+			</div>-->
+		</div>
+	</div>
+
+	<div class="palm-group-nope" id='utodos' style="padding-top: 5px; display:none;">
+	<div class="fsq-divider">To-Do List</div>
+		<div id="todos-notice" class="notice" style="display: none; margin-top: 50px;"></div>
+		<div id="user-todos" x-mojo-element="List" >
 			<!--<div id='history-box' class='listWhiteBox'>
 			</div>-->
 		</div>
@@ -159,10 +203,10 @@
 		<div x-mojo-element="RadioButton" id="friendToggle" class="radiobuttonClass" name="radiobuttonName"></div>
 		<div id="friendsList" x-mojo-element="List" ></div>
 	</div>
+	<div id="results-start">&nbsp;</div>
 	<div class="palm-group-nope" id="ufriendsresults" style="display:none;">
 		<div id="friendsResultsList" x-mojo-element="List" ></div>
 	</div>
-<br/><br/><br/><br/>
 </div>
 	<div class="palm-scrim" id="userScrim" style="display: none;"></div>
 	<div x-mojo-element="Spinner" id="userSpinner" class="spinnerClass" name="spinnerName"></div>

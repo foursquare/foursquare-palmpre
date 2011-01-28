@@ -1,0 +1,100 @@
+<div id="main" class="no-palm-hasheader fsq-hasheader">
+	<div class="thin-header-redux" style="z-index: 9999;">
+		<div class="letterpress">
+		<div class="thin-blue-header" id="addvenue-header">ADD VENUE</div>
+		</div>
+	</div>
+
+	<br class="breaker-small"/>
+	<div x-mojo-element="Button" class="palmbutton primary" id="searchGoogle"></div>
+	<div class="palm-group unlabeled" id='venue'>
+		<div class="palm-list">
+	   		<div class="palm-row first">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+						<div class="label">Venue</div>
+	      				<div x-mojo-element="TextField" id="venue-name"></div>
+					</div>
+				</div>
+			</div>
+	   		<div class="palm-row">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+						<div class="label">Address</div>
+	      				<div x-mojo-element="TextField" id="venue-address"></div>
+					</div>
+				</div>
+			</div>
+	   		<div class="palm-row">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+						<div class="label">Cross Street</div>
+	      				<div x-mojo-element="TextField" id="venue-crossstreet"></div>
+					</div>
+				</div>
+			</div>
+	   		<div class="palm-row">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+						<div class="label">City</div>
+	      				<div x-mojo-element="TextField" id="venue-city"></div>
+					</div>
+				</div>
+			</div>
+			<div class="palm-row" x-mojo-tap-highlight="momentary">
+				<div class="palm-row-wrapper">
+						<div class="label">State</div>
+						<div x-mojo-element="ListSelector" id="venue-state" class="listselectorClass" name="listselectorName"></div>
+				</div>
+			</div>
+	   		<div class="palm-row">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+						<div class="label">Zip</div>
+	      				<div x-mojo-element="TextField" id="venue-zip" class=""></div>
+					</div>
+				</div>
+			</div>
+	   		<div class="palm-row">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+						<div class="label">Phone</div>
+	      				<div x-mojo-element="TextField" id="venue-phone"></div>
+					</div>
+				</div>
+			</div>
+	   		<div class="palm-row">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+						<div class="label">Twitter</div>
+	      				<div x-mojo-element="TextField" id="venue-twitter"></div>
+					</div>
+				</div>
+			</div>
+			<div class="palm-row last" x-mojo-tap-highlight="momentary" style="padding:2px;" id="setCategory">
+				<div class="palm-row-wrapper" style="padding:0px;">
+						<div class="label">Category</div>
+						<!--<div x-mojo-element="ListSelector" id="venue-cat-main" class="listselectorClass" name="listselectorName"></div>-->
+							<!--<div x-mojo-element="Button" class="palmbutton primary" id="setCategory"></div>-->
+							<div id="selectedCat" style="padding: 8px;"></div>
+				</div>
+			</div>
+			
+			
+			
+			
+			
+		</div>
+	</div>
+
+	<img class="small-map" src="" id="map"/>
+	<div class="small-map-info" id="map-info-banner">Tap the map to adjust the location of the venue</div>
+
+
+
+	<div class="pusheddown" style="font-size: 14px; padding: 7px;">Adding a non-US venue? Enter everything except for the address, state, and zip and Foursquare will fill in the rest using your current location.</div>
+			<br/>
+	<div x-mojo-element="Button" class="palmbutton primary addtipok" id="okButton"></div>
+	<div x-mojo-element="Button" class="palmbutton negative addtipcancel" id="cancelButton"></div>
+</div>
+<div class="innershadow"></div>

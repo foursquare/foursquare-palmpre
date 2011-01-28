@@ -1,0 +1,215 @@
+<div id="main-venuedetail" class="noheader">
+	<div class="palm-page-header-nope multi-line" id="venueHeader">
+		<div class="palm-page-header-wrapper-nope" style="padding-top: 45px;">
+		    <div id="checkinVenueName" class="title left" ></div>                         
+		    <div id="checkinVenueAddress" class=""></div>
+			<div x-mojo-element="Button" class="fsq-button palmbutton primary" id="checkinButton"></div>
+
+			<div id="docheckin" style="width: 34%;float:left;display:none;">checkin</div>
+			<div id="vcategory" style="width: 20%;float:left;font-size:12px;display:none;"></div>
+		</div>
+	</div>
+	<div class="header-bottom-border"></div>
+	<div id="todohere" style="display:none;"></div>
+	<div style="height: 13px;">&nbsp;</div>
+
+<!--   <div x-mojo-element="Scroller" id="detailScroller" class="scrollerClass" name="scrollerName">-->
+	  <div id="overview-group">
+		<div class="palm-list">
+			<div class="palm-row" id="mayor-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="mayor-left">
+						<div id="mayorName"></div>
+						<div id="mayorInfo"></div>
+					</div>
+					<div class="mayor-right">
+						<img id="mayorPic" class="friend-avatar" width="48" height="48" data="" alt="Mayor!" src="" />
+					</div>
+					<br class="breaker">
+				</div>
+			</div><!--/mayor-row-->
+			
+			<div class="palm-row" id="whoshere-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="people-here"></div>
+						<div id="whoshere-avatars"></div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+				</div>
+			</div><!--/whoshere-row-->
+
+			<div class="palm-row" id="tips-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="friend-tips"></div>
+						<div class="subtext" id="others-tips"></div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+					<br>
+				</div>
+			</div><!--/tips-row-->
+
+			<div class="palm-row" id="more-row">
+				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
+					<div class="venue-left">
+						<div class="medium-bold" id="more-text">More info</div>
+						<div class="subtext" id="more-subtext">Map, contact, and more</div>
+					</div>
+					<div class="venue-right">
+						<img src="images/right.png" width="32" height="32" class="right-arrow">
+					</div>
+					<br class="breaker">
+					<br>
+				</div>
+			</div><!--/more-row-->
+		</div><!--/palm-list-->
+		<div style="height: 50px;"></div>
+	</div><!--/overview-group-->
+	
+	
+	
+	
+	
+	
+	
+	
+	
+		<div id="details-group" style="display: none;">	
+			<div id="snapMap">
+				<div id="mapDrawer" x-mojo-element="Drawer">
+					<img id="venueMap" src="" border="0" width="320" height="125" />
+				</div>
+			</div>
+			<div id="snapSpecials" class="breaker">
+				<div id="venueSpecialsContainer"  x-mojo-element="Drawer">
+					<div id="venueSpecials" style="padding: 7px;display:none;"></div>
+					<div id="nearbySpecials" style="padding: 7px;"></div>
+				</div>
+			</div>
+			<br/>
+			<div id="snapInfo" class="breaker">
+				<div id="venueInfoContainer" x-mojo-element="Drawer">
+					<div id="infoList" x-mojo-element="List" ></div>  	
+				</div>
+			</div>
+			<br>
+			<div id="snapTags" class="breaker">
+				<br/>
+				<div class="fsq-divider">
+					Tags
+				</div>
+				<div id="tagsDrawer"  x-mojo-element="Drawer"><div id="venueTags"></div></div>
+			</div>
+			<div style="height: 50px"></div>
+		</div><!--details-->
+
+		<div id="people-group" style="display:none;">
+			<div id="snapMayor">
+				<div class="fsq-divider">
+					Mayor
+				</div>
+				<div id="mayorDrawer" x-mojo-element="Drawer">
+				<div id="venueMayor" >
+					<div id="mayorAvatar2" class="userLink" data="">
+						<img id="mayorPic2" class="friend-avatar" width="75" height="75" data="" alt="Mayor!" src="" />
+						<img id="mayorPicBorder2" src="images/roundedCorner.png" class="" data="" alt="" />
+						<img id="mayorCrown" src="images/crown_50x50.png" class=""/>
+					</div>
+					<div id="mayorInfoBlock2">
+						<div id="mayorName2" class="title userLink fakelink" alt=""></div>
+						<div id="mayorInfo2" class="palm-info-text" style="color: #1f1f1f;"></div><br class="breaker"/>
+					</div>
+				</div>
+				</div>
+			</div>
+			<div id="snapUsers" class="breaker">
+				<div class="fsq-divider">
+					Who's Here?
+				</div>
+				<div id="venueUsers"></div>
+			</div>
+			<div style="height:50px;"></div>
+		</div><!--people-->
+	
+		<div id="tips-group" style="display: none;">
+			<div id="snapTips" class="breaker">
+				<div id="venueTipsContainer"  x-mojo-element="Drawer">
+					<div id="venueTips"></div>
+					<div id="tips-list" x-mojo-element="List" >
+						
+					</div>
+					<br class="breaker"/>
+					<div x-mojo-element="Button" id="buttonAddTip" class="buttonClass addtipok" name="buttonName" style="display:none;"></div>
+					<div x-mojo-element="Button" id="buttonAddTodo" class="buttonClass addtipcancel" name="buttonName" style="display:none;"></div>
+				</div>
+			</div>
+			<div style="height: 50px;"></div>
+		</div><!--tips-->
+
+    </div> 
+<!--</div> killing scroller-->
+	
+	
+</div>
+<div id="meta-overlay" style="display: none;">
+	<div class="overlay-title">
+		<div style="float:left;font-weight:bold;width:79%;" id="overlay-title"></div>
+		<div style="float:right;width:20%;" id="overlay-closer"></div>
+		<br class="breaker"/>
+		<div x-mojo-element="Scroller" id="overlayScroller" class="scrollerClass" name="scrollerName">
+			<div>
+				<div x-mojo-element="Spinner" id="overlaySpinner" class="spinnerClass" name="spinnerName"></div>
+				<div id="overlay-content"></div>
+
+
+	
+	
+				<div x-mojo-element="Button" class="palmbutton primary" id="okButton"></div>
+			<!--	<div x-mojo-element="Button" class="palmbutton negative addtipcancel" id="cancelButton"></div>-->
+			</div>
+			<div id="results-meta-list" x-mojo-element="List" ></div>
+			<!--</div>-->
+		</div>
+	</div>
+</div>
+<div class="palm-scrim" id="venueScrim"></div>
+<div x-mojo-element="Spinner" id="venueSpinner" class="spinnerClass" name="spinnerName"></div>
+
+
+<div id="checkin-holder">
+
+</div>
+
+<div id="nearby-special" style="display: none;"></div>
+<div id="tips-badge-wrapper" class="menu-badge" style="display: none;">
+    <span id="tips-badge"></span>
+</div>
+<div id="people-badge-wrapper" class="menu-badge" style="display: none;">
+    <span id="people-badge"></span>
+</div>
+<!--<div class="fade-bottom"></div>-->
+
+<div id="special_overlay" style="display: none;">
+	<div id="special_top"></div>
+	<div id="special_middle">
+		<div x-mojo-element="Scroller" id="specialScroller" class="scrollerClass" name="scrollerName">
+			<div id="special_content">
+			
+			</div>
+		</div>
+		<br class="breaker">
+		<div id="triangle-left" style="display: none;"></div>
+		<div id="triangle-right" style="display:none;"></div>
+	</div>
+	
+	<div id="special_bottom"></div>
+	<br class="breaker">
+</div>
+

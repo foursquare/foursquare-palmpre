@@ -12,31 +12,33 @@ function VenuedetailAssistant(venue,u,p,i,fui,ps,fm,fl) {
 	   this.fromLaunch=fl;
 	   this.inOverview=true;
 	   this.metatap=false;
+	   this.gotInfo=false;
 }
 VenuedetailAssistant.prototype.aboutToActivate = function(callback) {
 	callback.defer();     //makes the setup behave like it should.
 };
 
 VenuedetailAssistant.prototype.setup = function() {
+	NavMenu.setup(this,{buttons:'navOnly',class:'trans'});
 	this.controller.get("snapMayor").hide();
 	this.controller.get("checkinVenueName").innerHTML=this.venue.name.replace("✈","<img src=\"images/plane-large-white.png\">");
-	this.controller.get("checkinVenueAddress").innerHTML=this.venue.address;
-	if (this.venue.crossstreet) {
-		this.controller.get("checkinVenueAddress").innerHTML += " "+this.venue.crossstreet+"";
+	this.controller.get("checkinVenueAddress").innerHTML=(this.venue.location.address)? this.venue.location.address: '';
+	if (this.venue.location.crossStreet) {
+		this.controller.get("checkinVenueAddress").innerHTML += " ("+this.venue.location.crossStreet+")";
 	}
 
-	var query=encodeURIComponent(this.venue.address+' '+this.venue.city+', '+this.venue.state);
-	this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+this.venue.geolat+","+this.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA"
+	var query=encodeURIComponent(this.venue.location.address+' '+this.venue.location.city+', '+this.venue.location.state);
+	this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+this.venue.location.lat+","+this.venue.location.lng+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA"
 	
 	//zBar.render("venue","");
 	this.getVenueInfo();
 	
-    this.controller.setupWidget("detailScroller",
+   /* this.controller.setupWidget("detailScroller",
          this.scrollAttributes = {
              mode: 'vertical-snap'
          },
          this.scrollModel = {
-         });
+         });*/
 	this.controller.setupWidget("overlayScroller",
          this.scroll2Attributes = {
              mode: 'vertical-snap'
@@ -57,13 +59,25 @@ VenuedetailAssistant.prototype.setup = function() {
        _globals.amattributes,
        _globals.ammodel);
 
-    this.controller.setupWidget("venueSpinner",
+/*    this.controller.setupWidget("venueSpinner",
          this.attributes = {
              spinnerSize: 'large'
          },
          this.model = {
              spinning: true 
-         });
+         });*/
+  	this.spinnerAttr = {
+		superClass: 'fsq_spinner',
+		mainFrameCount: 31,
+		fps: 20,
+		frameHeight: 50
+	}
+	this.spinnerModel = {
+		spinning: true
+	}
+	this.controller.setupWidget('venueSpinner', this.spinnerAttr, this.spinnerModel);
+	this.controller.get("venueSpinner").show();
+         
 
     this.controller.setupWidget("checkinButton",
         this.buttonAttributes = {
@@ -154,8 +168,16 @@ VenuedetailAssistant.prototype.setup = function() {
 	this.tipsModel = {items: [], listTitle: $L('Results')};
     
 	this.controller.setupWidget('tips-list', 
-					      {itemTemplate:'listtemplates/vtipsitem'},
-					      this.tipsModel);
+					      {
+					      	itemTemplate:'listtemplates/vtipsitem',
+					      	formatters: {
+					      		"photo":this.fmtTipPhoto.bind(this),
+					      		"user":this.fmtTipUser.bind(this),
+					      		"createdAt":this.fmtTipWhen.bind(this)
+					      		}
+							},
+					      this.tipsModel
+					      );
     
 
     this.controller.setupWidget(Mojo.Menu.commandMenu,
@@ -169,6 +191,7 @@ VenuedetailAssistant.prototype.setup = function() {
                  {
                  items: [
 	                	{},
+    	             { label: "", command: "add-Photo",iconPath: 'images/add-photo.png'},
     	             { label: "", command: "add-Tip",iconPath: 'images/add-tip.png'},
     	             { label: "", command: "add-Todo", iconPath: 'images/add-todo.png'},
     	             { label: "", command: "flag-venue", iconPath: 'images/flag-venue.png'},
@@ -189,6 +212,23 @@ VenuedetailAssistant.prototype.setup = function() {
 					      this.infoModel);
 
 
+	if(this.venue.location.address==undefined || this.venue.location.address==""){
+		logthis("no addy:");
+		logthis("at "+this.venue.location.lat+", "+this.venue.location.lng);
+		this.controller.serviceRequest('palm://com.palm.location', {
+				method: "getReverseLocation",
+				parameters: {latitude: this.venue.location.lat, longitude:this.venue.location.lng},
+				onSuccess: function(address){
+					logthis("got approx addy");
+					//logthis("addy="+Object.toJSON(address));
+					this.controller.get("checkinVenueAddress").innerHTML="Near "+address.substreet+" "+address.street;
+					logthis("set html addy thing");
+					this.venue.location.address="Near "+address.substreet+" "+address.street;
+				}.bind(this),
+				onFailure: function(){}.bind(this)
+			});
+	}
+
 	this.promptCheckinBound=this.promptCheckin.bind(this);
 	//this.handleAddTipBound=this.handleAddTip.bind(this);
 	//this.handleAddTodoBound=this.handleAddTodo.bind(this);
@@ -198,12 +238,15 @@ VenuedetailAssistant.prototype.setup = function() {
 	this.flipPeopleBound=this.flipPeople.bindAsEventListener(this);
 	this.flipTipsBound=this.flipTips.bindAsEventListener(this);
 	this.flipMoreBound=this.flipMore.bindAsEventListener(this);
+	this.showPhotosBound=this.showPhotos.bindAsEventListener(this);
 	this.specialScrollBound=this.specialScroll.bindAsEventListener(this);
 	this.overlayCloserBound=function(){this.controller.get("docheckin-fields").hide();this.controller.get("overlay-content").innerHTML="";this.controller.get("meta-overlay").hide();}.bind(this);
 	this.tipListTappedBound=this.tipListTapped.bind(this);
 	this.showUserInfoBound=this.showUserInfo.bind(this);
 	this.tagTappedBound=this.tagTapped.bind(this);
-	
+	this.showTodoBound=this.showTodo.bindAsEventListener(this);
+	this.stageActivateBound=this.stageActivate.bind(this);
+
 	Mojo.Event.listen(this.controller.get("checkinButton"),Mojo.Event.tap,this.promptCheckinBound);
 //	Mojo.Event.listen(this.controller.get("buttonAddTip"),Mojo.Event.tap, this.handleAddTipBound);
 //	Mojo.Event.listen(this.controller.get("buttonAddTodo"),Mojo.Event.tap, this.handleAddTodoBound);
@@ -216,14 +259,19 @@ VenuedetailAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("whoshere-row"),Mojo.Event.tap,this.flipPeopleBound);
 	Mojo.Event.listen(this.controller.get("tips-row"),Mojo.Event.tap,this.flipTipsBound);
 	Mojo.Event.listen(this.controller.get("more-row"),Mojo.Event.tap,this.flipMoreBound);
+	Mojo.Event.listen(this.controller.get("photos-row"),Mojo.Event.tap,this.showPhotosBound);
 
 	Mojo.Event.listen(this.controller.get('tips-list'),Mojo.Event.listTap, this.tipListTappedBound);
 	Mojo.Event.listen(this.controller.get("specialScroller"), Mojo.Event.propertyChange, this.specialScrollBound);
+
+	Mojo.Event.listen(this.controller.get("todohere"),Mojo.Event.tap,this.showTodoBound);
+	Mojo.Event.listen(this.controller.stageController.document,Mojo.Event.activate, this.stageActivateBound);
 
 
 	this.keyDownHandlerBound=this.keyDownHandler.bind(this);
 	this.keyUpHandlerBound=this.keyUpHandler.bind(this);
 	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandlerBound);
+    this.doc=this.controller.document;
     this.doc.addEventListener("keyup", this.keyUpHandlerBound, true);
 
 
@@ -272,6 +320,16 @@ VenuedetailAssistant.prototype.keyUpHandler = function(event) {
 		}
 }
 
+VenuedetailAssistant.prototype.stageActivate = function(event) {
+	NavMenu.setup(this,{buttons:'navOnly',class:'trans'});
+	this.metatap=false;
+	if(_globals.showShout){
+    	var thisauth="";
+		this.controller.stageController.pushScene({name: "shout", transition: Mojo.Transition.zoomFade},thisauth,"",this,_globals.jtShout);
+	}
+
+
+};
 
 VenuedetailAssistant.prototype.specialScroll = function(event) {
 	if(this.scroll3Model.snapIndex==0){
@@ -297,7 +355,7 @@ VenuedetailAssistant.prototype.flipMayor = function(what) {
          var stageArguments = {name: "mainStage"+this.mayorId, lightweight: true};
          var pushMainScene=function(stage){
          	this.metatap=false;
-			stage.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,this.mayorId,this,true);         
+			stage.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,this.mayorId,this,false);         
          };
         var appController = Mojo.Controller.getAppController();
 		appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");
@@ -326,9 +384,22 @@ VenuedetailAssistant.prototype.tipListTapped = function(event){
 	this.controller.stageController.pushScene({name:"view-tip",transition:Mojo.Transition.zoomFade},[{tip:event.item}]);
 };
 
+VenuedetailAssistant.prototype.showPhotos = function(event){
+	logthis("show photos");
+     var stageArguments = {name: "photoStage"+this.venue.id, lightweight: true};
+     var pushMainScene=function(stage){
+     	this.metatap=false;
+		stage.pushScene({name:"venue-photos",transition:Mojo.Transition.zoomFade},{photos:this.venuePhotos});        
+     };
+    var appController = Mojo.Controller.getAppController();
+	appController.createStageWithCallback(stageArguments, pushMainScene.bind(this), "card");
+};
+
 
 VenuedetailAssistant.prototype.swapTabs = function(what) {
-	this.controller.get("detailScroller").mojo.revealTop();
+//	this.controller.get("detailScroller").mojo.revealTop();
+	var scroller=this.controller.getSceneScroller();
+	scroller.mojo.revealTop();
 	switch(what){
 		case 0:
 			this.controller.get("overview-group").show();
@@ -380,12 +451,13 @@ VenuedetailAssistant.prototype.getVenueInfo = function() {
 	   onSuccess: this.getVenueInfoSuccess.bind(this),
 	   onFailure: this.getVenueInfoFailed.bind(this)
 	 });*/
-	 
-	 foursquareGet(this, {
-	 	endpoint: 'venue.json',
+	 logthis(encodeURIComponent('/venues/'+this.venue.id+',/venues/'+this.venue.id+'/tips'));
+//	 Mojo.Log.error('/venues/'+this.venue.id+',/venues/'+this.venue.id+'/tips,/venues/'+this.venue.id+'/photos?group=venue,/venues/'+this.venue.id+'/photos?group=checkin,/venues/'+this.venue.id+'/herenow?limit=250');
+	 foursquareGetMulti(this, {
+	 	endpoints: '/venues/'+this.venue.id+',/venues/'+this.venue.id+'/tips,/venues/'+this.venue.id+'/photos?group=venue,/venues/'+this.venue.id+'/photos?group=checkin,/venues/'+this.venue.id+'/herenow?limit=250',
 	 	requiresAuth: true,
 	 	debug: true,
-  	    parameters: {vid:this.venue.id},
+	 	ignoreErrors: false,
 	    onSuccess: this.getVenueInfoSuccess.bind(this),
 	    onFailure: this.getVenueInfoFailed.bind(this)
 	 });
@@ -527,147 +599,182 @@ VenuedetailAssistant.prototype.infoTapped = function(event) {
 	}
 }
 
+VenuedetailAssistant.prototype.fmtTipUser = function(value,model){
+	if(value!=undefined){
+		var tlname=(value.lastname != undefined)? value.lastname : '';
+		var username=value.firstname+" "+tlname;
+		
+		value.username=username;
+
+		
+		return value;
+	}
+};
+
+VenuedetailAssistant.prototype.fmtTipWhen = function(value,model){
+	if(value!=undefined){
+		var now = new Date;
+		var cre=value;
+		var later = new Date(cre*1000);
+		var offset = later.getTime() - now.getTime();
+		var when=this.relativeTime(offset) + " ago";
+		return when;
+	}else{
+		return "";
+	}
+};
+
+VenuedetailAssistant.prototype.fmtWhoShout = function(value,model){
+	if(value!=undefined){
+		return value;
+	}else{
+		return "";
+	}
+};
+
+VenuedetailAssistant.prototype.fmtTipPhoto = function(value,model){
+	logthis(Object.toJSON(value));
+	logthis(Object.toJSON(model));
+	if(value!=undefined){
+		logthis("has photo");
+		model.hasphoto='inline';
+		return value;
+	}else{
+		logthis("no photo");
+		model.hasphoto='none';
+		return value;
+	}
+};
 
 
 VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	logthis("success");
 	var th=this;
-	
-	
-		if(this.venue.hasTodo==true || this.venue.hasTodo=="true"){
-		logthis("has todo");
-		/*foursquareGet(this,{
-			endpoint: 'todos.json',
-			parameters: {sort: 'recent'},
-			requiresAuth: true,
-			debug: true,
-			onSuccess: function(r){
-			
+	var j=response.responseJSON.response.responses[0].response;
 
-				logthis("todo ok");
-				var j=r.responseJSON;
-				logthis(j);
-				var todos=j.todos;*/
-				/*this.venue.todos=response.responseJSON.venue.todos;
-				logthis("womp womp");
-				var todos=this.venue.todos;
-				logthis(todos);
-				var todoArray=[];
-				logthis(todoArray);
-				for(var t=0;t<todos.length;t++){
-					logthis("in loop");
-					logthis(Object.toJSON(todos[t]));
-					
-					if(todos[t].tip.venue.id==this.venue.id){
-						todoArray.push(todos[t]);
-					}
-				}*/
-				this.todoArray=response.responseJSON.venue.todos; //todoArray;
-				this.controller.get("todohere").show();
-				this.showTodoBound=this.showTodo.bindAsEventListener(this);
-				Mojo.Event.listen(this.controller.get("todohere"),Mojo.Event.tap,this.showTodoBound);
-			/*}.bind(this),
-			onFailure: function(r){
-				logthis("todo fail");
-				logthis(r.responseText);
-			}.bind(this)
-		});*/
+	this.gotInfo=true;
+	
+	if((j.venue.todos.count>0)){
+		this.infoFired=true;
+		logthis("has todo");
+		this.todoArray=j.venue.todos.items; //todoArray;
+		this.controller.get("todohere").show();
 	}
 
+logthis("passed todo");
 
 	//logthis("num specials="+response.responseJSON.venue.specials.length);
-	this.controller.get("vcategory").innerHTML=(response.responseJSON.venue.primarycategory)? 
-		'<img src="'+response.responseJSON.venue.primarycategory.iconurl+'"><br/>'+response.responseJSON.venue.primarycategory.nodename: '';
+	this.controller.get("vcategory").innerHTML=(j.venue.categories[0])? 
+		'<img src="'+j.venue.categories[0].icon+'"><br/>'+j.venue.categories[0].name: '';
 	
 	
-	this.controller.get("checkinVenueAddress").innerHTML=(this.controller.get("checkinVenueAddress").innerHTML=="")? response.responseJSON.venue.address: this.controller.get("checkinVenueAddress").innerHTML;
+	this.controller.get("checkinVenueAddress").innerHTML=(this.controller.get("checkinVenueAddress").innerHTML=="")? j.venue.location.address: this.controller.get("checkinVenueAddress").innerHTML;
 	
 	
-	this.vaddress=response.responseJSON.venue.address;
-	this.vcity=response.responseJSON.venue.city;
-	this.vstate=response.responseJSON.venue.state;
+	this.vaddress=j.venue.location.address;
+	this.vcity=j.venue.location.city;
+	this.vstate=j.venue.location.state;
+	this.vshorturl=j.venue.shortUrl;
 	
 	if(this.fromLaunch){
-		this.controller.get("checkinVenueName").innerHTML=response.responseJSON.venue.name;
-		this.controller.get("checkinVenueAddress").innerHTML=response.responseJSON.venue.address;
-		if (response.responseJSON.venue.crossstreet) {
-			this.controller.get("checkinVenueAddress").innerHTML += " ("+response.responseJSON.venue.crossstreet+")";
+		this.controller.get("checkinVenueName").innerHTML=j.venue.name;
+		this.controller.get("checkinVenueAddress").innerHTML=j.venue.location.address;
+		if (j.venue.location.crossStreet && this.controller.get("checkinVenueAddress").innerHTML.indexOf(j.venue.location.crossStreet)==-1) {
+			this.controller.get("checkinVenueAddress").innerHTML += " ("+j.venue.location.crossStreet+")";
 		}
 	
-		var query=encodeURIComponent(response.responseJSON.venue.address+' '+response.responseJSON.venue.city+', '+response.responseJSON.venue.state);
-		this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA"
+		var query=encodeURIComponent(j.venue.location.address+' '+j.venue.location.city+', '+j.venue.location.state);
+		this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+j.venue.location.lat+","+j.venue.location.lng+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA"
 	
 	}
 	
 	
 	Mojo.Log.error("vadd=%i, vcity=%i, vstate=%i",this.vaddress,this.vcity,this.vstate);
 	
-	if (response.responseJSON.venue.crossstreet && !this.venue.crossstreet && !this.fromLaunch) {
-	 this.controller.get("checkinVenueAddress").innerHTML += " ("+response.responseJSON.venue.crossstreet+")";
+	if (j.venue.location.crossStreet && !this.venue.crossstreet && !this.fromLaunch && this.controller.get("checkinVenueAddress").innerHTML.indexOf(j.venue.location.crossStreet)==-1) {
+	 this.controller.get("checkinVenueAddress").innerHTML += " ("+j.venue.location.crossStreet+")";
 	}
-	if(this.controller.get("venueMap").src!="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA") {
-		this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+response.responseJSON.venue.geolat+","+response.responseJSON.venue.geolong+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA";
-		this.venue.geolat=response.responseJSON.venue.geolat;
-		this.venue.geolong=response.responseJSON.venue.geolong;
+	if(this.controller.get("venueMap").src!="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+j.venue.location.lat+","+j.venue.location.lng+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA") {
+		this.controller.get("venueMap").src="http://maps.google.com/maps/api/staticmap?mobile=true&zoom=15&size=320x125&sensor=false&markers=color:blue|"+j.venue.location.lat+","+j.venue.location.lng+"&key=ABQIAAAAfKBxdZJp1ib9EdLiKILvVxT50hbykH-f32yPesIURumAK58x-xSabNSSctTSap-7tI2Dm8GumOSqyA";
+		this.venue.geolat=j.venue.location.lat;
+		this.venue.geolong=j.venue.location.lng;
 	}
 	
 	//mayorial stuff
-	if(response.responseJSON.venue.stats.mayor != undefined) { //venue has a mayor
-		this.controller.get("snapMayor").show();
-		var lname=(response.responseJSON.venue.stats.mayor.user.lastname != undefined)? response.responseJSON.venue.stats.mayor.user.lastname: '';
-		this.mayorId=response.responseJSON.venue.stats.mayor.user.id;
-
-		this.controller.get("mayorPic").src=response.responseJSON.venue.stats.mayor.user.photo;
-		this.controller.get("mayorPic").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
-		this.controller.get("mayorPic").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
-//		this.controller.get("mayorPicBorder").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
-//		this.controller.get("mayorPicBorder").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
-//		this.controller.get("mayorAvatar").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
-//		this.controller.get("mayorAvatar").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
+	if(j.venue.mayor != undefined) { //venue has a mayor
+		if(j.venue.mayor.count>0){
+			logthis("has mayor");
+			this.controller.get("snapMayor").show();
+			var lname=(j.venue.mayor.user.lastName != undefined)? j.venue.mayor.user.lastName: '';
+			this.mayorId=j.venue.mayor.user.id;
+	
+			this.controller.get("mayorPic").src=j.venue.mayor.user.photo;
+			this.controller.get("mayorPic").setAttribute("data",j.venue.mayor.user.id);
+			this.controller.get("mayorPic").setAttribute("user",j.venue.mayor.user.firstName+" "+lname);
+			
+			this.controller.get("mayorName").innerHTML=j.venue.mayor.user.firstName+" "+lname;
+			this.controller.get("mayorName").setAttribute("data",j.venue.mayor.user.id);
+			this.controller.get("mayorName").setAttribute("user",j.venue.mayor.user.firstName+" "+lname);
+	
+	
+	
+			this.controller.get("mayorPic2").src=j.venue.mayor.user.photo;
+			this.controller.get("mayorPic2").setAttribute("data",j.venue.mayor.user.id);
+			this.controller.get("mayorPic2").setAttribute("user",j.venue.mayor.user.firstName+" "+lname);
+			this.controller.get("mayorPicBorder2").setAttribute("data",j.venue.mayor.user.id);
+			this.controller.get("mayorPicBorder2").setAttribute("user",j.venue.mayor.user.firstName+" "+lname);
+			this.controller.get("mayorAvatar2").setAttribute("data",j.venue.mayor.user.id);
+			this.controller.get("mayorAvatar2").setAttribute("user",j.venue.mayor.user.firstName+" "+lname);
+			
+			this.controller.get("mayorName2").innerHTML=j.venue.mayor.user.firstName+" "+lname;
+			this.controller.get("mayorName2").setAttribute("data",j.venue.mayor.user.id);
+			this.controller.get("mayorName2").setAttribute("user",j.venue.mayor.user.firstName+" "+lname);
+			var mInfo;
+			switch(j.venue.mayor.user.gender) {
+				case "male":
+					var s=(j.venue.mayor.count!=1)? "s": ""; 
+					mInfo="He's checked in here "+j.venue.mayor.count+" time"+s+".";
+					break;
+					
+				case "female":
+					var s=(j.venue.mayor.count!=1)? "s": ""; 
+					mInfo="She's checked in here "+j.venue.mayor.count+" time"+s+".";
+					break;
+					
+				default:
+					var s=(j.venue.mayor.count!=1)? "s": ""; 
+					mInfo="They've checked in here "+j.venue.mayor.count+" time"+s+".";
+					break;
+					
+			}
+			if(j.venue.mayor.user.id==_globals.uid){
+					var s=(j.venue.mayor.count!=1)? "s": ""; 
+					mInfo="You've checked in here "+j.venue.mayor.count+" time"+s+".";			
+			}
+			this.controller.get("mayorInfo").innerHTML=mInfo;
+			this.controller.get("mayorInfo2").innerHTML=mInfo;
+			this.nomayor=false;
+		}else{
+			logthis("no mayor");
+			this.controller.get("snapMayor").show();
+			this.controller.get("mayorPic").src='images/blank_boy.png';
+			this.controller.get("mayorPic2").src='images/blank_boy.png';
+			this.controller.get("mayorName").innerHTML="No mayor yet!";
+			this.controller.get("mayorName").removeClassName("userlink");
+			this.controller.get("mayorName2").innerHTML="No mayor yet!";
+			this.controller.get("mayorName2").removeClassName("userlink");
+			this.controller.get("mayorPic").removeClassName("userlink");
+			this.controller.get("mayorPic2").removeClassName("userlink");
+			this.controller.get("mayorPicBorder2").removeClassName("userlink");
+			this.controller.get("mayorAvatar2").removeClassName("userlink");
+			this.controller.get("mayorInfo").innerHTML="You could be the first!";
+			this.controller.get("mayorInfo2").innerHTML="You could be the first!";
+			this.nomayor=true;
+			Mojo.Event.stopListening(this.controller.get("mayor-row"),Mojo.Event.tap,this.flipMayorBound);
 		
-		this.controller.get("mayorName").innerHTML=response.responseJSON.venue.stats.mayor.user.firstname+" "+lname;
-		this.controller.get("mayorName").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
-		this.controller.get("mayorName").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
-
-
-
-		this.controller.get("mayorPic2").src=response.responseJSON.venue.stats.mayor.user.photo;
-		this.controller.get("mayorPic2").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
-		this.controller.get("mayorPic2").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
-		this.controller.get("mayorPicBorder2").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
-		this.controller.get("mayorPicBorder2").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
-		this.controller.get("mayorAvatar2").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
-		this.controller.get("mayorAvatar2").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
-		
-		this.controller.get("mayorName2").innerHTML=response.responseJSON.venue.stats.mayor.user.firstname+" "+lname;
-		this.controller.get("mayorName2").setAttribute("data",response.responseJSON.venue.stats.mayor.user.id);
-		this.controller.get("mayorName2").setAttribute("user",response.responseJSON.venue.stats.mayor.user.firstname+" "+lname);
-		var mInfo;
-		switch(response.responseJSON.venue.stats.mayor.user.gender) {
-			case "male":
-				var s=(response.responseJSON.venue.stats.mayor.count!=1)? "s": ""; 
-				mInfo="He's checked in here "+response.responseJSON.venue.stats.mayor.count+" time"+s+".";
-				break;
-				
-			case "female":
-				var s=(response.responseJSON.venue.stats.mayor.count!=1)? "s": ""; 
-				mInfo="She's checked in here "+response.responseJSON.venue.stats.mayor.count+" time"+s+".";
-				break;
-				
-			default:
-				var s=(response.responseJSON.venue.stats.mayor.count!=1)? "s": ""; 
-				mInfo="They've checked in here "+response.responseJSON.venue.stats.mayor.count+" time"+s+".";
-				break;
-				
 		}
-		if(response.responseJSON.venue.stats.mayor.user.id==_globals.uid){
-				var s=(response.responseJSON.venue.stats.mayor.count!=1)? "s": ""; 
-				mInfo="You've checked in here "+response.responseJSON.venue.stats.mayor.count+" time"+s+".";			
-		}
-		this.controller.get("mayorInfo").innerHTML=mInfo;
-		this.controller.get("mayorInfo2").innerHTML=mInfo;
-		this.nomayor=false;
 	}else{
+		logthis("no mayor");
 		this.controller.get("snapMayor").show();
 		this.controller.get("mayorPic").src='images/blank_boy.png';
 		this.controller.get("mayorPic2").src='images/blank_boy.png';
@@ -686,10 +793,155 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 
 	}
 	
-
+logthis("done mayor");
 	
 		//specials!
-	if(response.responseJSON.venue.specials != undefined) {
+	var showbutton=false;
+	var specialWidth=0;
+	this.controller.get('special_content').innerHTML='';		
+	
+	if(j.venue.specials.length>0){ //specials here
+		var nearbyShown=false;
+		this.nearbys=[];
+		var lastHereSpecial=0;
+		specialWidth=j.venue.specials.length*300;
+		this.controller.get("special_content").style.width=(specialWidth)+"px";
+		if(j.venue.specials.length+j.venue.specialsNearby.length>1){
+			this.controller.get("triangle-right").show();
+		}		
+		for(var b = 0; b < j.venue.specials.length;b++) {
+			var special_type=j.venue.specials[b].type;
+			var special_msg=j.venue.specials[b].message;
+			var special_description=j.venue.specials[b].description;
+			var special_unlocked=(j.venue.specials[b].unlocked)? j.venue.specials[b].unlocked: false;
+			var unlock_msg="";
+			switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
+				case "mayor":
+					var spt="<img src=\"images/smallcrown.png\" width=\"22\" height=\"22\" /> Mayor Special";
+					break;
+				default:
+					var spt="<img src=\"images/starburst.png\" width=\"22\" height=\"22\" /> Foursquare Special";
+					break;
+			}
+			if(special_unlocked){
+				unlock_msg='<div class="special-unlocked">You\'ve unlocked this special!</div>';
+			}else{
+				unlock_msg='<div class="special-locked">You have not unlocked this special.</div>';
+			}
+
+
+			var special_venue="";
+
+			if(j.venue.specials[b].id!=lastHereSpecial){
+				this.controller.get('special_content').innerHTML = '<div class="special-wrapper"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class=""><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div><div class="checkin-venue">'+unlock_msg+'</div></div></div></div>'+this.controller.get('special_content').innerHTML;			
+
+				lastHereSpecial=j.venue.specials[b].id;
+			}
+
+			
+			//spt="Mayor Special";
+			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
+			//special_venue="@ Venue Name (123 Venue St.)";
+		}//end of for
+		this.controller.get('special_content').innerHTML+='<br class="breaker">';
+		this.controller.get("nearby-special").addClassName("here-button");
+		showbutton=true;
+		this.controller.get("nearbySpecials").hide();
+		this.controller.get("nearby-special").show();
+		Mojo.Event.listen(this.controller.get("nearby-special"),Mojo.Event.tap,function(){
+			this.controller.get("special_overlay").toggle();
+		}.bind(this));
+		Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
+		nearbyShown=true;
+	}
+
+	if(j.venue.specialsNearby.length>0){ //specials nearby
+		logthis("has enarby specials");
+		this.nearbys=[];
+		var lastNearbySpecial=0;
+		logthis("specials1");
+		this.controller.get("special_content").style.width=((j.venue.specialsNearby.length*300)+specialWidth)+"px";
+		logthis("specials2");
+		if(j.venue.specialsNearby.length+j.venue.specials.length>1){
+			this.controller.get("triangle-right").show();
+		}		
+		logthis("specials3");
+		for(var b = 0; b < j.venue.specialsNearby.length;b++) {
+		logthis("specials4");
+			var special_type=j.venue.specialsNearby[b].type;
+			var special_msg=j.venue.specialsNearby[b].message;
+			var special_description=j.venue.specialsNearby[b].description;
+			var special_unlocked=(j.venue.specialsNearby[b].unlocked)? j.venue.specialsNearby[b].unlocked: false;
+			var unlock_msg="";
+		logthis("specials5");
+			switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
+				case "mayor":
+					var spt="<img src=\"images/smallcrown.png\" width=\"22\" height=\"22\" /> Mayor Special";
+					break;
+				default:
+					var spt="<img src=\"images/starburst.png\" width=\"22\" height=\"22\" /> Foursquare Special";
+					break;
+			}
+			spt=spt+" Nearby";
+		logthis("specials6");
+			if(special_unlocked){
+				unlock_msg='<div class="special-unlocked">You\'ve unlocked this special!</div>';
+			}else{
+				unlock_msg='<div class="special-locked">You have not unlocked this special.</div>';
+			}
+
+		logthis("specials7");
+
+			var special_venue="@ "+j.venue.specialsNearby[b].venue.name;
+			if(j.venue.specialsNearby[b].id!=lastNearbySpecial){
+				this.controller.get('special_content').innerHTML = '<div class="special-wrapper" id="special'+j.venue.specialsNearby[b].id+'"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class=""><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div><div class="checkin-venue">'+unlock_msg+'</div></div></div></div>'+this.controller.get('special_content').innerHTML;			
+
+				lastNearbySpecial=j.venue.specialsNearby[b].id;
+			}
+
+		logthis("specials8");
+			
+			//spt="Mayor Special";
+			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
+			//special_venue="@ Venue Name (123 Venue St.)";
+		}//end of for
+		this.controller.get('special_content').innerHTML+='<br class="breaker">';
+		logthis("specials9");
+		if(!nearbyShown){
+			this.controller.get("nearby-special").addClassName("nearby-button2");
+			showbutton=true;
+			this.controller.get("nearbySpecials").hide();
+			this.controller.get("nearby-special").show();
+			Mojo.Event.listen(this.controller.get("nearby-special"),Mojo.Event.tap,function(){
+				this.controller.get("special_overlay").toggle();
+			}.bind(this));
+			Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
+			nearbyShown=true;
+		}
+				logthis("specials10");
+		for(var g=0;g<j.venue.specialsNearby.length;g++){
+				Mojo.Event.listen(this.controller.get('special'+j.venue.specialsNearby[g].id),Mojo.Event.tap,function(e,g){
+					this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade},j.venue.specialsNearby[g].venue,_globals.username,_globals.password,_globals.uid,false,undefined,undefined,this,false,true);
+				}.bindAsEventListener(this,g));		
+		}
+
+
+	}
+	
+	if(nearbyShown){
+		logthis("special-break11");
+				
+		var nodelist=this.controller.document.querySelectorAll(".special-wrapper");
+		var elements=[];
+		for(var i=0;i<nodelist.length;i++){
+			elements.push(nodelist[i]);
+		}
+		logthis(elements);
+		this.scroll3Model.snapElements={x:elements};
+		this.controller.modelChanged(this.scroll3Model);
+	}
+
+/*	if(response.responseJSON.response.venue.specials.length>0) {
 		logthis("specials="+Object.toJSON(response.responseJSON.venue.specials));
 		var nearbyShown=false;
 		this.nearbys=[];
@@ -814,41 +1066,145 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	
 	
 			logthis("special-break8");
-
+*/
 
 	
 	//tips stuff
-	if(response.responseJSON.venue.tips != undefined) {
+	if(j.venue.tips.count>0){
+		this.tipsModel.items=[];
+		this.userCount=0;
+		this.friendCount=0;
+		logthis("has tips!");
+		var tipsText='';
+		var tipsstuff=j.venue.tips;
+		
+		var vTips=response.responseJSON.response.responses[1].response.tips.items;
+		this.tipsModel.items=vTips;
+		try{
+			this.controller.modelChanged(this.tipsModel);
+		}catch(e){
+			logthis("error: "+e);
+		}
+		logthis("nmber groups="+tipsstuff.groups.length);
+		for(var tg=0;tg<tipsstuff.groups.length;tg++){
+			/*var tipsArray=tipsstuff.groups[tg].items;
+			this.tipsModel.items.concat(tipsArray);
+			try{
+				this.controller.modelChanged(this.tipsModel);
+			}catch(e){
+				logthis("error: "+e);
+			}
+			
+			switch(tipsstuff.groups[tg].type){
+				case "friends":
+					this.friendCount=tipsArray.length;
+					break;
+				default:
+					this.userCount+=tipsArray.length;
+					for(var ot=0;ot<tipsArray.length;ot++){
+						
+					}
+					break;
+			}*/
+			var count=tipsstuff.groups[tg].count;
+			var name=tipsstuff.groups[tg].name;
+			
+			if(tg==0){ //first group
+				logthis("first group");
+				tipsText+=count+" "+name;
+			}else if(tg==tipsstuff.groups.length-1){ //last group
+				logthis("last group");
+				tipsText+=' and '+count+" "+name;
+			}else{ 
+				logthis("middle group");
+				tipsText+=", "+count+" "+name;
+			}
+			logthis("tipstext="+tipsText);
+			
+		}
+		logthis("usercount="+this.userCount+", friendcount="+this.friendCount);
+		this.controller.get("friend-tips").update(tipsText);
+		this.controller.get("others-tips").update('');		
+	}else{
+		logthis("no tips!");
+		var tips='<div id="notice" style="margin-top: 75px">No tips have been left here yet.</div>';
+		this.controller.get("venueTips").update(tips);
+		
+		this.controller.get("friend-tips").update('No tips have been left here');
+		this.controller.get("others-tips").update('Leave a tip and let others know your secret!');	
+	}
+	
+	
+	/*var boldtips='No tips have been left here';
+	var greytips='Leave a tip and let others know your secret!';
+	if(this.friendCount==0){
+		var s=(this.userCount==1)? ' has': 's have';
+		boldtips=this.userCount+' tip'+s+' been left here';
+		greytips='Be the first of your friends to leave one!';
+	}else if(this.friendCount>0){
+		var s=(this.friendCount==1)? '': 's';
+		boldtips=this.friendCount+' tip'+s+' from friends';
+		if(this.userCount>0){
+			greytips=this.userCount+' left by other people';
+		}else{
+			greytips='';
+		}
+	}
+
+	this.controller.get("friend-tips").update(boldtips);
+	this.controller.get("others-tips").update(greytips);*/
+
+
+/*	if(response.responseJSON.venue.tips != undefined) {
+		this.controller.get("venueTips").update("");
 		logthis("venue.tips="+Object.toJSON(response.responseJSON.venue.tips));
 		this.controller.get("snapTips").show();
 		var tips='';
-		var friendCount=0;
-		var userCount=0;
+		this.friendCount=0;
+		this.userCount=0;
+		this.tipsModel.items=[];
 			
 		logthis("tips-break1");
 
+		this.tipsModel.items=response.responseJSON.venue.tips;
+		logthis("tips-break2");
+		try{
+			this.controller.modelChanged(this.tipsModel);
+		}catch(e){
+			logthis("error: "+e);
+		}
+		logthis("tips-break2.5");
 		for (var t=0;t<response.responseJSON.venue.tips.length;t++) {
-			logthis("loop1");
-			//<div class="palm-row single"><div class="checkin-score"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>
+				//fidn out if it's a friend...
+			if(isFriend(response.responseJSON.venue.tips[t].user.id)){
+				this.friendCount++;
+			}else{
+				this.userCount++;
+			}
+			Mojo.doNothing();
+		}
+		logthis("tips-break2.75");
+		/*for (var t=0;t<response.responseJSON.venue.tips.length;t++) {
+			try{
 			var tip=response.responseJSON.venue.tips[t].text;
-			logthis("loop2");
 			var tipid=response.responseJSON.venue.tips[t].id;
-			logthis("loop3");
 			var created=response.responseJSON.venue.tips[t].created;
-			logthis("loop4");
 			var tlname=(response.responseJSON.venue.tips[t].user.lastname != undefined)? response.responseJSON.venue.tips[t].user.lastname : '';
-			logthis("loop5");
-			var username=response.responseJSON.venue.tips[t].user.firstname+" "+tlname;
-			logthis("loop6");
+			var username=response.responseJSON.venue.tips[t].user.firstname.replace("✈","")+" "+tlname.replace("✈","");
+			//logthis("loop6");
 			var photo=response.responseJSON.venue.tips[t].user.photo;
-			logthis("loop7");
+			//logthis("loop7");
 			var uid=response.responseJSON.venue.tips[t].user.id;
-			logthis("loop8");
+			//logthis("loop8");
 			var usersdone=response.responseJSON.venue.tips[t].stats.donecount;
-			logthis("loop9");
+			//logthis("loop9");
 			var userstodo=response.responseJSON.venue.tips[t].stats.todocount;
-			logthis("loop10");
+			//logthis("loop10");
 			var isfriend=isFriend(uid);
+			}catch(e){
+				logthis("error");
+				logthis(e);
+			}
 
 		logthis("tips-break2");
 			
@@ -867,7 +1223,22 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 			   	var when="";
 			}
 		logthis("tips-break3");
-
+		/*logthis("photo: "+photo);
+		logthis("uid: "+uid);
+		logthis("username: "+username);
+		logthis("text: "+tip);
+		logthis("t: "+t);
+		logthis("url: "+response.responseJSON.venue.tips[t].url);
+		logthis("id: "+response.responseJSON.venue.tips[t].id);
+		logthis("user: "+response.responseJSON.venue.tips[t].user);
+		logthis("stats: "+response.responseJSON.venue.tips[t].stats);
+		logthis("tipid: "+tipid);
+		/*logthis("status: "+response.responseJSON.venue.tips[t].status);*/
+		/*logthis("timeago: "+when);
+		logthis("usersdone: "+usersdone);
+		logthis("userstodo: "+userstodo);*/
+		
+		/*try{
 			var tipHash={
 				photo: photo,
 				uid: uid,
@@ -880,40 +1251,10 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 				venue: response.responseJSON.venue,
 				stats: response.responseJSON.venue.tips[t].stats,
 				tipid: tipid,
-				status: response.responseJSON.venue.tips[t].status, 
 				timeago: when,
 				usersdone: usersdone,
 				userstodo: userstodo
 			};
-			
-			logthis("tiphash="+tipHash);
-			
-			//tips+=Mojo.View.render({object: tipHash, template: 'listtemplates/vtipsitem'});
-			
-			this.tipsModel.items.push(tipHash);
-					logthis("tips-break4");
-
-		}
-		
-		var boldtips='';
-		var greytips='';
-		if(friendCount==0){
-			var s=(userCount==1)? ' has': 's have';
-			boldtips=userCount+' tip'+s+' been left here';
-			greytips='Be the first of your friends to leave one!';
-		}else if(friendCount>0){
-			var s=(friendCount==1)? '': 's';
-			boldtips=friendCount+' tip'+s+' from friends';
-			if(userCount>0){
-				greytips=userCount+' left by other people';
-			}
-		}
-				logthis("tips-break5");
-
-		this.controller.get("friend-tips").update(boldtips);
-		this.controller.get("others-tips").update(greytips);
-		
-		this.controller.modelChanged(this.tipsModel);
 	}else{
 			logthis("tips-break6");
 
@@ -925,137 +1266,342 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 
 	}
 		logthis("tips-break7");
+*/
+
+
+	//photos stuff
+//	this.venuePhotos=j.venue.photos;
+//	logthis(Object.toJSON(response.responseJSON.response.responses[3].meta));
+//	logthis(Object.toJSON(response.responseJSON.response.responses[2].meta));
+	this.venuePhotos={
+		count: j.venue.photos.count,
+		groups: [
+			{type: 'checkin',
+			name: 'friends\' checkin photos',
+			count: response.responseJSON.response.responses[3].response.photos.count,
+			items: response.responseJSON.response.responses[3].response.photos.items
+			},
+			{type: 'venue',
+			name: 'venue photos',
+			count: response.responseJSON.response.responses[2].response.photos.count,
+			items: response.responseJSON.response.responses[2].response.photos.items
+			}
+		]
+	};
+	if(j.venue.photos.count>0){
+		this.controller.get("photos-row").show();
+		this.userCountP=0;
+		this.friendCountP=0;
+		logthis("has photos!");
+		var photosText='';
+		var photosThumbs='';
+		var photosstuff=j.venue.photos;
+		var thumbCount=0;
+		
+		logthis("nmber groups="+photosstuff.groups.length);
+		for(var pg=0;pg<photosstuff.groups.length;pg++){
+			var count=photosstuff.groups[pg].count;
+			var name=photosstuff.groups[pg].name;
+			
+			if(pg==0 && count>0){ //first group
+				logthis("first group");
+				photosText+=count+" "+name;
+			}else if(pg==photosstuff.groups.length-1 && count>0){ //last group
+				logthis("last group");
+				photosText+=' and '+count+" "+name;
+			}else{ 
+				logthis("middle group");
+				if(count>0){photosText+=", "+count+" "+name;}
+			}
+			logthis("photostext="+photosText);
+			logthis(photosText.substring(0,5));
+			if(photosText.substring(0,5)==" and "){
+				photosText=photosText.replace(" and ","");
+			}
+			if(photosText.substring(0,1)==", "){
+				photosText=photosText.replace(", ","");
+			}
+			
+			//create thumbnails
+			if(thumbCount<6){
+				logthis("thumbCount<6");
+				for(var p=0;p<photosstuff.groups[pg].items.length;p++){
+					logthis("in photo loop");
+					if(thumbCount<6){
+						logthis("building thumbs");
+						var photo=photosstuff.groups[pg].items[p];
+						logthis(Object.toJSON(photo));
+						var purl=photo.sizes.items[photo.sizes.items.length-1].url; //sizes are largest to smallest in array, use smallest possible image for thumb
+						photosThumbs+='<img src="'+purl+'" width="32" height="32" class="venue-photo-thumb"/>';
+						thumbCount++;
+						
+						logthis("pt="+photosThumbs);
+					}			
+				}
+			}
+			
+		}
+		logthis("usercountP="+this.userCountP+", friendcountP="+this.friendCountP);
+		this.controller.get("photos-here").update(photosText);
+		this.controller.get("photos-thumbnails").update(photosThumbs);
+	}else{
+		logthis("no photos!");
+		this.controller.get("photos-row").hide();
+	}
+
 
 	//who's here? stuff
-	if(response.responseJSON.venue.checkins != undefined) {
-		//logthis(Object.toJSON(response.responseJSON.venue.checkins));
+	var herestuff=j.venue.hereNow;
+	var herestufffull=response.responseJSON.response.responses[4].response.hereNow;
+//	logthis(Object.toJSON(response.responseJSON.response.responses[4].meta));
+//	logthis(Object.toJSON(herestuff));
+	if(herestuff.count>0){
 		this.controller.get("snapUsers").show();
-		var users='';
-		var friendsPics='';		
+		this.controller.get("whoshere-row").show();
+		var friendsPics='';
 		var usersPics='';
-		var friendCount=0;
-		var userCount=0;
+		var users='';
 		
-		for (var t=0;t<response.responseJSON.venue.checkins.length;t++) {
-			var shout=(response.responseJSON.venue.checkins[t].shout != undefined)? response.responseJSON.venue.checkins[t].shout: "";
-			var created=response.responseJSON.venue.checkins[t].created;
-			var tlname=(response.responseJSON.venue.checkins[t].user.lastname != undefined)? response.responseJSON.venue.checkins[t].user.lastname : '';
-			var username=response.responseJSON.venue.checkins[t].user.firstname+" "+tlname;
-			var photo=response.responseJSON.venue.checkins[t].user.photo;
-			var uid=response.responseJSON.venue.checkins[t].user.id;
-			logthis("we're here"+t);
-			var isfriend=isFriend(uid);
-			
-			
-			if(response.responseJSON.venue.checkins[t].created != undefined) {
-				var now = new Date;
-				var later = new Date(response.responseJSON.venue.checkins[t].created);
-				var offset = later.getTime() - now.getTime();
-				var when=this.relativeTime(offset) + " ago";
-			}else{
-			   	var when="";
-			}
-			var urlmatch=/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-			shout=shout.replace(urlmatch,'<a href="$1" class="listlink">$1</a>');
+		for(var hg=0;hg<herestuff.groups.length;hg++){
 
-			if(isfriend){
-				if(parseInt(friendCount)+parseInt(userCount)<6){			
-					friendsPics+='<img width="32" height="32" src="'+photo+'" data="'+uid+'" class="friend-avatar">';
-				}
-				friendCount++;
-			}else{
-				if(parseInt(friendCount)+parseInt(userCount)<6){			
-					usersPics+='<img width="32" height="32" src="'+photo+'" data="'+uid+'" class="friend-avatar">';
-				}
-				userCount++;			
+			switch(herestuff.groups[hg].type){
+				case "friends":
+
+					var friendsHere=herestuff.groups[hg].items;
+					var friendCount=friendsHere.length;
+					for(var fh=0;fh<friendsHere.length;fh++){
+							logthis("herestuff-friends2 loop");
+
+						//get date since checked-in
+						var now = new Date;
+						var later = new Date(friendsHere[fh].createdAt*1000);
+						var offset = later.getTime() - now.getTime();
+						var when=this.relativeTime(offset) + " ago";
+
+						//find the source
+						if(friendsHere[fh].source !=undefined){
+							var sourceName=friendsHere[fh].source.name;
+							var sourceURL=friendsHere[fh].source.url;
+							
+							var source='via <a href="'+sourceURL+'" class="source-link">'+sourceName+'</a>';
+						}
+						
+						//parse links in shouts
+						if(friendsHere[fh].shout!=undefined){
+							var urlmatch=/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+							var shout=friendsHere[fh].shout.replace(urlmatch,'<a href="$1" class="listlink">$1</a>');
+						}else{
+							var shout='';
+						}
+						
+						//create images to display
+						if(fh<6){
+							friendsPics+='<img width="32" height="32" src="'+friendsHere[fh].user.photo+'" data="'+friendsHere[fh].user.id+'" class="friend-avatar">';
+						}
+						
+
+						
+
+						/*//join name
+						var fName=friendsHere[fh].user.firstName;
+						var lName=(friendsHere[fh].user.lastName)? " "+friendsHere[fh].user.lastName: "";
+						var username=fName+lName;
+						
+						//create object for template
+						var userHash={
+							photo: friendsHere[fh].user.photo,
+							uid: friendsHere[fh].user.id,
+							t: fh,
+							username: username,
+							timeago: when,
+							shout: shout,
+							source: source
+						};
+						
+						if(shout!=undefined && shout!=""){
+							users+=Mojo.View.render({object: userHash, template: 'listtemplates/whoshere-shout'});
+						}else{
+							users+=Mojo.View.render({object: userHash, template: 'listtemplates/whoshere'});			
+						}*/
+						
+
+
+					}
+					break;
+				default:
+					var usersHere=herestuff.groups[hg].items;
+					var userCount=herestuff.groups[hg].count;//usersHere.length;
+					for(var uh=0;uh<usersHere.length;uh++){
+						logthis(Object.toJSON(usersHere[uh]));
+						
+						//get date since checked-in
+						var now = new Date;
+						var later = new Date(usersHere[uh].createdAt*1000);
+						var offset = later.getTime() - now.getTime();
+						var when=this.relativeTime(offset) + " ago";
+						
+						//find the source
+						if(usersHere[uh].source !=undefined){
+							var sourceName=usersHere[uh].source.name;
+							var sourceURL=usersHere[uh].source.url;
+							
+							var source='via <a href="'+sourceURL+'" class="source-link">'+sourceName+'</a>';
+						}
+						
+						//parse links in shouts
+						if(usersHere[uh].shout!=undefined){
+							var urlmatch=/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+							var shout=usersHere[uh].shout.replace(urlmatch,'<a href="$1" class="listlink">$1</a>');
+						}else{
+							var shout='';
+						}
+						
+						//create images to display
+						if(uh<6){
+							usersPics+='<img width="32" height="32" src="'+usersHere[uh].user.photo+'" data="'+usersHere[uh].user.id+'" class="friend-avatar">';
+						}
+						
+						//join name
+						/*var fName=usersHere[uh].user.firstName;
+						var lName=(usersHere[uh].user.lastName)? " "+usersHere[uh].user.lastName: "";
+						var username=fName+lName;
+						
+						//create object for template
+						var userHash={
+							photo: usersHere[uh].user.photo,
+							uid: usersHere[uh].user.id,
+							t: uh,
+							username: username,
+							timeago: when,
+							shout: shout,
+							source: source
+						};
+						
+						if(shout!=undefined && shout!=""){
+							users+=Mojo.View.render({object: userHash, template: 'listtemplates/whoshere-shout'});
+						}else{
+							users+=Mojo.View.render({object: userHash, template: 'listtemplates/whoshere'});			
+						}*/
+						
+
+
+					}
+					break;
 			}
-			logthis("counts="+friendCount+userCount);
+		}
+		
+		//handle full list
+		for(var wh=0;wh<herestufffull.items.length;wh++){
+			//join name
+			var fName=herestufffull.items[wh].user.firstName;
+			var lName=(herestufffull.items[wh].user.lastName)? " "+herestufffull.items[wh].user.lastName: "";
+			var username=fName+lName;
 			
-			
+			//create object for template
 			var userHash={
-				photo: photo,
-				uid: uid,
-				t: t,
+				photo: herestufffull.items[wh].user.photo,
+				uid: herestufffull.items[wh].user.id,
+				t: uh,
 				username: username,
 				timeago: when,
-				shout: shout
+				shout: shout,
+				source: source
 			};
+			
 			if(shout!=undefined && shout!=""){
 				users+=Mojo.View.render({object: userHash, template: 'listtemplates/whoshere-shout'});
 			}else{
 				users+=Mojo.View.render({object: userHash, template: 'listtemplates/whoshere'});			
 			}
+		
+		}
+		
+		
+		if(friendCount==0 && userCount==0){
+			this.controller.get("snapUsers").hide();
+			this.controller.get("whoshere-row").hide();	
+		}else{	
+			var whosehere;
+			if(friendCount>0 && userCount>0){
+				var fs=(friendCount==1)? 'friend': 'friends';
+				var ps=(userCount==1)? 'person is': 'people are';
+				whosehere=friendCount+' '+fs+' and '+userCount+' other '+ps+' here';
+			}else if(friendCount>0 && userCount==0){
+				var fs=(friendCount==1)? 'friend is': 'friends are';
+				whosehere=friendCount+' '+fs+' here';
+			}else if(friendCount==0 && userCount>0){
+				var ps=(userCount==1)? 'person is': 'people are';
+				whosehere=userCount+' '+ps+' here';
+			}
 			
+			this.controller.get("people-here").update(whosehere);
+			this.controller.get("whoshere-avatars").update(friendsPics+usersPics);
+			
+			this.controller.get("venueUsers").update(users);
 		}
-		
-		var whosehere;
-		if(friendCount>0 && userCount>0){
-			var fs=(friendCount==1)? 'friend': 'friends';
-			var ps=(userCount==1)? 'person is': 'people are';
-			whosehere=friendCount+' '+fs+' and '+userCount+' other '+ps+' here';
-		}else if(friendCount>0 && userCount==0){
-			var fs=(friendCount==1)? 'friend is': 'friends are';
-			whosehere=friendCount+' '+fs+' here';
-		}else if(friendCount==0 && userCount>0){
-			var ps=(userCount==1)? 'person is': 'people are';
-			whosehere=userCount+' '+ps+' here';
-		}
-		
-		this.controller.get("people-here").update(whosehere);
-		this.controller.get("whoshere-avatars").update(friendsPics+usersPics);
-		
-		this.controller.get("venueUsers").update(users);
 
 	}else{
 		this.controller.get("snapUsers").hide();
-		this.controller.get("whoshere-row").hide();
+		this.controller.get("whoshere-row").hide();	
 	}
 	
+	logthis("passed commented out stuff");
 	
 	//venue info stuff
-	var totalcheckins=response.responseJSON.venue.stats.checkins;
-	var beenhere=response.responseJSON.venue.stats.beenhere.me;
-	var twitter=response.responseJSON.venue.twitter;
-	var phone=response.responseJSON.venue.phone;
-	var tags=response.responseJSON.venue.tags;
-	var venuelinks=response.responseJSON.venue.links;
+	var totalcheckins=j.venue.stats.checkinsCount;
+	var totalusers=j.venue.stats.usersCount;
+	var beenhere=j.venue.beenHere.count;
+	var twitter=(j.venue.contact.twitter)? j.venue.contact.twitter: undefined;
+	var phone=(j.venue.contact.phone)? j.venue.contact.phone: undefined;
+	var venueurl=(j.venue.url)? j.venue.url: undefined;
+	var tags=j.venue.tags;
+	//var venuelinks=response.responseJSON.venue.links;
 		logthis("phone="+phone);
 
 	this.info=[];
 	
 	//venue category
-	if(response.responseJSON.venue.primarycategory){
+	if(j.venue.categories.length>0){
 		var itm={};
-		itm.icon=response.responseJSON.venue.primarycategory.iconurl;
-		itm.caption=response.responseJSON.venue.primarycategory.nodename;
+		itm.icon=j.venue.categories[0].icon;
+		itm.caption=j.venue.categories[0].name;
 		itm.action="";
 		itm.highlight="";
 		this.info.push(itm);
 	}
 
+logthis("6");
+
+
 	var vinfo='';
 	var s=(totalcheckins != 1)? "s" :"";
 	if (totalcheckins>0) {
-		vinfo='<span class="capitalize">'+response.responseJSON.venue.name+'</span> has been visited '+totalcheckins+' time'+s+' ';
+		vinfo='<span class="capitalize">'+j.venue.name+'</span> has been visited '+totalcheckins+' time'+s+' ';
 		vinfo+=(beenhere)? 'and you\'ve been here before': 'but you\'ve never been here';
 		vinfo+='.<br/>';
+logthis("7");
+		
+		var people=(totalusers!=1)? "People": "Person";
 		
 		var itm={};
 		itm.icon="images/marker_32.png";
-		itm.caption=totalcheckins+" Check-in"+s+" Here";
+		itm.caption=totalcheckins+" Check-in"+s+" Here from "+totalusers+" "+people;
 		itm.action="";
 		itm.highlight="";
 		this.info.push(itm);
+logthis("8");
 
 		var itm={};
 		itm.icon="images/beenhere_32.png";
-		itm.caption=(beenhere)? "You've been here":"You've never been here";
+		itm.caption=(beenhere>0)? "You've been here":"You've never been here";
 		itm.action="";
 		itm.highlight="";
 		this.info.push(itm);
+logthis("9");
 
 	}else{
-		vinfo='<span class="capitalize">'+response.responseJSON.venue.name+'</span> has never been visited! Be the first to check-in!<br/>';	
+		vinfo='<span class="capitalize">'+j.venue.name+'</span> has never been visited! Be the first to check-in!<br/>';	
+logthis("10");
 
 		var itm={};
 		itm.icon="images/marker_32.png";
@@ -1063,6 +1609,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		itm.action="";
 		itm.highlight="";
 		this.info.push(itm);
+logthis("11");
 	}
 	
 
@@ -1080,6 +1627,17 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		itm.highlight="momentary";
 		this.info.push(itm);
 	}
+
+	if(venueurl != undefined){
+		var itm={};
+		itm.icon="images/web_32.png";
+		itm.caption=venueurl.replace('http://','');
+		itm.action="url";
+		itm.url=venueurl;
+		itm.highlight="momentary";
+		this.info.push(itm);
+	}
+
 
 	vinfo+=(phone != undefined)? '<img src="images/phone.png" width="20" height="20" /> <a href="tel://'+phone+'">'+phone+'</a><br/>': '';
 	if(phone != undefined){
@@ -1125,12 +1683,12 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 		this.controller.get("yelpbutton").innerHTML=vlinks;
 	}*/
 	
-		var itm={};
+		/*var itm={};
 		itm.icon="images/photos_32.png";
 		itm.caption="Photos";
 		itm.action="photos";
 		itm.highlight="momentary";
-		this.info.push(itm);
+		this.info.push(itm);*/
 
 		var itm={};
 		itm.icon="images/banks_32.png";
@@ -1162,7 +1720,7 @@ VenuedetailAssistant.prototype.getVenueInfoSuccess = function(response) {
 	this.controller.modelChanged(this.infoModel);
 
 
-	
+
 	
 	//attach events to any new user links
 	//var userlinks=zBar.getElementsByClassName("userLink",this.controller.get("main-venuedetail"));
@@ -1218,7 +1776,7 @@ VenuedetailAssistant.prototype.checkIn = function(id, n, s, sf, t, fb) {
 	}
 }
 VenuedetailAssistant.prototype.markClosed = function() {
-	if (_globals.auth) {
+/*	if (_globals.auth) {
 		var url = 'https://api.foursquare.com/v1/venue/flagclosed.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
@@ -1233,10 +1791,21 @@ VenuedetailAssistant.prototype.markClosed = function() {
 			onFailure: this.markClosedFailed.bind(this)
 		});
 	} else {
-	}
+	}*/
+		foursquarePost(this, {
+			endpoint: 'venues/'+this.venue.id+'/flag',
+			requiresAuth: true,
+			parameters: {problem:'closed'},
+			debug:true,
+			onSuccess: this.markClosedSuccess.bind(this),
+			onFailure: this.markClosedFailed.bind(this)
+			
+		});
+	
+	
 }
 VenuedetailAssistant.prototype.markMislocated = function() {
-	if (_globals.auth) {
+/*	if (_globals.auth) {
 		var url = 'https://api.foursquare.com/v1/venue/flagmislocated.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
@@ -1251,10 +1820,20 @@ VenuedetailAssistant.prototype.markMislocated = function() {
 			onFailure: this.markMislocatedFailed.bind(this)
 		});
 	} else {
-	}
+	}*/
+		foursquarePost(this, {
+			endpoint: 'venues/'+this.venue.id+'/flag',
+			requiresAuth: true,
+			debug:true,
+			parameters: {problem:'mislocated'},
+			onSuccess: this.markMislocatedSuccess.bind(this),
+			onFailure: this.markMislocatedFailed.bind(this)
+			
+		});
+
 }
 VenuedetailAssistant.prototype.markDuplicate = function() {
-	if (_globals.auth) {
+/**	if (_globals.auth) {
 		var url = 'https://api.foursquare.com/v1/venue/flagduplicate.json';
 		var request = new Ajax.Request(url, {
 			method: 'post',
@@ -1269,7 +1848,17 @@ VenuedetailAssistant.prototype.markDuplicate = function() {
 			onFailure: this.markDuplicateFailed.bind(this)
 		});
 	} else {
-	}
+	}*/
+		foursquarePost(this, {
+			endpoint: 'venues/'+this.venue.id+'/flag',
+			requiresAuth: true,
+			debug:true,
+			parameters: {problem:'duplicate'},
+			onSuccess: this.markDuplicateSuccess.bind(this),
+			onFailure: this.markDuplicateFailed.bind(this)
+			
+		});
+
 }
 
 VenuedetailAssistant.prototype.showBanks = function(event) {
@@ -1334,12 +1923,49 @@ VenuedetailAssistant.prototype.markDuplicateFailed = function(response) {
 }
 
 
-VenuedetailAssistant.prototype.handleAddTip=function(event) {
+VenuedetailAssistant.prototype.reshowTip=function(event) {
+
 	var thisauth=auth;
 	var dialog = this.controller.showDialog({
 		template: 'listtemplates/add-tip',
-		assistant: new AddTipDialogAssistant(this,thisauth,this.venue.id,"tip")
+		assistant: new AddTipDialogAssistant(this,thisauth,this.venue.id,"tip",this.tipText,this.tipURL,this.tipfileName)
 	});
+
+}
+
+VenuedetailAssistant.prototype.doAddTip = function() {
+	var thisauth=auth;
+	var dialog = this.controller.showDialog({
+		template: 'listtemplates/add-tip',
+		assistant: new AddTipDialogAssistant(this,thisauth,this.venue.id,"tip",'','',this.tipfileName)
+	});
+
+};
+
+VenuedetailAssistant.prototype.handleAddTip=function(event) {
+	this.controller.showAlertDialog({
+		onChoose: function(value) {
+			if (value) {
+				Mojo.FilePicker.pickFile({'actionName':'Attach','kinds':['image'],'defaultKind':'image','onSelect':function(fn){
+					this.tipfileName=fn.fullPath;
+					this.tiphasPhoto=true;
+					this.doAddTip();
+			
+				}.bind(this)},this.controller.stageController);
+			}else{
+				this.tiphasPhoto=false;
+				this.tipfileName=undefined;
+				this.doAddTip();
+			}
+		}.bind(this),
+		title:this.venue.name,
+		message:"Do you want to attach a photo to your new tip?",
+		cancelable:true,
+		choices:[ {label:'Yep!', value:true, type:'affirmative'}, {label:'Nevermind', value:false, type:'negative'} ]
+	});
+
+
+
 
 }
 VenuedetailAssistant.prototype.handleAddTodo=function(event) {
@@ -1350,6 +1976,11 @@ VenuedetailAssistant.prototype.handleAddTodo=function(event) {
 	});
 
 }
+
+VenuedetailAssistant.prototype.uploadPhoto = function(event) {
+	this.controller.stageController.pushScene("attach-photo",{type:'venue',item:this.venue});
+};
+
 VenuedetailAssistant.prototype.handleMarkClosed=function(event) {
 this.controller.showAlertDialog({
 		onChoose: function(value) {
@@ -1405,45 +2036,83 @@ VenuedetailAssistant.prototype.showUserInfo = function(event) {
 
 }
 VenuedetailAssistant.prototype.activate = function(event) {
+	NavMenu.setup(this,{buttons:'navOnly',class:'trans'});
+	if(this.gotInfo){this.getVenueInfo();}
 	
 }
 
 
 VenuedetailAssistant.prototype.handleCommand = function(event) {
+		var s=this.controller.stageController.getScenes();
         if (event.type === Mojo.Event.command) {
             switch (event.command) {
 				case "do-Venues":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid);
+					if(s[0].sceneName=="venuedetail"){
+						this.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid);					
+					}else{
+						this.controller.stageController.popScene();
+						this.prevScene.controller.stageController.swapScene({name: "nearby-venues", transition: Mojo.Transition.crossFade},thisauth,_globals.userData,this.username,this.password,this.uid);
+					}
 					break;
+				case "do-Profile":
                 case "do-Badges":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+					if(s[0].sceneName=="venuedetail"){
+						this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+					}else{
+						this.controller.stageController.popScene();
+						this.prevScene.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+					}
                 	break;
 				case "do-Friends":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
+                	if(s[0].sceneName=="venuedetail"){
+						this.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);
+					}else{
+						this.controller.stageController.popScene();
+						this.prevScene.controller.stageController.swapScene({name: "friends-list", transition: Mojo.Transition.crossFade},thisauth,userData,this.username,this.password,this.uid,this.lat,this.long,this);					
+					}
 					break;
                 case "do-Shout":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	if(s[0].sceneName=="venuedetail"){
+						this.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					}else{
+						this.controller.stageController.popScene();
+						this.prevScene.controller.stageController.swapScene({name: "shout", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					}
                 	break;
                 case "do-Tips":
                 	var thisauth=_globals.auth;
-					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	if(s[0].sceneName=="venuedetail"){
+						this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					}else{
+						this.controller.stageController.popScene();
+						this.prevScene.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);	
+					}
+                	break;
+                case "do-Todos":
+                	var thisauth=_globals.auth;
+                	if(s[0].sceneName=="venuedetail"){
+						this.controller.stageController.swapScene({name: "todos", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					}else{
+						this.controller.stageController.popScene();
+						this.prevScene.controller.stageController.swapScene({name: "todos", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					}
                 	break;
                 case "do-Leaderboard":
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "leaderboard", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-About":
-					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade},this);
                 	break;
                 case "do-Donate":
                 	_globals.doDonate();
                 	break;
                 case "do-Prefs":
-					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade});
+					this.controller.stageController.pushScene({name: "preferences", transition: Mojo.Transition.crossFade},this);
                 	break;
                 case "do-Refresh":
 					this.controller.get("venueScrim").show();
@@ -1471,6 +2140,12 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
       			case "add-Todo":
       				this.handleAddTodo();
       				break;
+                case "toggleMenu":
+                	NavMenu.toggleMenu();
+                	break;
+                case "add-Photo":
+                	this.uploadPhoto();
+                	break;
       			case "flag-venue":
 				    this.controller.popupSubmenu({
 		                items: [{label: $L('Suggest an Edit'), command: 'edit', icon: 'status-available-dark'},
@@ -1504,11 +2179,12 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
 		                onChoose: function(arg) {
 		                   switch(arg) {
 		                   		case "email":
-		                   			var address=(this.venue.address!=undefined)? this.venue.address+"<br>": '';
-		                   			var city=(this.venue.city!=undefined)? this.venue.city+", ": '';
-		                   			var state=(this.venue.state!=undefined)? this.venue.state+" ":'';
-		                   			var zip=(this.venue.zip!=undefined)? this.venue.zip: '';
-		                   			var phone=(this.venue.phone!=undefined)? "<br>"+this.venue.phone: '';
+		                   			var address=(this.venue.location.address!=undefined)? this.venue.location.address+"<br>": '';
+		                   			var city=(this.venue.location.city!=undefined)? this.venue.location.city+", ": '';
+		                   			var state=(this.venue.location.state!=undefined)? this.venue.location.state+" ":'';
+		                   			var zip=(this.venue.location.postalCode!=undefined)? this.venue.location.postalCode: '';
+		                   			var phone=(this.venue.contact.phone!=undefined)? "<br>"+this.venue.contact.phone: '';
+		                   			var shorturl=(this.vshorturl!=undefined)? "<br>"+this.vshorturl: '';
 		                   		
 		                   			var body=this.venue.name+"\n"+address+city+state+zip+phone;
 									this.controller.serviceRequest(
@@ -1518,20 +2194,22 @@ VenuedetailAssistant.prototype.handleCommand = function(event) {
 									            id: "com.palm.app.email",
 									            params: {
 									                summary: this.venue.name,
-									                text: this.venue.name+"<br>"+address+city+state+zip+phone
+									                text: this.venue.name+"<br>"+address+city+state+zip+phone+shorturl
 									            }
 									        }
 									    }
 									);
  		                   			break;
 		                   		case "sms":
-		                   			var address=(this.venue.address!=undefined)? " "+this.venue.address: '';
+		                   			var address=(this.venue.location.address!=undefined)? " "+this.venue.location.address: '';
+		                   			var shorturl=(this.vshorturl!=undefined)? " "+this.vshorturl: '';
+
 									this.controller.serviceRequest('palm://com.palm.applicationManager', {
 									     method: 'launch',
 									     parameters: {
 									         id: 'com.palm.app.messaging',
 									         params: {
-										         messageText: this.venue.name+address
+										         messageText: this.venue.name+address+shorturl
 									         }
 									     }
 									 });
@@ -1591,6 +2269,7 @@ VenuedetailAssistant.prototype.cleanup = function(event) {
  	Mojo.Event.stopListening(this.controller.get("venueMap"),Mojo.Event.tap, this.showGoogleMapsBound);
 	Mojo.Event.stopListening(this.controller.get("overlay-closer"),Mojo.Event.tap, this.overlayCloserBound);
 	Mojo.Event.stopListening(this.controller.get('infoList'),Mojo.Event.listTap, this.infoTappedBound);
+	Mojo.Event.stopListening(this.controller.get("todohere"),Mojo.Event.tap,this.showTodoBound);
 
 
 	Mojo.Event.stopListening(this.controller.get("mayor-row"),Mojo.Event.tap,this.flipMayorBound);

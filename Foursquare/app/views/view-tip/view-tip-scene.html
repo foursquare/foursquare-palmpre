@@ -1,0 +1,43 @@
+<div id="main" class="about-dialog no-palm-hasheader fsq-hasheader">
+	<div class="thin-header-redux" style="z-index: 99999">
+		<div class="letterpress">
+		<div class="thin-blue-header" id="todo-header">TIP</div>
+		</div>
+	</div>
+
+	<br class="breaker-small"/>
+
+
+	<div class="grey-bg" id="wrapper">
+		<div x-mojo-element="Spinner" id="overlaySpinner" class="fsq_spinner" name="spinnerName" style="margin-top: 100px;"></div>
+		<div id="elements" style="display:none;">
+			<div class="tip-venue" id="venue-wrap" style="color:#1e1e1e;padding:0;margin-bottom: 7px;margin-top: 15px;display:none;">
+				<div id="todo-venue"></div>
+			</div>
+			<div class="darkerbg" style="color:#fff;padding-bottom: 3px;margin-bottom: 7px;margin-top: 15px;">
+				<div id="todo-text"></div>
+			</div>
+			<div class="darkerbg" id="photo" style="color:#fff;padding-bottom: 3px;margin-bottom: 7px;margin-top: 15px;display:none;">
+				<img src="" id="tip-photo" style="width: 100%;">
+				<div class="friend-checkin"><span class="timeago" id="whenfield"></span> <span class="friend-source" id="photosource"></span></div>
+				<div class="friend-footer">
+					<span id="photoflag"></span>
+				</div><br class="breaker"/>
+			</div>
+			<div class="darkerbg" style="color:#fff;padding-bottom: 3px;margin-bottom: 7px;margin-top: 15px;">
+				<div id="todo-footer"></div>
+			</div>
+			<div class="darkerbg" id="friend-box" style="padding-bottom: 3px;margin-bottom: 7px;margin-top: 15px;display:none;">
+				<div id="todo-friends"></div>
+			</div>
+		
+		
+			<div id="todo-buttons">
+				<div x-mojo-element="Button" id="buttonRemove" class="" name="buttonName" style="margin: 0 0 0 -6px; width: 292px;"></div>
+				<div x-mojo-element="Button" id="buttonAdd" class="" name="buttonName" style="margin: 0 0 0 -6px; width: 292px;display:none;"></div>
+				<div x-mojo-element="Button" id="buttonDone" class="fsq-button plambutton primary" name="buttonName"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="innershadow"></div>

@@ -1,0 +1,138 @@
+[
+    {"source": "app/models/metrix.js"},
+    {"source": "app/models/asyncWrappers.js"},
+    {"source": "app/lib/globals.js"},
+    {"source": "app/lib/navmenu.js"},
+    {"source": "app/assistants/app-assistant.js"},
+    {"source": "app/assistants/stage-assistant.js"},
+    {
+        "scenes": "main",
+        "source": "app/assistants/main-assistant.js"
+    },
+    {
+        "scenes": "friends-map",
+        "source": "maps.js"
+    },
+    {
+        "scenes": "nearby-venues",
+        "source": "app/assistants/nearby-venues-assistant.js"
+    },
+    {"source": "app/lib/gps.js"},
+    {"source": "app/lib/zBar.js"},
+    {"source": "app/lib/encoding.js"},
+    {"source": "app/assistants/check-in-dialog-assistant.js"},
+    {"source": "app/assistants/add-tip-dialog-assistant.js"},
+    {"source": "app/assistants/whats-new-dialog-assistant.js"},
+    {"source": "app/assistants/do-checkin-dialog-assistant.js"},
+    {"source": "app/assistants/do-shout-dialog-assistant.js"},
+    {"source": "app/assistants/friend-search-dialog-assistant.js"},
+    {
+        "scenes": "venuedetail",
+        "source": "app/assistants/venuedetail-assistant.js"
+    },
+    {
+        "scenes": "user-info",
+        "source": "app/assistants/user-info-assistant.js"
+    },
+    {
+        "scenes": "nearby-venues-map",
+        "source": "app/assistants/nearby-venues-map-assistant.js"
+    },
+    {
+        "scenes": "friends-list",
+        "source": "app/assistants/friends-list-assistant.js"
+    },
+    {
+        "scenes": "friends-map",
+        "source": "app/assistants/friends-map-assistant.js"
+    },
+    {
+        "scenes": "add-venue",
+        "source": "app/assistants/add-venue-assistant.js"
+    },
+    {
+        "scenes": "shout",
+        "source": "app/assistants/shout-assistant.js"
+    },
+    {
+        "scenes": "nearby-tips",
+        "source": "app/assistants/nearby-tips-assistant.js"
+    },
+    {
+        "scenes": "leaderboard",
+        "source": "app/assistants/leaderboard-assistant.js"
+    },
+    {
+        "scenes": "checkin-result",
+        "source": "app/assistants/checkin-result-assistant.js"
+    },
+    {
+        "scenes": "about",
+        "source": "app/assistants/about-assistant.js"
+    },
+    {
+        "scenes": "preferences",
+        "source": "app/assistants/preferences-assistant.js"
+    },
+    {
+        "scenes": "flickr-auth",
+        "source": "app/assistants/flickr-auth-assistant.js"
+    },
+    {
+        "scenes": "flickr-upload",
+        "source": "app/assistants/flickr-upload-assistant.js"
+    },
+    {
+        "scenes": "categories",
+        "source": "app/assistants/categories-assistant.js"
+    },
+    {
+        "scenes": "dashboard",
+        "source": "app/assistants/dashboard-assistant.js"
+    },
+    {
+        "scenes": "checkin",
+        "source": "app/assistants/checkin-assistant.js"
+    },
+    {
+        "scenes": "photos",
+        "source": "app/assistants/photos-assistant.js"
+    },
+    {
+        "scenes": "meta-list",
+        "source": "app/assistants/meta-list-assistant.js"
+    },
+    {"source": "app/assistants/dupe-venue-assistant.js"},
+    {
+        "scenes": "recommend",
+        "source": "app/assistants/recommend-assistant.js"
+    },
+    {
+        "scenes": "view-tip",
+        "source": "app/assistants/view-tip-assistant.js"
+    },
+    {
+        "scenes": "add-venue-map",
+        "source": "app/assistants/add-venue-map-assistant.js"
+    },
+    {
+        "scenes": "todos",
+        "source": "app/assistants/todos-assistant.js"
+    },
+    {
+        "scenes": "help",
+        "source": "app/assistants/help-assistant.js"
+    },
+    {
+        "scenes": "contact",
+        "source": "app/assistants/contact-assistant.js"
+    },
+    {
+        "scenes": "walkthrough",
+        "source": "app/assistants/walkthrough-assistant.js"
+    },
+    {
+        "scenes": "view-walkthrough",
+        "source": "app/assistants/view-walkthrough-assistant.js"
+    }
+]

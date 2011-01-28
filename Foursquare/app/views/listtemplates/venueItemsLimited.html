@@ -1,15 +1,29 @@
 <!--<div class='result row' x-mojo-tap-highlight='momentary' style="padding:7px 5px 7px 5px;">
 	<div class="truncating-text">#{name}</div>
 </div>-->
-<div class='result row' x-mojo-tap-highlight='momentary' style="padding:0;padding-top:5px;padding-left: 7px; padding-right: 7px;border-bottom: 0px solid #e7e7e7;"><div class="mayorships">
+<!--<div class='result row' x-mojo-tap-highlight='momentary' style="padding:0;padding-top:5px;padding-left: 7px; padding-right: 7px;border-bottom: 0px solid #e7e7e7;"><div class="mayorships">
 	<div class="venue-category">
-		<div class="venue-cat-icon"><img src="#{primarycategory.iconurl}"/></div>
+		<div class="venue-cat-icon"><img src="#{categories.items[0].icon}"/></div>-->
 		<!--<div class="venue-cat-name">#{primarycategory.nodename}</div>-->
-	</div>
+<!--	</div>
 	<div class="venue-info-wrap thinmayorships">
 		<div class="venue-name truncating-text capitalize">#{name}</div>
-		<div class='venue-address truncating-text capitalize' id="address-#{id}">#{address}</div>
+		<div class='venue-address truncating-text capitalize' id="address-#{id}">#{location.address}</div>
 	</div>
 	<br class="breaker-small">
 	</div>
+</div>-->
+<div class='result row' x-mojo-tap-highlight='momentary' style="position: relative;padding:0;padding-top:5px;padding-left: 7px; padding-right: 7px;border-bottom: 0px solid #e7e7e7;">
+	<div style="position: relative;">
+		<div class="venue-category">
+			<div class="venue-cat-icon"><img src="#{categoriesFormatted}"/></div>
+			<!--<div class="venue-cat-name">#{primarycategory.nodename}</div>-->
+		</div>
+		<div class="venue-info-wrap">
+			<div class="venue-name truncating-text capitalize"><span>#{-mayoricon}</span>#{name}</div>
+			<div class='venue-address truncating-text capitalize' id="address-#{id}">#{location.address} #{location.crossStreet}</div>
+		</div>
+		<br class="breaker">
+	</div>
+	<!--<div class="dogear" style="display: #{dogear};"></div>-->
 </div>

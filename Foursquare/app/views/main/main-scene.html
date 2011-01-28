@@ -1,8 +1,8 @@
 <div id="main" class="no-hasheader">
-    <img src="images/foursquare_logo.png" width="300" style="margin: 0 auto;" /><br/>
-  <div id="loginfields">
-    <!--<div id='header' class="palm-header">Foursquare</div>-->
-	<div class="palm-group">
+   <!-- <img src="images/foursquare_logo.png" width="300" style="margin: 0 auto;" /><br/>-->
+<!--  <div id="loginfields" >
+    <!--<div id='header' class="palm-header">Foursquare</div>- ->
+	<div class="palm-group" style="display:none;">
 	<div class="palm-group-title" x-mojo-loc=''>Login</div>
 		<div class="palm-list">
 	   		<div class="palm-row single">
@@ -19,21 +19,33 @@
 			</div>
 		</div>
 	</div>
-	<div x-mojo-element="Button" id="goLogin" class="fsq-button" style="width: 96%; margin:0 auto;"></div>
+	<div x-mojo-element="Button" id="goLogin" class="fsq-button" style="width: 96%; margin:0 auto;display:none"></div>
+	
+	
 	
 
 
 	<div x-mojo-element="Button" id="goSignup"></div>
 	<div x-mojo-element="Button" id="goHelp"></div>
+	<div style="height: 95px;"></div>
 
-
-	<div class="centered" id="signupbutton"><!--<span class="linefix"><a class="vtag" href="http://foursquare.com/signup">Need an Account? Sign Up.</a></span>-->
+	<div class="centered" id="signupbutton"><!--<span class="linefix"><a class="vtag" href="http://foursquare.com/signup">Need an Account? Sign Up.</a></span>- ->
 
 	</div>
 	
-	</div>
-	<div id="login-status">
+	</div>-->
+
+	<div id="login-button"></div>
+
+	<div x-mojo-element="Spinner" id="loginSpinner" class="fsq_spinner" name="spinnerName" ></div>
+	<div id="message" style="display:block;"></div>
+	<!--<div id="login-status">
 		<div id='message' style='display: block;'></div>
 		<div id="gps-status"></div>
+	</div>-->
+	<div id="login-extra">
+		<div id="login-help"></div>
+		<div id="login-signup"></div>
+		<br class="breaker"/>
 	</div>
 </div>

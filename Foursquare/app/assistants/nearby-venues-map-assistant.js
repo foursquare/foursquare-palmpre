@@ -86,7 +86,7 @@ NearbyVenuesMapAssistant.prototype.handleGestureEnd = function(e) {
 
 NearbyVenuesMapAssistant.prototype.showVenueInfo = function(event) {
 	var v=this.controller.get("map_info").readAttribute("data");
-	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade, disableSceneScroller: true},this.venues[v],this.username,this.password,this.uid,false,this,true);
+	this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade, disableSceneScroller: false},this.venues[v],this.username,this.password,this.uid,false,this,true);
 }
 
 
@@ -126,11 +126,15 @@ NearbyVenuesMapAssistant.prototype.setMarkers = function (map) {
 	});
   
 	for(var v=0;v<this.venues.length;v++) {
-		var point = new google.maps.LatLng(this.venues[v].geolat,this.venues[v].geolong);
-		if(this.venues[v].primarycategory==undefined){
+		var point = new google.maps.LatLng(this.venues[v].location.lat,this.venues[v].location.lng);
+		if(this.venues[v].categories.length==0){
 			this.venues[v].primarycategory={};
 			this.venues[v].primarycategory.iconurl="images/no-cat.png";
+		}else{
+			this.venues[v].primarycategory=this.venues[v].categories[0];
+			this.venues[v].primarycategory.iconurl=this.venues[v].categories[0].icon;
 		}
+		
 		//'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=+|56739e'
 		var image = new google.maps.MarkerImage(this.venues[v].primarycategory.iconurl,
 	    new google.maps.Size(32, 32),
@@ -173,13 +177,13 @@ NearbyVenuesMapAssistant.prototype.attachBubble = function(marker,i) {
 
 	this.infowindows[i] = new google.maps.InfoWindow(
       { content: '<div id="iw-'+this.venues[i].id+'" style="height:260px;font-size:16px;"  data="'+i+'"><b>'+this.venues[i].name+"</b><br/>" +
-           					this.venues[i].address+"<br/>"/*+
+           					this.venues[i].location.address+"<br/>"/*+
            					'<a href="javascript:;" id="venue-'+this.venues[i].id+'" class="venueLink" data="'+i+'">Venue Info</a></div><br/>'*/
       });
   
 	google.maps.event.addListener(marker, 'click', function() {
 			 var html='<div class="mi-left-thin"><img src="'+this.venues[i].primarycategory.iconurl+'" width="32" height="32"></div>';
-			 html+='<div class="mi-right"><b>'+this.venues[i].name+'</b><br/>'+this.venues[i].address+'</div>';
+			 html+='<div class="mi-right"><b>'+this.venues[i].name+'</b><br/>'+this.venues[i].location.address+'</div>';
 
 			 this.controller.get("map_info").innerHTML=html;
 			 this.controller.get("map_info").writeAttribute("data",i);
@@ -242,8 +246,8 @@ NearbyVenuesMapAssistant.prototype.handleCommand = function(event) {
 				case "do-Profile":
                 case "do-Badges":
                 	var thisauth=_globals.auth;
-                	//this.controller.stageController.popScene();
-					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
+                	this.controller.stageController.popScene();
+					this.prevScene.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
 				case "do-Friends":
                 	var thisauth=_globals.auth;

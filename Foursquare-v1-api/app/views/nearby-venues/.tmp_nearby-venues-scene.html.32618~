@@ -1,0 +1,21 @@
+<div id="main" class="palm-hasheader">
+	<div class="palm-header left" id="list-header">
+		Foursquare - Nearby Venues
+	</div>
+</div>
+<div class="palm-group">
+	<div class="palm-group-title" x-mojo-loc=''>Search Venues</div>
+	<div class="palm-list">
+   		<div class="palm-row single">
+			<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+				<div class="title">
+      				<div id="sendField" x-mojo-element="TextField" ></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="go_button" x-mojo-element="Button"></div>
+
+<div id='message' style='padding:20px;'></div>
+<div id="results-venue-list" x-mojo-element="List" ></div>
