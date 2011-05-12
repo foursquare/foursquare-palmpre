@@ -843,7 +843,7 @@ logthis("done mayor");
 			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
 			//special_venue="@ Venue Name (123 Venue St.)";
 		}//end of for
-		this.controller.get('special_content').innerHTML+='<br class="breaker">';
+		//this.controller.get('special_content').innerHTML+='<br class="breaker">';
 		this.controller.get("nearby-special").addClassName("here-button");
 		showbutton=true;
 		this.controller.get("nearbySpecials").hide();
@@ -854,6 +854,9 @@ logthis("done mayor");
 		Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
 		nearbyShown=true;
 	}
+	
+	logthis("**************finished with specials here");
+	logthis(this.controller.get('special_content').innerHTML);
 
 	if(j.venue.specialsNearby.length>0){ //specials nearby
 		logthis("has enarby specials");
@@ -894,7 +897,7 @@ logthis("done mayor");
 
 			var special_venue="@ "+j.venue.specialsNearby[b].venue.name;
 			if(j.venue.specialsNearby[b].id!=lastNearbySpecial){
-				this.controller.get('special_content').innerHTML = '<div class="special-wrapper" id="special'+j.venue.specialsNearby[b].id+'"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class=""><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div><div class="checkin-venue">'+unlock_msg+'</div></div></div></div>'+this.controller.get('special_content').innerHTML;			
+				this.controller.get('special_content').innerHTML += '<div class="special-wrapper" id="special'+j.venue.specialsNearby[b].id+'"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class=""><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div><div class="checkin-venue">'+unlock_msg+'</div></div></div></div>';//+this.controller.get('special_content').innerHTML;			
 
 				lastNearbySpecial=j.venue.specialsNearby[b].id;
 			}
@@ -905,7 +908,6 @@ logthis("done mayor");
 			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
 			//special_venue="@ Venue Name (123 Venue St.)";
 		}//end of for
-		this.controller.get('special_content').innerHTML+='<br class="breaker">';
 		logthis("specials9");
 		if(!nearbyShown){
 			this.controller.get("nearby-special").addClassName("nearby-button2");
@@ -927,6 +929,10 @@ logthis("done mayor");
 
 
 	}
+	logthis("**************finished with specials nearby");
+	logthis(this.controller.get('special_content').innerHTML);
+		this.controller.get('special_content').innerHTML+='<br class="breaker">';
+
 	
 	if(nearbyShown){
 		logthis("special-break11");
@@ -1439,6 +1445,7 @@ logthis("done mayor");
 						var later = new Date(usersHere[uh].createdAt*1000);
 						var offset = later.getTime() - now.getTime();
 						var when=this.relativeTime(offset) + " ago";
+						logthis("when="+when);
 						
 						//find the source
 						if(usersHere[uh].source !=undefined){
@@ -1496,6 +1503,13 @@ logthis("done mayor");
 			var fName=herestufffull.items[wh].user.firstName;
 			var lName=(herestufffull.items[wh].user.lastName)? " "+herestufffull.items[wh].user.lastName: "";
 			var username=fName+lName;
+			
+			logthis("when="+when);
+			//get date since checked-in
+			var now = new Date;
+			var later = new Date(herestufffull.items[wh].createdAt*1000);
+			var offset = later.getTime() - now.getTime();
+			var when=this.relativeTime(offset) + " ago";
 			
 			//create object for template
 			var userHash={

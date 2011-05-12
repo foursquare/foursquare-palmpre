@@ -178,7 +178,7 @@ MainAssistant.prototype.login = function(uname, pass){
 		   			request.transport.abort();
 		   			this.loginRequestFailed(request.transport,true);	
 		   		}			
-			}.bind(this),15000);
+			}.bind(this),60000);
 	   }.bind(this)
 	 });
 }

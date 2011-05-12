@@ -118,19 +118,26 @@ ViewTipAssistant.prototype.photoTap = function(event) {
 };
 
 ViewTipAssistant.prototype.tipSuccess = function(r) {
+logthis("got tip");
 	this.todo.tip=r.responseJSON.response.tip;
+logthis("@");
 
-	if(this.todo.tip.user.relationship=="self"){
-		this.isself=true;
-	}else{
-		this.isself=false;
-		this.controller.document.querySelector('.navbar-menu .palm-menu-group > div:nth-child(1) > .palm-menu-icon').style.background='';
+	if(this.todo.tip.user!=undefined){
+		if(this.todo.tip.user.relationship=="self"){
+			this.isself=true;
+		}else{
+			this.isself=false;
+			this.controller.document.querySelector('.navbar-menu .palm-menu-group > div:nth-child(1) > .palm-menu-icon').style.background='';
+		}
 	}
+	logthis("a");
 
 
 	if(this.todo.tip.venue==undefined){
 		this.todo.tip.venue=this.venue;
 	}
+	
+	logthis("b");
 	if(this.todo.tip.link){
 		var todourl="<br/><br/>"+this.todo.tip.link.link();
 	}else if(this.todo.tip.url){
@@ -140,13 +147,16 @@ ViewTipAssistant.prototype.tipSuccess = function(r) {
 	}else {
 		var todourl='';
 	}
+	logthis("1");
 	if(this.todo.tip.text==""){
 		this.todo.tip.text="I want to visit this venue!";
 	}
 	
+	logthis("2");
 	this.todo.tip.text=this.todo.tip.text.replace("<","&lt;").replace(">","&gt;");
 	
 	this.controller.get("todo-text").update(this.todo.tip.text+todourl);
+	logthis("3");
 	
 	var todofooter='added ';
 	if(this.todo.tip.user){

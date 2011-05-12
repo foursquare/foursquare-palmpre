@@ -2195,6 +2195,15 @@ UserInfoAssistant.prototype.handleCommand = function(event) {
 					break;
                 case "do-Badges":
                 	break;
+                case "do-Explore":
+                	var thisauth=auth;
+                	if(this.fromFriends){
+                		this.controller.stageController.popScene();
+                		this.prevScene.controller.stageController.swapScene({name: "explore", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	}else{
+						this.controller.stageController.swapScene({name: "explore", transition: Mojo.Transition.crossFade},thisauth,"",this);
+					}
+                	break;
                 case "do-Shout":
                 	var thisauth=this.auth;
 					if(this.fromFriends){

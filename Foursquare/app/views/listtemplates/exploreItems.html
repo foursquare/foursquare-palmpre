@@ -1,0 +1,23 @@
+<div class='result row' style="position: relative;padding:0;border-bottom: 0px solid #e7e7e7;background-color:#{bgcolor};">
+	<div class="explore-topper #{topperclass}">#{topper}</div>
+	<div style="position: relative;">
+		<div class="venue-category">
+			<div class="venue-cat-icon"><img src="#{venue.primarycategory.icon}"/></div>
+			<!--<div class="venue-cat-name">#{primarycategory.nodename}</div>-->
+		</div>
+		<div class="venue-info-wrap">
+			<div x-mojo-tap-highlight="momentary" class="venue-name truncating-text capitalize blue-text">#{venue.name}</div>
+			<div class='venue-address truncating-text capitalize' id="address-#{id}">#{venue.location.address} #{venue.crossstreet}</div>
+			<div class="venue-footer">
+				#{venue.distance} #{venue.unit} <img class="people-icon" src="images/people-#{venue.peopleicon}.png"/> #{venue.hereNow.count} #{venue.herepeople} #{-venue.specialimage}
+			</div>
+		</div>
+		<br class="breaker">
+		<div class="explore-tip-wrapper">
+			#{-tipHTML}
+		</div>
+		<div class="reasons">
+			#{-reasonsHTML}
+		</div>
+	</div>
+</div>

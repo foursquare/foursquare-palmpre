@@ -610,6 +610,10 @@ ShoutAssistant.prototype.handleCommand = function(event) {
 					//this.controller.stageController.popScene();
 					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
+                case "do-Explore":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "explore", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
                 case "do-Todos":
                 	var thisauth=_globals.auth;
 					//this.controller.stageController.popScene();

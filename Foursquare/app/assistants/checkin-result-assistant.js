@@ -20,20 +20,26 @@ CheckinResultAssistant.prototype.setup = function() {
   );
   
   	this.okTappedCheckinBound=this.okTappedCheckin.bindAsEventListener(this);
+  	this.specialTappedBound=this.specialTapped.bindAsEventListener(this);
   	
 	Mojo.Event.listen(this.controller.get('okButtonCheckin'), Mojo.Event.tap, this.okTappedCheckinBound);
-	if(Mojo.Environment.DeviceInfo.touchableRows < 8)
+	Mojo.Event.listen(this.controller.get('special-unlocked'), Mojo.Event.tap, this.specialTappedBound);
+/*	if(Mojo.Environment.DeviceInfo.touchableRows < 8)
 	{
 	   this.controller.get("checkin-widgets").style.minHeight="247px;";
 	}
 	else{
 	   this.controller.get("checkin-widgets").style.minHeight="327px"; //372
-	}
+	}*/
 	
 	if(this.isShout){this.controller.get("result-header").update("SHOUTED!");}
 
 	this.initData(this.json);
 	
+};
+
+CheckinResultAssistant.prototype.specialTapped = function(event) {
+	this.controller.get("special_overlay").show();
 };
 
 CheckinResultAssistant.prototype.initData = function(checkinJSON) {
@@ -46,14 +52,32 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 	this.notip=true;
 	this.badgeHTML='';
 	this.scoresHTML='';
+	this.mayorHTML='';
+	this.leaderboardHTML='';
 
 	//parse array
 	var notifs=checkinJSON.notifications;
 	
 	//var notifs=[{"type":"message","item":{"message":"OK! We've got you @ Test Venue. You've been here 10 times."}},{"type":"mayorship","item":{"type":"nochange","checkins":3,"message":"You're still the Mayor of Test Venue! (3 check-ins in the past two months)","image":"http://foursquare.com/img/crown.png"}},{"type":"badge","item":{"badge":{"id":"4c4f08667a0803bbb0202ab7","name":"Local","description":"You've been at the same place 3x in one week!","image":{"prefix":"http://foursquare.com/img/badge/","sizes":[57,114,300],"name":"/local.png"}}}},{"type":"score","item":{"scores":[{"points":1,"icon":"/img/scoring/2.png","message":"First stop tonight"}],"total":1}}];
 	
+	
+	//{"type": "special", "item": {"special": {"id": "4d792ed14def2c0f79cd7780", "type": "count", "message": "Check-in to my boutique store and mention foursquare to me and\r\n I will give you a sample of my best hand made soap absolutely free!", "description": "It's your first time checking in here; you unlocked the Newbie Special!", "finePrint": "Unlocked 5/5/2011 4:23 AM", "unlocked": true, "icon": "newbie", "title": "Newbie Special", "state": "unlocked", "provider": "foursquare", "redemption": "standard"}}}
+
+
 	for(var n=0;n<notifs.length;n++){
+		logthis(Object.toJSON(notifs[n]));
 		switch(notifs[n].type){
+			case "special":
+				if(notifs[n].item.special.state=="unlocked"){
+					this.controller.get("specials-wrapper").show();
+					this.specialUnlocked=notifs[n].item.special;
+					
+					this.controller.get("special-title").update(this.specialUnlocked.title+' <img src="https://foursquare.com/img/specials/'+this.specialUnlocked.icon+'.png">');
+					this.controller.get("special-description").update(this.specialUnlocked.description);
+					this.controller.get("special-message").update(this.specialUnlocked.message);
+					this.controller.get("special-fine-print").update(this.specialUnlocked.finePrint);
+				}
+				break;
 			case "message":
 				this.controller.get('checkin-display').innerHTML=notifs[n].item.message;
 				break;
@@ -61,7 +85,8 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 				this.nomayor=false;
 				//handle different mayrship notification types
 				switch(notifs[n].item.type){
-					case "nochange":						
+					case "nochange":
+												
 						break;
 					case "new":
 						break;
@@ -69,11 +94,11 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 						break;
 				}
 				//test days behind
-//				notifs[n].item.daysBehind=10;
+				//notifs[n].item.daysBehind=10;
 				
-				this.controller.get('checkin-mayorship').innerHTML = '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+notifs[n].item.image+'" width="50" height="50"  class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 180px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+notifs[n].item.message+'	</div><br class="breaker"/></div>';
+				this.mayorHTML += '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><div style="float: left;margin-left: 3px; width: 250px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+notifs[n].item.message+'</div><img src="'+notifs[n].item.image+'" width="48" height="48" style="float: right; padding-top:0px;margin-left: 5px;margin-right:2px"/><br class="breaker"/></div>';
 				if(notifs[n].item.daysBehind){
-					this.controller.get('checkin-mayorship').innerHTML += '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><div class="days-away" style="float: left; padding-top:18px;margin-left: 5px;width:48px;height:30px;font-size: 20px;color:#000;text-align:center;background:url(images/calendar.png) no-repeat left top;">'+notifs[n].item.daysBehind+'</div><div style="float: left;margin-left: 10px; width: 180px; padding-top: 0px; padding-bottom:0px;font-size:16px;">You are now '+notifs[n].item.daysBehind+' days away from becoming the Mayor!</div><br class="breaker"/></div>';
+					this.mayorHTML += '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><div style="float: left;margin-left: 3px; width: 250px; padding-top: 0px; padding-bottom:0px;font-size:16px;">You are now '+notifs[n].item.daysBehind+' days away from becoming the Mayor!</div><div class="days-away" style="float: right; padding-top:18px;margin-left: 5px;margin-right: 2px;width:48px;height:30px;font-size: 20px;color:#000;text-align:center;background:url(images/calendar.png) no-repeat left top;">'+notifs[n].item.daysBehind+'</div><br class="breaker"/></div>';
 				}
 				break;
 			case "score": //{"type":"score","item":{"scores":[{"points":1,"icon":"/img/scoring/2.png","message":"First stop today"}],"total":1}}
@@ -86,12 +111,35 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 				var badge_name=badge.name;
 				var badge_icon=badge.image.prefix+badge.image.sizes[0]+badge.image.name;
 				var badge_text=badge.description;
-				this.badgeHTML += 	'<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+badge_icon+'" width="32" height="32"  class="friend-avatar" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 195px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+badge_name+': '+badge_text+'	</div><br class="breaker"/></div>';
+				this.badgeHTML += 	'<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><div style="float: left;margin-left: 3px; width: 250px; padding-top: 0px; padding-bottom:0px;font-size:16px;"><b>You just unlocked the '+badge_name+' badge</b><br>'+badge_text+'</div><img src="'+badge_icon+'" width="48" height="48"  style="float: right; padding-top:0px;margin-left: 5px; margin-right" 2px;"/><br class="breaker"/></div>';
 				
 				break;
 			case "tipAlert":
 				this.notip=false;
 				this.tip=notifs[n].item.tip;
+				break;
+			case "leaderboard":
+				var msg=notifs[n].item.message;
+				var lboard=notifs[n].item.leaderboard;
+				for(var u=0;u<lboard.length; u++){
+					var rank=lboard[u].rank;
+					var photo=lboard[u].user.photo;
+					var fname=lboard[u].user.firstName;
+					var lname=(lboard[u].user.lastName)? lboard[u].user.lastName: '';
+					var uname=fname + " "+ lname;
+					var relationship=lboard[u].user.relationship;
+					var score=lboard[u].scores.recent;
+					
+					if(relationship=="self"){
+						var rankClass="bright";
+					}else{
+						var rankClass="dim";
+					}
+					
+					this.leaderboardHTML+='<div class="result row" style="padding:0;padding-bottom:7px; padding-top: 3px;"><div class="lb-rank '+rankClass+'">#'+rank+'</div><div class="lb-photo"><img src="'+photo+'" width="32" height="32" class="friend-avatar"></div><div class="lb-name '+rankClass+'">'+uname+'</div><div class="lb-score '+rankClass+'">'+score+'</div><br class="breaker"></div>';
+				}
+				
+				this.controller.get("leaderboard-note").innerHTML=msg;
 				break;
 		}
 	}
@@ -99,22 +147,40 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 	
 	//set the individual scores - handle changes in JSON response...
 	if(scores != undefined) {
+		this.controller.get("scores-wrapper").show();
 		//var totalpoints=0;
 		for(var i = 0; i < scores.length; i++) {
 			if (scores[i] != undefined) { 
 				var imgpath = (scores[i].icon.indexOf("http://")!=-1)? scores[i].icon: "http://foursquare.com"+scores[i].icon;
 				var msg = '+' + scores[i].points + ' ' +scores[i].message;
-				this.scoresHTML += '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+imgpath+'" width="20" height="20" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 210px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+msg+'	</div><br class="breaker"/></div>';
+				this.scoresHTML += '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+imgpath+'" width="20" height="20" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 240px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+scores[i].message+'</div><div style="float: left;margin-left: 3px; width: 40px; padding-right: 2px; font-size: 14px; font-weight: bold;text-align:right;">+'+scores[i].points+'</div><br class="breaker"/></div>';
 //'<div class="palm-row single"><div class="checkin-score-item"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';
 			}
 		}
 		var totalPts = (totalpoints != 1)? totalpoints+' pts': totalpoints+' pt';
-		this.controller.get('score-title').innerHTML = "Score! That's " + totalPts+"!";
+		//this.controller.get('score-title').innerHTML = "Score! That's " + totalPts+"!";
+		this.controller.get('scores-total').innerHTML = "+" + totalpoints;
 	}else{
 		this.noscores=true;
+		this.controller.get("scores-wrapper").hide();
 	}
 	
-	this.controller.get("scores-box").update(this.scoresHTML+this.badgeHTML);
+	this.controller.get("scores-box").update(this.scoresHTML);
+	
+	if(this.badgeHTML!=""){
+		this.controller.get("badges-wrapper").show();
+		this.controller.get("badges-box").update(this.badgeHTML);
+	}
+
+	if(this.mayorHTML!=""){
+		this.controller.get("mayor-wrapper").show();
+		this.controller.get("mayor-box").update(this.mayorHTML);
+	}
+
+	if(this.leaderboardHTML!=""){
+		this.controller.get("leaderboard-wrapper").show();
+		this.controller.get("leaderboard-box").update(this.leaderboardHTML);
+	}
 
 	
 
@@ -396,13 +462,20 @@ CheckinResultAssistant.prototype.handleCommand = function(event) {
 		this.controller.get("pop-tip").hide();
 		this.controller.get("userScrim").hide();
 	}
+
+	if(event.type===Mojo.Event.back && this.controller.get("special_overlay").style.display!="none"){
+		event.preventDefault();
+		event.stopPropagation();
+		event.stop();
+		this.controller.get("special_overlay").hide();
+	}
 };
 
 
 
 CheckinResultAssistant.prototype.activate = function(event) {
-	   if(this.noscores) {this.controller.get("checkin-scores").hide();}
-	   if(this.nomayor) {this.controller.get("mayor-group").hide();}
+	   //if(this.noscores) {this.controller.get("checkin-scores").hide();}
+	  // if(this.nomayor) {this.controller.get("mayor-group").hide();}
 }
 
 

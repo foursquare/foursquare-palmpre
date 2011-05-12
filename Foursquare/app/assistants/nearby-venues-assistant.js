@@ -334,28 +334,37 @@ NearbyVenuesAssistant.prototype.getSpecials = function(event){
 		this.resultsModel.items=this.venueList;
 		this.controller.modelChanged(this.resultsModel);
 	}else{
-		this.controller.get("spinnerId").show();
-		this.controller.get("spinnerId").mojo.start();
+		//this.controller.get("spinnerId").show();
+		//this.controller.get("spinnerId").mojo.start();
 		var scroller=this.controller.getSceneScroller();
 		scroller.mojo.revealTop();
-		this.controller.get("resultListBox").style.display = 'none';
-	
-		 foursquareGet(this, {
+		//this.controller.get("resultListBox").style.display = 'none';
+
+		this.resultsModel.items=this.specialsItems;
+		this.controller.modelChanged(this.resultsModel);
+		//this.controller.get("spinnerId").hide();
+		//this.controller.get("resultListBox").style.display = 'block';
+
+		/* foursquareGet(this, {
 		 	endpoint: 'specials/search',
 		 	requiresAuth: true,
 		   parameters: {ll:_globals.lat+","+_globals.long, llAcc:_globals.hacc, altAcc:_globals.vacc, alt:_globals.altitutde, limit:50},
 		   onSuccess: this.specialsSuccess.bind(this),
 		   onFailure: this.specialsFailed.bind(this)	,
 		   debug: true	
-		 });	
+		 });	*/
+		 
+		 
 	}		
 };
 
 NearbyVenuesAssistant.prototype.specialsSuccess = function(r){
-	if(r.responseJSON.meta.code==200){
-		var specials=r.responseJSON.response.specials;
+	if(r.meta.code==200){
+		var specials=r.response.specials;
 		var varray=[];
 		if(specials.count>0){
+			this.controller.get("special-number").update(specials.count);
+			this.controller.get("specials-count").show();
 			for(var v=0;v<specials.items.length;v++){
 				var venue=specials.items[v].venue;
 				if(venue.categories.length==0){
@@ -398,10 +407,10 @@ NearbyVenuesAssistant.prototype.specialsSuccess = function(r){
 			}
 			
 			this.specialsItems=varray;
-			this.resultsModel.items=varray;
-			this.controller.modelChanged(this.resultsModel);
-			this.controller.get("spinnerId").hide();
-			this.controller.get("resultListBox").style.display = 'block';
+			//this.resultsModel.items=varray;
+			//this.controller.modelChanged(this.resultsModel);
+			//this.controller.get("spinnerId").hide();
+			//this.controller.get("resultListBox").style.display = 'block';
 		}else{
 			this.specialsFailed(r);
 		}
@@ -613,12 +622,11 @@ NearbyVenuesAssistant.prototype.getVenues = function(latitude, longitude,hacc,va
 
 	var query = this.textModel.value;
 	this.query=query;
-	var vlimit=_globals.venueCount;
+	var vlimit=_globals.venueCount || 25;
 	 
-	 foursquareGet(this, {
-	 	endpoint: 'venues/search',
+	 foursquareGetMulti(this, {
+	 	endpoints: '/venues/search?ll='+encodeURIComponent(latitude+','+longitude)+'&llAcc='+hacc+'&altAcc='+vacc+'&alt='+alt+'&limit='+vlimit+'&query='+encodeURIComponent(query)+'&intent=checkin,/specials/search?ll='+encodeURIComponent(latitude+','+longitude)+'&llAcc='+hacc+'&altAcc='+vacc+'&alt='+alt+'&limit=50',
 	 	requiresAuth: true,
-	   parameters: {ll:latitude+","+longitude, llAcc:hacc, altAcc:vacc, alt:alt, limit:vlimit, query:query, intent:'checkin'},
 	   onSuccess: this.nearbyVenueRequestSuccess.bind(this),
 	   onFailure: this.nearbyVenueRequestFailed.bind(this)	,
 	   debug: true	
@@ -650,9 +658,14 @@ logthis("got venues");
 //	mybutton.mojo.deactivate();
 	
 		//logthis(response.responseText);
+	var j=response.responseJSON;
+	var r=j.response.responses;
+	var venuesResponse=r[0].response;
+	var specialsResponse=r[1];
 	
-	if (response.responseJSON == undefined || (response.responseText=='{"venues":null}') || (response.responseText=='{"venues":[]}')) {
-logthis("no results");
+	
+	if (j == undefined || (response.responseText=='{"venues":null}') || (response.responseText=='{"venues":[]}')) {
+		logthis("no results");
 		this.controller.get('message').innerHTML = 'No Results Found';
 		//logthis("no results");
 		this.controller.get("spinnerId").mojo.stop();
@@ -661,7 +674,7 @@ logthis("no results");
 		this.controller.get("noresults").show();
 	}
 	else {
-	logthis("results");
+		logthis("results");
 		this.controller.get("spinnerId").mojo.stop();
 		this.controller.get("spinnerId").hide();
 		this.controller.get("resultListBox").style.display = 'block';
@@ -670,19 +683,19 @@ logthis("no results");
 		this.venueList = [];
 		this.housesList=[];
 
-		logthis(Object.toJSON(response.responseJSON.response.groups[0]));
-		if(response.responseJSON.response.groups[0] != undefined) { //actually got some venues
+		logthis(Object.toJSON(venuesResponse.groups[0]));
+		if(venuesResponse.groups[0] != undefined) { //actually got some venues
 			this.setvenues=true;
-			for(var g=0;g<response.responseJSON.response.groups.length;g++) {
-				var varray=response.responseJSON.response.groups[g].items;
-				var grouping=response.responseJSON.response.groups[g].name;
-				if(response.responseJSON.response.groups[g].type=="trending" || response.responseJSON.response.groups[g].type=="pollingplaces"){
+			for(var g=0;g<venuesResponse.groups.length;g++) {
+				var varray=venuesResponse.groups[g].items;
+				var grouping=venuesResponse.groups[g].name;
+				if(venuesResponse.groups[g].type=="trending" || venuesResponse.groups[g].type=="pollingplaces"){
 					var bgcolor="#f7f7f7";
 				}else{
 					var bgcolor="transparent";
 				}
 
-				varray.sort(function(a, b){return (a.distance - b.distance);});
+				varray.sort(function(a, b){return (a.location.distance - b.location.distance);});
 
 				for(var v=0;v<varray.length;v++) {
 					var tmp_venue=varray[v];
@@ -807,9 +820,13 @@ logthis("no results");
 		_globals.nearbyVenues=this.venueList;
 		this.resultsModel.items =this.venueList;
 		this.controller.modelChanged(this.resultsModel);
+		
 
 	}
 	logthis("done venues stuff");
+	
+	logthis("handle specials");
+	this.specialsSuccess(specialsResponse);
 }
 
 function roundNumber(num, dec) {
@@ -989,6 +1006,10 @@ NearbyVenuesAssistant.prototype.handleCommand = function(event) {
                 case "do-Tips":
                 	var thisauth=auth;
 					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
+                case "do-Explore":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "explore", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Todos":
                 	var thisauth=auth;

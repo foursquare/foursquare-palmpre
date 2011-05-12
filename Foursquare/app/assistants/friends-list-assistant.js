@@ -377,6 +377,7 @@ FriendsListAssistant.prototype.feedSuccess = function(response) {
 				this.feedList[f].firstname=j.recent[f].user.firstName;
 				this.feedList[f].lastname=j.recent[f].user.lastName;
 				this.feedList[f].photo=j.recent[f].user.photo;
+				
 
 				switch(j.recent[f].type){
 					case "checkin":
@@ -398,11 +399,14 @@ FriendsListAssistant.prototype.feedSuccess = function(response) {
 						this.feedList[f].at="@ ";
 						break;
 				}
+				
 				this.feedList[f].shout=(j.recent[f].shout != undefined)? "\n"+j.recent[f].shout: "";
 				var urlmatch=/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
 				this.feedList[f].shout=this.feedList[f].shout.replace(urlmatch,'<a href="$1" class="listlink">$1</a>');
 				
+				
 				this.feedList[f].mayorcrown=(j.recent[f].isMayor=="true" || j.recent[f].isMayor==true)? '<img src="images/crown_smallgrey.png"/> ': "";
+				
 				
 				if(j.recent[f].source){
 					if(j.recent[f].source.name.indexOf('foursquare for')>-1){
@@ -419,13 +423,21 @@ FriendsListAssistant.prototype.feedSuccess = function(response) {
 					html+='<img src="images/tip-hasphoto.png" width="16" height="13" align="middle">'+j.recent[f].photos.count;
 				}
 				
-				if(j.recent[f].comments.count>0){
-					html+='<img src="images/hascomments.png" width="15" height="14" align="middle">'+j.recent[f].comments.count;
+				
+				
+				if(j.recent[f].comments!=undefined){
+					if(j.recent[f].comments.count>0){
+						html+='<img src="images/hascomments.png" width="15" height="14" align="middle">'+j.recent[f].comments.count;
+					}else{
+						html+='<img src="images/nocomments.png" width="15" height="14" align="middle">+';				
+					}
 				}else{
 					html+='<img src="images/nocomments.png" width="15" height="14" align="middle">+';				
 				}
 				
+				
 				this.feedList[f].comments=html;
+				
 				
 				//handle time
 				if(j.recent[f].createdAt != undefined) {
@@ -579,6 +591,10 @@ FriendsListAssistant.prototype.handleCommand = function(event) {
                 	break;
                 case "do-About":
 					this.controller.stageController.pushScene({name: "about", transition: Mojo.Transition.crossFade});
+                	break;
+                case "do-Explore":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "explore", transition: Mojo.Transition.crossFade},thisauth,"",this);
                 	break;
                 case "do-Donate":
                 	_globals.doDonate();

@@ -1,0 +1,105 @@
+<div id="main" class="no-palm-hasheader centered fsq-hasheader">
+	<div class="thin-header-redux">
+		<div class="letterpress">
+			<div class="thin-blue-header">EXPLORE</div>
+		</div>
+	</div>
+
+	<br class="breaker-small"/>
+	<div class="palm-list">
+   		<div class="palm-row single">
+			<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+				<div class="title">
+      				<div x-mojo-element="TextField" id="q"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="category-buttons">
+		<div id="category-food" class="explore-button normal" x-mojo-touch-feedback="immediate">
+			<img src="images/explore-food.png"/>
+			<div class="caption">
+				FOOD
+			</div>
+			<div class="explore-button-overlay" id="explore-overlay-food" style="display:none;"></div>
+		</div>	
+		<div class="explore-spacer"></div>
+		<div id="category-coffee" class="explore-button normal" x-mojo-touch-feedback="immediate">
+			<img src="images/explore-coffee.png"/>
+			<div class="caption">
+				COFFEE
+			</div>
+			<div class="explore-button-overlay" id="explore-overlay-coffee" style="display:none;"></div>
+		</div>	
+		<div class="explore-spacer"></div>
+		<div id="category-nightlife" class="explore-button normal" x-mojo-touch-feedback="immediate">
+			<img src="images/explore-nightlife.png"/>
+			<div class="caption">
+				NIGHTLIFE
+			</div>
+			<div class="explore-button-overlay" id="explore-overlay-nightlife" style="display:none;"></div>
+		</div>	
+		<div class="explore-spacer"></div>
+		<div id="category-shops" class="explore-button normal" x-mojo-touch-feedback="immediate">
+			<img src="images/explore-shops.png"/>
+			<div class="caption">
+				SHOPS
+			</div>
+			<div class="explore-button-overlay" id="explore-overlay-shops" style="display:none;"></div>
+		</div>	
+		<div class="explore-spacer"></div>
+		<div id="category-arts" class="explore-button normal" x-mojo-touch-feedback="immediate">
+			<img src="images/explore-a&e.png"/>
+			<div class="caption">
+				A&amp;E
+			</div>
+			<div class="explore-button-overlay" id="explore-overlay-arts" style="display:none;"></div>
+		</div>	
+		<br class="breaker-small">
+	</div>
+
+	<div id='notice' style='display: none; padding: 0 20px 60px 20px;margin-top: 10px;'></div>
+	
+	<div x-mojo-element="Scroller" id="keywordScroller" class="scrollerClass" name="scrollerName" style="display: none;">
+      <div id="keywords"> </div>     
+	</div>
+	
+	<div id="explore-welcome">
+		<div class="explore-up-arrow"></div>
+		Looking for help finding a great place? Tap one of the buttons above to start exploring. We'll recommend something based on what you and your friends have done on foursquare!
+	</div>
+	
+	<div class="palm-group-nope unlabeled-nope" id='resultListBox' style='display:none;'>
+		<div id="results-explore" x-mojo-element="List" ></div>
+	</div>
+
+	<div id="warning" style="display:none;"></div>
+
+	<div class="palm-group-nope unlabeled-nope" id='exploreVenuesBox' style='display:none;'>
+		<div id="explore-venues" x-mojo-element="List" ></div>
+	</div>
+
+
+	<div x-mojo-element="Spinner" id="spinnerId" class="fsq_spinner" name="spinnerName"></div>
+
+	<div class="palm-header-spacer"></div>
+</div>
+<div class="innershadow"></div>
+
+
+<div class="palm-menu-panel settings-menu-panel" x-mojo-menupanel="" style="width: 100%;display:none;" id="fsq-settings-menu">
+	<div class="explore-settings-label">
+		Show places within: 
+		<span id="explore-settings-distance">0</span>
+		<span id="explore-settings-unit">m</span>
+	</div>
+	<div x-mojo-element="Slider" id="explore-distance-slider" class="wide-slide" name="sliderName"></div>
+	
+	<hr>
+	
+	<div class="explore-settings-label">
+		Show places with tips, check-ins, and to-dos from:
+	</div>
+	<div x-mojo-element="RadioButton" id="explore-source-radio" class="radiobuttonClass"  name="radiobuttonName"></div>
+</div>

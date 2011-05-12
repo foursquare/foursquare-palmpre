@@ -356,6 +356,10 @@ TodosAssistant.prototype.handleCommand = function(event) {
                 	var thisauth=_globals.auth;
 					this.controller.stageController.swapScene({name: "user-info", transition: Mojo.Transition.crossFade},thisauth,"");
                 	break;
+                case "do-Explore":
+                	var thisauth=auth;
+					this.controller.stageController.swapScene({name: "explore", transition: Mojo.Transition.crossFade},thisauth,"",this);
+                	break;
                 case "do-Tips":
                 	var thisauth=auth;
 					this.controller.stageController.swapScene({name: "nearby-tips", transition: Mojo.Transition.crossFade},thisauth,"",this);

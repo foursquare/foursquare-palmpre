@@ -62,7 +62,7 @@ _globals.checkUpdate = function(as) {
 	   			var m=j.message;*/
 	   			
 	   			var s=t.responseText.indexOf("Version: ")+9;
-	   			var e=t.responseText.indexOf("<br/>",s);
+	   			var e=t.responseText.indexOf("</p>",s);
 	   			var v=t.responseText.substring(s,e)
 	   			logthis("version: "+v);
 	   			logthis("got message");

@@ -357,11 +357,13 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 								var len=e-s;
 								var cid=longurl.substr(s,len);
 								
+								var sig=longurl.substr(e+3);
+								
 								if(cardStageController){ //app already opened
-									cardStageController.pushScene("view-checkin",{checkin:cid});
+									cardStageController.pushScene("view-checkin",{checkin:cid,signature:sig});
 									cardStageController.activate();
 								}else{
-									this.loadScene("view-checkin",{checkin:cid});
+									this.loadScene("view-checkin",{checkin:cid,signature:sig});
 								}
 					   		}else{				   			
 								 appController.open({target: longurl},function(){

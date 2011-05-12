@@ -6,28 +6,53 @@
 	</div>
 
 	<br class="breaker-small"/>
+
+	<div id="specials-wrapper" style="display:none;">
+		<div id="special-unlocked"></div>
+	</div>
+
+	
+	<div id="checkin-display" class="white-round"></div>
 	
 
-	<div id="checkin-widgets" class="grey-bg">
-		<div id="checkin-display"></div>
-		<div class="white-round" id="checkin-scores">
-			<div id='score-title' class="" x-mojo-loc=''></div>
-			<div class="palm-list">
-				<div id='scores-box' class=''>
-				</div>
-			</div>
-		</div>
-		<div class="white-round" id="mayor-group">
-			<div id="checkin-mayorship"></div>
-		</div>
+	<div id="badges-wrapper" style="display:none;">
+		<div class="blue-banner">Badges</div>
+		<div id="badges-box"></div>
+	</div>
+
+	<div id="mayor-wrapper" style="display:none;">
+		<div class="gold-banner">Mayor</div>
+		<div id="mayor-box"></div>
+	</div>
+
+	<div id="scores-wrapper">
+		<div class="blue-banner">Points</div>
+		<div id="scores-note">Nice check-in! You earned:</div>
+		<div id="scores-total-frame"><span id="scores-total"></span></div>
+		<br class="breaker">
+		<hr>
+		<div id="scores-box"></div>
+	</div>
 	
-		<div id="checkin_specials">
-		</div>
+	<div id="leaderboard-wrapper" style="display:none;">
+		<div class="blue-banner">Leaderboard</div>
+		<div id="leaderboard-note"></div>
+		<div id="leaderboard-box"></div>
+	</div>
+
+
 	
 	
 		<div x-mojo-element="Button" id="okButtonCheckin" class="fsq-button"></div>
-	</div>
+
+<!--	<div id="checkin-widgets" class="grey-bg">
+	</div>-->
 </div>
+
+
+
+
+
 
 <div id="nearby-special" style="display: none;"></div>
 <div class="palm-scrim" id="userScrim" style="display: none;"></div>
@@ -59,4 +84,27 @@
 		</div>
 	</div>
 
+</div>
+
+
+<div id="special_overlay" style="display: none;">
+	<div id="special_top"></div>
+	<div id="special_middle">
+		<div id="special_content">
+			<div class="special-wrapper">
+				<div class="checkin-special-title" x-mojo-loc="" id="special-title"></div>
+				<div class="">
+					<div class="">
+						<div id="special-description"></div>
+						<span id="special-message"></span>
+						<div class="special-unlocked" id="special-fine-print"></div>
+					</div>
+				</div>
+			</div>			
+		</div>
+		<br class="breaker">
+	</div>
+	
+	<div id="special_bottom"></div>
+	<br class="breaker">
 </div>

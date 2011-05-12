@@ -34,11 +34,16 @@ ViewCheckinAssistant.prototype.setup = function() {
 	   this.controller.get("wrapper").style.minHeight="327px"; //372
 	}
 	
+	var p={};
+	if(this.params.signature){
+		p.signature=this.params.signature;
+	}
+	
 	foursquareGet(this,{
 	 	endpoint: 'checkins/'+this.params.checkin,
 	 	requiresAuth: true,
 	 	debug: true,
-	   parameters: {},
+	   parameters: p,
 	   onSuccess: this.checkinSuccess.bind(this),
 	   onFailure: this.checkinFailed.bind(this)		 	
 	});

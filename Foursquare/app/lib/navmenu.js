@@ -117,7 +117,8 @@ var NavMenu={
 			[
 				{title: 'Places', command: 'do-Venues', icon: 'images/menu/button-places.png', class: 'normal'},
 				{title: 'Check-ins', command: 'do-Friends', icon: 'images/menu/button-checkins.png', class: 'normal'},
-				{title: 'Tips', command: 'do-Tips', icon: 'images/menu/button-tips.png', class: 'normal'}
+				{title: 'Explore', command: 'do-Explore', icon: 'images/menu/button-explore.png', class: 'normal'}
+/*				{title: 'Tips', command: 'do-Tips', icon: 'images/menu/button-tips.png', class: 'normal'}*/
 			],
 			[
 				{title: 'Shout', command: 'do-Shout', icon: 'images/menu/button-shout.png', class: 'normal'},
@@ -361,6 +362,27 @@ var NavMenu={
 							    width: 80,
 							    command: 'nothing',
 							    iconPath: "",
+							    label: " "
+							}
+							
+							],
+				explore: [
+							{
+							    width: 80,
+							    command: 'explore-settings',
+							    iconPath: "images/settings.png",
+							    label: " "
+							
+							},
+							{
+							    command: 'gototop',
+							    width: 158,
+							    iconPath: 'images/menu/foursquare-logo.png'
+							},
+							{
+							    width: 80,
+							    command: 'toggleMenu',
+							    iconPath: "images/menu/grid-icon.png",
 							    label: " "
 							}
 							

@@ -166,5 +166,9 @@
     {
         "scenes": "exhibition",
         "source": "app/assistants/exhibition-assistant.js"
+    },
+    {
+        "scenes": "explore",
+        "source": "app/assistants/explore-assistant.js"
     }
 ]

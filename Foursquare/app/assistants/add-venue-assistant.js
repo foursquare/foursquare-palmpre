@@ -19,6 +19,9 @@ function AddVenueAssistant(a,ed,v,vn) {
     this.lat=_globals.lat;
 	this.long=_globals.long;
   }
+  this.lat=_globals.lat;
+  this.long=_globals.long;
+  
   this.refresh=true;
   _globals.curmap=this;
   
@@ -367,6 +370,7 @@ AddVenueAssistant.prototype.okTapped = function() {
   		this.cookieData=new Mojo.Model.Cookie("credentials");
 		var credentials=this.cookieData.get();
 
+	if(_globals.selectedCat){
 		if(!this.editing) {
 			pcat=_globals.selectedCat;
 			var url = 'https://api.foursquare.com/v1/addvenue.json';
@@ -379,7 +383,7 @@ AddVenueAssistant.prototype.okTapped = function() {
 			if(this.cityModel.value!=''){params.city=this.cityModel.value;}
 			if(this.statemodel.value!=''){params.state=this.statemodel.value;}
 			if(this.zipModel.value!=''){params.zip=this.zipModel.value;}
-			params.ll=_globals.lat+','+_globals.long;
+			params.ll=this.lat+','+this.long;
 			if(this.phoneModel.value!=''){params.phone=this.phoneModel.value;}
 			if(this.twitterModel.value!=''){params.twitter=this.twitterModel.value;}
 			if(pcat.length>0){params.primaryCategoryId=pcat;}
@@ -397,7 +401,7 @@ AddVenueAssistant.prototype.okTapped = function() {
 			if(this.zipModel.value!=''){params.zip=this.zipModel.value;}
 			if(this.phoneModel.value!=''){params.phone=this.phoneModel.value;}
 			if(this.twitterModel.value!=''){params.twitter=this.twitterModel.value;}
-			params.ll=_globals.lat+','+_globals.long;
+			params.ll=this.lat+','+this.long;
 			if(pcat.length>0){params.primaryCategoryId=pcat;}
 		}
 		foursquarePost(this,{
@@ -410,6 +414,18 @@ AddVenueAssistant.prototype.okTapped = function() {
 			ignoreErrors: true
 			
 		});
+	}else{
+		this.controller.get("okButton").mojo.deactivate();
+		this.controller.showAlertDialog({
+			onChoose: function(value) {},
+			title: $L("Uh-oh!"),
+			message: $L("Make sure you select a category before adding or editing a venue!"),
+			choices:[
+				{label:$L('OK'), value:"OK", type:'primary'}
+			]
+		});
+
+	}
 }
 
 AddVenueAssistant.prototype.venueSuccess = function(response) {
