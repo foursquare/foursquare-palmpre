@@ -1190,6 +1190,12 @@ a.vtag,a.vtip-black {
 	margin-top: 3px;
 	margin-left: 2px;
 }
+#user-checkininfo {
+	width: 88px;
+	float: left;
+	margin-top: 3px;
+	margin-left: 2px;
+}
 #mayorcount {
 	background: url(../images/crown_25x25.png) no-repeat left top;
 	padding-left: 30px;
@@ -1198,8 +1204,8 @@ a.vtag,a.vtip-black {
 	background: url(../images/badges.png) no-repeat left top;
 	padding-left: 30px;
 }
-#tipcount {
-	background: url(../images/tips.png) no-repeat left top;
+#checkin-count {
+	background: url(../images/checkins.png) no-repeat left top;
 	padding-left: 30px;
 }
 
@@ -2862,4 +2868,74 @@ img.right-arrow {
 	font-weight: normal;
 	width: 100%;
 	margin-bottom: 5px;
+}
+
+.points-header-left {
+	width: 268px;
+	padding-left: 2px;
+	float: left;
+	font-size: 14px;
+}
+.points-header-right {
+	width: 43px;
+	float: right;
+	font-size: 14px;
+	text-align: right;
+	padding-right: 2px;
+}
+
+#points-bar {
+	width: 268px;
+	padding-left: 2px;
+	height: 32px;
+	background: #fff;
+	position: relative;
+	overflow: hidden;
+	float: left;
+}
+#points-bar-progress {
+	min-width: 20px;
+	background: #b0d61e;
+	color: #fff;
+	font-size: 18px;
+	font-weight: bold;
+	text-align: right;
+	padding-right: 3px;
+	padding-top: 5px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 32px;
+}
+#points-bar-frame {
+	position: absolute;
+	left: 0;
+	top: 0;
+	height: 32px;
+	background: url(../images/progress-bar-frame.png) no-repeat left top;
+	width: 270px;
+}
+
+#points-max {
+	width: 42px;
+	font-size: 18px;
+	font-weight: bold;
+	color: #bbb;
+	margin-right: 2px;
+	text-align: right;
+	float: right;
+}
+
+.lb-small {
+	font-size: 14px;
+	font-weight: normal;
+	color: #bbb;
+}
+
+#self-listing {
+	background: #fff !important;
+	border-left: 4px solid #8fe800;
+}
+#self-listing .lb-rank {
+	border-left: none;
 }

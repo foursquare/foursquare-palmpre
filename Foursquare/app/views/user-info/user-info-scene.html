@@ -43,15 +43,40 @@
 					<div class="smallest">BADGES &#9654;</div>
 					<div class="bigtext" id="badgecount"></div>
 				</div>
-				<div class="grey-bg-noshadow" id="user-tipinfo">
-					<div class="smallest">TIPS &#9654;</div>
-					<div class="bigtext" id="tipcount"></div>
+				<div class="grey-bg-noshadow" id="user-checkininfo">
+					<div class="smallest" id="checkin-title">CHECK-INS &#9654;</div>
+					<div class="bigtext" id="checkin-count"></div>
 				</div>
 
 			<br class="breaker">
 	</div>
 <br class="breaker">
 	  <div id="overview">
+	  <div id="points-section">
+	  	<div id="points-header">
+	  		<div class="points-header-left">
+	  			POINTS (LAST 7 DAYS)
+	  		</div>
+	  		<div class="points-header-right" id="points-end-title">
+	  			GOAL
+	  		</div>
+	  		<br class="breaker">
+	  	</div>
+	  	<div class="points-bar-wrapper">
+	  		<div id="points-bar">
+				<div id="points-bar-progress">0</div>
+				<div id="points-bar-frame"></div>
+  	  		</div>
+	  		<div id="points-max"></div>
+	  		<br class="breaker">
+	  	</div>
+	  </div>
+	  <div id="leaderboard-glimpse" style="display: none;">
+		  <div class="fsq-divider">Leaderboard (Last 7 Days)</div>
+		  <div id="leaderboardWell"></div>
+	  </div>
+	  
+	  <div class="fsq-divider">More Stuff</div>
 		<div class="palm-list">
 			
 			<div class="palm-row" id="todos-row" style="display: none;">
@@ -66,10 +91,10 @@
 				</div>
 			</div>
 
-			<div class="palm-row" id="checkins-row" style="display: none;">
+			<div class="palm-row" id="tips-row" style="display: none;">
 				<div class="palm-row-wrapper venue-button-row" x-mojo-tap-highlight="momentary">
 					<div class="venue-left">
-						<div class="medium-bold" id="checkin-count">checkins</div>
+						<div class="medium-bold" id="tipcount"> Tips</div>
 					</div>
 					<div class="venue-right">
 						<img src="images/right.png" width="32" height="32" class="right-arrow">

@@ -102,9 +102,9 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 				}
 				break;
 			case "score": //{"type":"score","item":{"scores":[{"points":1,"icon":"/img/scoring/2.png","message":"First stop today"}],"total":1}}
-				var scores=notifs[n].item.scores;
-				var totalpoints=notifs[n].item.total;
-				this.noscores=false;
+				//var scores=notifs[n].item.scores;
+				//var totalpoints=notifs[n].item.total;
+				//this.noscores=false;
 				break;
 			case "badge":
 				var badge=notifs[n].item.badge;
@@ -121,6 +121,7 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 			case "leaderboard":
 				var msg=notifs[n].item.message;
 				var lboard=notifs[n].item.leaderboard;
+				logthis(Object.toJSON(lboard));
 				for(var u=0;u<lboard.length; u++){
 					var rank=lboard[u].rank;
 					var photo=lboard[u].user.photo;
@@ -140,6 +141,12 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 				}
 				
 				this.controller.get("leaderboard-note").innerHTML=msg;
+				
+				
+				var scores=notifs[n].item.scores;
+				var totalpoints=notifs[n].item.total;
+				this.noscores=false;
+
 				break;
 		}
 	}
@@ -151,7 +158,7 @@ CheckinResultAssistant.prototype.initData = function(checkinJSON) {
 		//var totalpoints=0;
 		for(var i = 0; i < scores.length; i++) {
 			if (scores[i] != undefined) { 
-				var imgpath = (scores[i].icon.indexOf("http://")!=-1)? scores[i].icon: "http://foursquare.com"+scores[i].icon;
+				var imgpath = scores[i].icon; //(scores[i].icon.indexOf("http://")!=-1)? scores[i].icon: "http://foursquare.com"+scores[i].icon;
 				var msg = '+' + scores[i].points + ' ' +scores[i].message;
 				this.scoresHTML += '<div class="result row" style="padding:0; padding-bottom: 7px; padding-top: 3px;"><img src="'+imgpath+'" width="20" height="20" style="float: left; padding-top:0px;margin-left: 5px;"/><div style="float: left;margin-left: 3px; width: 240px; padding-top: 0px; padding-bottom:0px;font-size:16px;">'+scores[i].message+'</div><div style="float: left;margin-left: 3px; width: 40px; padding-right: 2px; font-size: 14px; font-weight: bold;text-align:right;">+'+scores[i].points+'</div><br class="breaker"/></div>';
 //'<div class="palm-row single"><div class="checkin-score-item"><img src="'+imgpath+'" /> <span>'+msg+'</span></div></div>';

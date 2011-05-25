@@ -11,7 +11,7 @@ LeaderboardAssistant.prototype.setup = function() {
    	this.controller.setupWidget(Mojo.Menu.appMenu,
        _globals.amattributes,
        _globals.ammodel);
-
+/*
     this.controller.setupWidget("WebId",
         this.attributes = {
             url:    'http://foursquare.com/iphone/me?uid='+_globals.uid+'&view=all&geolat='+_globals.lat+'geolong='+_globals.long+'&scope=friends',
@@ -19,9 +19,76 @@ LeaderboardAssistant.prototype.setup = function() {
         },
         this.model = {
         }
-    ); 
+    ); */
+    
 
-}
+	this.leaderboardModel = {items: [], listTitle: $L('Info')};
+    
+	// Set up the attributes & model for the List widget:
+	this.controller.setupWidget('leaderboard', 
+					      {itemTemplate:'listtemplates/leaderboardItems'},
+					      this.leaderboardModel);
+
+	this.leaderboardTappedBound=this.leaderboardTapped.bind(this);
+	Mojo.Event.listen(this.controller.get('leaderboard'),Mojo.Event.listTap, this.leaderboardTappedBound);
+  	this.spinnerAttr = {
+		superClass: 'fsq_spinner',
+		mainFrameCount: 31,
+		fps: 20,
+		frameHeight: 50
+	}
+	this.spinnerModel = {
+		spinning: true
+	}
+	this.controller.setupWidget('userSpinner', this.spinnerAttr, this.spinnerModel);
+    
+	 	foursquareGet(this,{
+	 		endpoint: 'users/leaderboard',
+	 		requiresAuth: true,
+	 		parameters: {},
+	   		onSuccess: this.getLeaderboardSuccess.bind(this),
+	   		onFailure: this.getLeaderboardFailed.bind(this)
+	 	});
+
+};
+
+LeaderboardAssistant.prototype.leaderboardTapped = function(event) {
+		this.controller.stageController.pushScene({name:"user-info",transition:Mojo.Transition.zoomFade},_globals.auth,event.item.user.id,this,false);
+};
+
+LeaderboardAssistant.prototype.getLeaderboardSuccess = function(r) {
+	var j=r.responseJSON.response;
+	
+	var lboard=j.leaderboard.items;
+	
+	var selfIndex=-1;
+	
+	for(var i=0;i<lboard.length;i++){
+		var lname=(lboard[i].user.lastName)? lboard[i].user.lastName: '';
+		var uname=lboard[i].user.firstName+' '+lname;
+		var rankClass=(lboard[i].user.relationship=="self")? "bright": "dim";
+		var id=(lboard[i].user.relationship=="self")? "self-listing": "";
+		if(lboard[i].user.relationship=="self"){
+			selfIndex=i;
+		}
+		
+		lboard[i].uname=uname;
+		lboard[i].rankClass=rankClass;
+		lboard[i].id=id;
+	}
+	
+	this.leaderboardModel.items=lboard;
+	this.controller.modelChanged(this.leaderboardModel);
+	this.controller.get("leaderboard").mojo.revealItem(selfIndex);
+	
+	this.controller.get("userSpinner").mojo.stop();
+	this.controller.get("userSpinner").hide();
+
+};
+
+LeaderboardAssistant.prototype.getLeaderboardFailed = function(r) {
+
+};
 
 LeaderboardAssistant.prototype.activate = function(event) {
 
@@ -104,4 +171,6 @@ LeaderboardAssistant.prototype.deactivate = function(event) {
 }
 
 LeaderboardAssistant.prototype.cleanup = function(event) {
+	Mojo.Event.stopListening(this.controller.get('leaderboard'),Mojo.Event.listTap, this.leaderboardTappedBound);
+
 }

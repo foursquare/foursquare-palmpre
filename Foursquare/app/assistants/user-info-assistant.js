@@ -179,16 +179,22 @@ UserInfoAssistant.prototype.setup = function() {
 	this.showFriendsBound=this.showFriends.bind(this);
 	this.showInfoBound=this.showInfo.bind(this);
 	this.showLeaderboardBound=this.showLeaderboard.bind(this);
+	this.showPointsInfoBound=this.showPointsInfo.bind(this);
 	this.showBadgeTipBound=this.showBadgeTip.bind(this);
 	this.stageActivateBound=this.stageActivate.bind(this);
 	
 	Mojo.Event.listen(this.controller.get('mayorshipList'),Mojo.Event.listTap, this.listWasTappedBound);
-	Mojo.Event.listen(this.controller.get('checkinHistory'),Mojo.Event.listTap, this.historyListWasTappedBound);
+	if(this.isself){
+		Mojo.Event.listen(this.controller.get('checkinHistory'),Mojo.Event.listTap, this.historyListWasTappedBound);
+		Mojo.Event.listen(this.controller.get("user-checkininfo"),Mojo.Event.tap, this.showHistoryBound);
+	}else{
+		this.controller.get("checkin-title").update("CHECK-INS");
+	}
 	Mojo.Event.listen(this.controller.get('venueHistory'),Mojo.Event.listTap, this.venueHistoryTappedBound);
 //	Mojo.Event.listen(this.controller.getSceneScroller(),Mojo.Event.scrollStarting, this._scrollStart.bind(this));
 	Mojo.Event.listen(this.controller.get('user-mayorinfo'),Mojo.Event.tap, this.showMayorInfoBound);
 	Mojo.Event.listen(this.controller.get('user-badgeinfo'),Mojo.Event.tap, this.showBadgeInfoBound);
-	Mojo.Event.listen(this.controller.get('user-tipinfo'),Mojo.Event.tap, this.showTipInfoBound);
+	//Mojo.Event.listen(this.controller.get('user-tipinfo'),Mojo.Event.tap, this.showTipInfoBound);
 	Mojo.Event.listen(this.controller.get('friendsList'),Mojo.Event.listTap, this.friendTappedBound);
 	Mojo.Event.listen(this.controller.get('friendsResultsList'),Mojo.Event.listTap, this.friendTappedBound);
 	Mojo.Event.listen(this.controller.get('infoList'),Mojo.Event.listTap, this.infoTappedBound);
@@ -198,12 +204,12 @@ UserInfoAssistant.prototype.setup = function() {
 	Mojo.Event.listen(this.controller.get("userPic"),Mojo.Event.tap, this.enlargeAvatarBound);
 	Mojo.Event.listen(this.controller.get("friendToggle"), Mojo.Event.propertyChange, this.toggleFriendsBound);
 	Mojo.Event.listen(this.controller.get("venuehistoryToggle"), Mojo.Event.propertyChange, this.toggleVenueHistoryBound);
-	Mojo.Event.listen(this.controller.get("checkins-row"),Mojo.Event.tap, this.showHistoryBound);
 	Mojo.Event.listen(this.controller.get("venuehistory-row"),Mojo.Event.tap, this.showVenueHistoryBound);
 	Mojo.Event.listen(this.controller.get("todos-row"),Mojo.Event.tap, this.showTodosBound);
 	Mojo.Event.listen(this.controller.get("friends-row"),Mojo.Event.tap, this.showFriendsBound);
 	Mojo.Event.listen(this.controller.get("more-row"),Mojo.Event.tap, this.showInfoBound);
-	Mojo.Event.listen(this.controller.get("leaderboard-row"),Mojo.Event.tap, this.showLeaderboardBound);
+	Mojo.Event.listen(this.controller.get("leaderboard-glimpse"),Mojo.Event.tap, this.showLeaderboardBound);
+	Mojo.Event.listen(this.controller.get("points-section"),Mojo.Event.tap, this.showPointsInfoBound);
 	Mojo.Event.listen(this.controller.stageController.document,Mojo.Event.activate, this.stageActivateBound);
 
 
@@ -228,7 +234,7 @@ UserInfoAssistant.prototype.setup = function() {
 	
 	if(this.isself){
 		this.controller.get("more-row").hide();
-		this.controller.get("leaderboard-row").show();
+		this.controller.get("leaderboard-glimpse").show();
 	}else{
 		if(this.uid!=_globals.uid){
 			
@@ -311,6 +317,21 @@ UserInfoAssistant.prototype.showLeaderboard = function(event) {
 
 };
 
+UserInfoAssistant.prototype.showPointsInfo = function(event) {
+	this.controller.showAlertDialog({
+	  onChoose: function(value) {
+	  },
+      title: "What Are Points?",
+      message: "You get points for every check-in, with more points for things like exploring and being out with friends. After each check-in, we add up what you've earned in the last 7 days. That number on the right is your best week ever. Well done!",
+      choices:[
+          {label:"That's rad! Thanks!", value:"med"}
+      ]
+	  }
+	); 
+
+};
+
+
 UserInfoAssistant.prototype.enlargeAvatar = function(event) {
 //	this.controller.get("userPic").toggleClassName("bigavatar");
      var stageArguments = {name: "photoStage"+this.user.id, lightweight: true};
@@ -365,8 +386,8 @@ logthis(Object.toJSON(model));
 	}*/
 }
 UserInfoAssistant.prototype.getUserInfo = function() {
-	 	foursquareGet(this,{
-	 		endpoint: '/users/'+this.uid,
+	 	foursquareGetMulti(this,{
+	 		endpoints: '/users/'+this.uid+',/users/leaderboard?neighbors=2',
 	 		requiresAuth: true,
 	 		parameters: {},
 	   		onSuccess: this.getUserInfoSuccess.bind(this),
@@ -569,69 +590,72 @@ UserInfoAssistant.prototype.getTipsFailed = function(r){
 };
 
 UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
-	var j=response.responseJSON.response;
+	var j=response.responseJSON.response.responses;
+	var userResponse=j[0].response;
+	var lboardResponse=j[1].response;
+
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 
 logthis("uid="+this.uid);
 //logthis(response.responseText);
 
-	this.user=j.user;
+	this.user=userResponse.user;
 	this.info=[];
 	//user info
-	this.controller.get("userPic").src=j.user.photo;
-	var lname=(j.user.lastName != undefined)? j.user.lastName: "";
-	this.firstname=j.user.firstName;
+	this.controller.get("userPic").src=userResponse.user.photo;
+	var lname=(userResponse.user.lastName != undefined)? userResponse.user.lastName: "";
+	this.firstname=userResponse.user.firstName;
 logthis("1");	
-	var tw=(j.user.contact.twitter != undefined)? '<span class="linefix"><img src="images/bird.png" width="16" height="16" /> <a id="twitter_button" class="vtag" href="http://twitter.com/'+j.user.contact.twitter+'">'+j.user.contact.twitter+'</a></span><br/>': "";
-	if(j.user.contact.twitter != undefined && !this.isself){//show twitter
+	var tw=(userResponse.user.contact.twitter != undefined)? '<span class="linefix"><img src="images/bird.png" width="16" height="16" /> <a id="twitter_button" class="vtag" href="http://twitter.com/'+userResponse.user.contact.twitter+'">'+userResponse.user.contact.twitter+'</a></span><br/>': "";
+	if(userResponse.user.contact.twitter != undefined && !this.isself){//show twitter
 		var itm={};
 		itm.icon="images/twitter_32.png";
-		itm.caption="Twitter ("+j.user.contact.twitter+")";
+		itm.caption="Twitter ("+userResponse.user.contact.twitter+")";
 		itm.action="twitter";
-		itm.url='http://mobile.twitter.com/'+j.user.contact.twitter;
-		itm.username=j.user.contact.twitter;
+		itm.url='http://mobile.twitter.com/'+userResponse.user.contact.twitter;
+		itm.username=userResponse.user.contact.twitter;
 		this.info.push(itm);
 	}
 logthis("2");	
 		
 //	var fb=(j.user.contac.facebook != undefined)? '<span class="linefix"><img src="images/facebook.png" width="16" height="16" /> <a id="facebook_button" class="vtag" href="http://facebook.com/profile.php?id='+j.user.contact.facebook+'">Facebook Profile</a></span><br/>': "";
 		logthis("facebook html stuff done");
-	if(j.user.contact.facebook != undefined && !this.isself){//show facebook
+	if(userResponse.user.contact.facebook != undefined && !this.isself){//show facebook
 		var itm={};
 		itm.icon="images/facebook_32.png";
 		itm.caption="Facebook";
 		itm.action="url";
-		itm.url='http://touch.facebook.com/#/profile.php?id='+j.user.contact.facebook;
+		itm.url='http://touch.facebook.com/#/profile.php?id='+userResponse.user.contact.facebook;
 		this.info.push(itm);
 	}
 logthis("3");	
 
-	var ph=(j.user.contact.phone != undefined)? '<span class="linefix"><img src="images/phone.png" width="16" height="16" /> <a id="phone_button" class="vtag" href="tel://'+j.user.contact.phone+'">'+j.user.contact.phone+'</a></span><br/>': "";
-	if(j.user.contact.phone != undefined && !this.isself){//show phone
+	var ph=(userResponse.user.contact.phone != undefined)? '<span class="linefix"><img src="images/phone.png" width="16" height="16" /> <a id="phone_button" class="vtag" href="tel://'+userResponse.user.contact.phone+'">'+userResponse.user.contact.phone+'</a></span><br/>': "";
+	if(userResponse.user.contact.phone != undefined && !this.isself){//show phone
 		var itm={};
 		itm.icon="images/call_32.png";
 		itm.caption="Call";
 		itm.action="url";
-		itm.url='tel://'+j.user.contact.phone;
+		itm.url='tel://'+userResponse.user.contact.phone;
 		this.info.push(itm);
 
 		var itm={};
 		itm.icon="images/sms_32.png";
 		itm.caption="Text Message";
 		itm.action="url";
-		itm.url='sms:'+j.user.contact.phone;
+		itm.url='sms:'+userResponse.user.contact.phone;
 		this.info.push(itm);
 	}
 logthis("4");	
 
-	var em=(j.user.contact.email != undefined)? '<span class="linefix"><img src="images/mail.png" width="16" height="16" /> <a id="email_button" class="vtag" href="mailto:'+j.user.contact.email+'">Send E-mail</a></span><br/>': "";
-	if(j.user.email != undefined){//show email
+	var em=(userResponse.user.contact.email != undefined)? '<span class="linefix"><img src="images/mail.png" width="16" height="16" /> <a id="email_button" class="vtag" href="mailto:'+userResponse.user.contact.email+'">Send E-mail</a></span><br/>': "";
+	if(userResponse.user.email != undefined){//show email
 		var itm={};
 		itm.icon="images/email_32.png";
 		itm.caption="E-mail";
 		itm.action="url";
-		itm.url='mailto:'+j.user.contact.email;
+		itm.url='mailto:'+userResponse.user.contact.email;
 		this.info.push(itm);
 	}
 logthis("5");	
@@ -640,7 +664,7 @@ logthis("5");
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
 	if(this.uid != "") { //only show friending options if it's not yourself
-	var friendstatus=(j.user.relationship != undefined)? j.user.relationship: "";
+	var friendstatus=(userResponse.user.relationship != undefined)? userResponse.user.relationship: "";
 	
 	logthis("fiend status grabbed");
 
@@ -648,7 +672,7 @@ logthis("5");
 		case "friend":
 		case "followingThem":
 			//var fs="You're friends!"
-			this.controller.get("checkins-row").hide();
+			//this.controller.get("checkins-row").hide();
 			this.controller.get("venuehistory-row").hide();
 			var itm={};
 			itm.icon="images/deny_32.png";
@@ -666,7 +690,7 @@ logthis("5");
 			itm.action="";
 			itm.url='';
 			this.info.push(itm);
-			this.controller.get("checkins-row").hide();
+			//this.controller.get("checkins-row").hide();
 			this.controller.get("venuehistory-row").hide();
 			break;
 		case "pendingMe":
@@ -684,19 +708,20 @@ logthis("5");
 			itm.action="deny";
 			this.info.push(itm);
 			this.denyIndex=this.info.length-1;
-			this.controller.get("checkins-row").hide();
+			//this.controller.get("checkins-row").hide();
 			this.controller.get("friendshipinfo").innerHTML="Approve/Deny Friendship, ";
 			this.controller.get("friendshipinfo").show();
 			this.controller.get("venuehistory-row").hide();
 			break;
 		case "self":
-			this.controller.get("checkins-row").show();
+			//this.controller.get("checkins-row").show();
 			this.controller.get("venuehistory-row").show();
 			break;
 		default:
 			//var fs='<img src="images/addfriend.png" width="108" height="42" id="addfriend" alt="Add Friend" />';
+			logthis("not a friend");
 			var itm={};
-			switch(j.user.type){
+			switch(userResponse.user.type){
 				case "user":
 					itm.caption="Add as a Friend";
 					break;
@@ -711,7 +736,7 @@ logthis("5");
 			itm.action="addfriend";
 			this.info.push(itm);
 			this.addIndex=this.info.length-1;
-			this.controller.get("checkins-row").hide();
+			//this.controller.get("checkins-row").hide();
 			this.controller.get("friendshipinfo").innerHTML="Add as Friend, ";
 			this.controller.get("friendshipinfo").show();
 			break;
@@ -722,8 +747,8 @@ logthis("5");
 	
 	logthis("handled f status");
 	//fs='<span id="friend_button">'+fs+'</span>';
-	if(j.user.pings!=undefined){
-	this.getpings=j.user.pings;
+	if(userResponse.user.pings!=undefined){
+	this.getpings=userResponse.user.pings;
 	if(this.getpings != undefined){
 		if(this.getpings==true){
 			var itm={};
@@ -750,11 +775,11 @@ logthis("handled pings");
 	this.controller.modelChanged(this.infoModel);
 
 	
-	this.controller.get("userName").innerHTML=j.user.firstName+" "+lname+"";
-	if(j.user.checkins.items){
-		if(j.user.checkins.items.length != 0) {
-			var v=(j.user.checkins.items[0].venue != undefined)? " @ "+j.user.checkins.items[0].venue.name: "";
-			var s=(j.user.checkins.items[0].shout)? j.user.checkins.items[0].shout: "";
+	this.controller.get("userName").innerHTML=userResponse.user.firstName+" "+lname+"";
+	if(userResponse.user.checkins.items){
+		if(userResponse.user.checkins.items.length != 0) {
+			var v=(userResponse.user.checkins.items[0].venue != undefined)? " @ "+userResponse.user.checkins.items[0].venue.name: "";
+			var s=(userResponse.user.checkins.items[0].shout)? userResponse.user.checkins.items[0].shout: "";
 			var urlmatch=/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
 			s.match(urlmatch);
 			var url=RegExp['$&'];
@@ -764,44 +789,44 @@ logthis("handled pings");
 	}	
 		logthis("checkin info set");
 		
-	if(j.user.checkins != undefined) {
+	if(userResponse.user.checkins != undefined) {
 	}
 
 
 	//todo list
-	if(j.user.todos){
-		if(j.user.todos.count>0){
-			this.controller.get("todo-count").update(j.user.todos.count+" items on To-Do list");
+	if(userResponse.user.todos){
+		if(userResponse.user.todos.count>0){
+			this.controller.get("todo-count").update(userResponse.user.todos.count+" items on To-Do list");
 			this.controller.get("todos-row").show();
 		}
 	}
 
 
 	//user's mayorships
-	if(j.user.mayorships != null && j.user.mayorships != undefined) {
-		if(j.user.mayorships.items.length>0){
+	if(userResponse.user.mayorships != null && userResponse.user.mayorships != undefined) {
+		if(userResponse.user.mayorships.items.length>0){
 			//this.controller.get("mayor-title").innerHTML=j.user.mayor.length+" Mayorships";
-			logthis("mayor="+Object.toJSON(j.user.mayorships));
-			this.controller.get("mayorcount").innerHTML=j.user.mayorships.count;
+			logthis("mayor="+Object.toJSON(userResponse.user.mayorships));
+			this.controller.get("mayorcount").innerHTML=userResponse.user.mayorships.count;
 	
-			this.mayorshipModel.items=j.user.mayorships.items;
+			this.mayorshipModel.items=userResponse.user.mayorships.items;
 			this.controller.modelChanged(this.mayorshipModel);
 		}else{
-			this.controller.get("mayor-notice").innerHTML=j.user.firstname+' isn\'t the mayor of anything yet.';
+			this.controller.get("mayor-notice").innerHTML=userResponse.user.firstName+' isn\'t the mayor of anything yet.';
 			this.controller.get("mayor-notice").show();
 			this.controller.get("mayorshipList").hide();
 			this.controller.get("mayorcount").innerHTML="0";			
 		}
 	}else{
-		this.controller.get("mayor-notice").innerHTML=j.user.firstname+' isn\'t the mayor of anything yet.';
+		this.controller.get("mayor-notice").innerHTML=userResponse.user.firstName+' isn\'t the mayor of anything yet.';
 		this.controller.get("mayor-notice").show();
 		this.controller.get("mayorshipList").hide();
 		this.controller.get("mayorcount").innerHTML="0";	
 	}
 
-
+logthis("here0");
 	//user's badges
-	this.controller.get("badgecount").innerHTML=j.user.badges.count;	
+	this.controller.get("badgecount").innerHTML=userResponse.user.badges.count;	
 /*	if(j.user.badges != null && j.user.badges != undefined && j.user.badges.length>0) {
 		
 		var o='';
@@ -848,31 +873,34 @@ logthis("handled pings");
 		this.controller.get("badgecount").innerHTML="0";	
 	}*/
 
-
+	logthis("here0.5");
 
 
 	//handle extra stats
-	this.controller.get("checkin-count").update(j.user.checkins.count+" check-ins");
-	var friendcount=j.user.friends.count;
+	this.controller.get("checkin-count").update(userResponse.user.checkins.count);
+	var friendcount=userResponse.user.friends.count;
 	var ficcount=0;
 	var avatars='';
 	
+	logthis("here1");
 	
 	
-	var friendstuff=j.user.friends;
+	var friendstuff=userResponse.user.friends;
 	var friendText='';
 	var friendAvatars='';
 	var thumbCount=0;
 	
-	if(j.user.requests){
-		if(j.user.requests.count>0){
-			if(j.user.requests==1){
-				friendstuff.groups.push({type:'requests',name:'friend request',count:j.user.requests.count,items:[]});	
+	if(userResponse.user.requests){
+		if(userResponse.user.requests.count>0){
+			if(userResponse.user.requests==1){
+				friendstuff.groups.push({type:'requests',name:'friend request',count:userResponse.user.requests.count,items:[]});	
 			}else{
-				friendstuff.groups.push({type:'requests',name:'friend requests',count:j.user.requests.count,items:[]});	
+				friendstuff.groups.push({type:'requests',name:'friend requests',count:userResponse.user.requests.count,items:[]});	
 			}
 		}
 	}
+	
+	logthis("here2");
 	
 	for(var fg=0;fg<friendstuff.groups.length;fg++){
 		var count=friendstuff.groups[fg].count;
@@ -935,7 +963,7 @@ logthis("handled pings");
 	}
 	this.controller.get("friends-count").update(friendtext);
 	this.controller.get("friends-avatars").update(avatars);*/
-	this.controller.get("tipcount").update(j.user.tips.count);
+	this.controller.get("tipcount").update(userResponse.user.tips.count);
 
 	//if logged in user, show checkin history
 	if(this.uid == "") {
@@ -946,6 +974,46 @@ logthis("handled pings");
 
 	}
 
+
+	//handle scores
+	this.controller.get("points-bar-progress").update(userResponse.user.scores.recent);
+	var s=userResponse.user.scores.recent;
+	if(userResponse.user.scores.goal!=undefined){
+		this.controller.get("points-end-title").update("GOAL");
+		this.controller.get("points-max").update(userResponse.user.scores.goal);
+		var e=userResponse.user.scores.goal;
+	}else{
+		this.controller.get("points-end-title").update("HIGH");
+		this.controller.get("points-max").update(userResponse.user.scores.max);	
+		var e=userResponse.user.scores.max;
+	}
+	var w=Math.round((s/e)*100);
+	this.controller.get("points-bar-progress").style.width=w+"%";
+
+	if(this.isself){
+		var lboard=lboardResponse.leaderboard.items;
+		logthis(Object.toJSON(lboard));
+		var leaderboardHTML='';
+		for(var u=0;u<lboard.length; u++){
+			var rank=lboard[u].rank;
+			var photo=lboard[u].user.photo;
+			var fname=lboard[u].user.firstName;
+			var lname=(lboard[u].user.lastName)? lboard[u].user.lastName: '';
+			var uname=fname + " "+ lname;
+			var relationship=lboard[u].user.relationship;
+			var score=lboard[u].scores.recent;
+			
+			if(relationship=="self"){
+				var rankClass="bright";
+			}else{
+				var rankClass="dim";
+			}
+			
+			leaderboardHTML+='<div class="result row" style="padding:0;padding-bottom:7px; padding-top: 3px;"><div class="lb-rank '+rankClass+'">#'+rank+'</div><div class="lb-photo"><img src="'+photo+'" width="32" height="32" class="friend-avatar"></div><div class="lb-name '+rankClass+'">'+uname+'</div><div class="lb-score '+rankClass+'">'+score+'</div><br class="breaker"></div>';
+		}
+		
+		this.controller.get("leaderboardWell").update(leaderboardHTML);
+	}
 }
 
 UserInfoAssistant.prototype.getUserInfoFailed = function(response) {
