@@ -16,6 +16,24 @@ _globals.retryingGPS=false;
 _globals.hiddenVenues=[];
 _globals.userData={};
 _globals.rec={};
+_globals.isTouchPad=function(){
+	var isTouchPad=false;
+	if(Mojo.Environment.DeviceInfo.modelNameAscii.indexOf("ouch")>-1){
+		isTouchPad=true;
+	}
+	if(Mojo.Environment.DeviceInfo.modelNameAscii.indexOf("Emulator")>-1){
+		isTouchPad=true;
+	}
+	if(Mojo.Environment.DeviceInfo.screenWidth==1024){
+		isTouchPad=true;
+	}
+	if(Mojo.Environment.DeviceInfo.screenHeight==1024){
+		isTouchPad=true;
+	}
+	
+	return isTouchPad;
+};
+
 _globals.cmmodel = {
           visible: true,
           items: [{
@@ -40,9 +58,10 @@ _globals.whatsnew={
 	"id":"whatsnew",
 	"icon":"",
 	"pages":[
+		"Here's what's new in foursquare webOS <b>v2.7.3</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>GPS Issues resolved</li></ul>",
+		"Here's what's new in foursquare webOS <b>v2.7.0</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>I seriously, absolutely, feel that I once-and-for-all fixed the GPS and timing-out issues during start up, thanks to James Harris. Automatically waits for the best accuracy (if available)</li><li>[USER PROFILE] Removed \"Last Visited\" option from the \"Where Have I Been?\" feature since foursquare removed it from the API</li><li>[ABOUT] Updated the content on here finally</li></ul>",
 		"Here's what's new in foursquare webOS <b>v2.6.0</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>[USER PROFILE] Added points and mini-leaderboard. Tap mini-leaderboard to view full leaderboard</li><li>[LEADERBOARD] No longer an embedded web page! An actual, pretty, and useful leaderboard now.</li><li>[CHECKIN RESULT] Uses new data point for scores instead of old deprecated one. Future-proofing, yo.</li><li>[USER PROFILE] Number of user's check-ins now visible, regardless of friendship status, however, check-in history still only viewable for yourself</li><li>[USER PROFILE] Did I mention how much I love the new points progress bar? I didn't? Well, it's awesome!</li></ul>",
-		"Here's what's new in foursquare webOS <b>v2.5.0</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Added Explore feature</li><li>[CHECKIN RESULTS] Redesigned layout; added leaderboard rankings; added special unlock detection</li><li>Fixed ability to view check-ins from links supplied by Twitter clients</li><li>[NEARBY VENUES] Fixed a bug that prevented searching for venues with a space</li><li>[VIEW TODO] Fixed ability to view to-dos with no text assigned to them</li><li>[VENUE DETAIL] Fixed incorrect \"time ago\" for Who's Here listing</li><li>[ADD VENUE] Adding a venue respects coordinates selected from map and not just GPS specified location</li><li>[ABOUT] Update content</li></ul>",
-		"Here's what's new in foursquare webOS <b>v2.2.5</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>[LAUNCH] Fixed update checker due to new Palm website</li><li>[PLACES] Nearby specials button now shows a badge of the number of specials nearby</li><li>[LAUNCH] (Hopefully) Fixed a bug with the app timing out when logging in/getting GPS. If it still fails, let me know on Twitter or e-mail (geoff@zhephree.com) instead of leaving bad reviews. I'll send some good karma your way and if you don't believe in karma, I won't talk about you behind your back if you let me know problems directly :)</li><li>[COMING SOON] 3.0 features like Explore and a new Leaderboard. It's gonna be awesome</li><li>[SPINES] Reticulating</li></ul>"
+		"Here's what's new in foursquare webOS <b>v2.5.0</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Added Explore feature</li><li>[CHECKIN RESULTS] Redesigned layout; added leaderboard rankings; added special unlock detection</li><li>Fixed ability to view check-ins from links supplied by Twitter clients</li><li>[NEARBY VENUES] Fixed a bug that prevented searching for venues with a space</li><li>[VIEW TODO] Fixed ability to view to-dos with no text assigned to them</li><li>[VENUE DETAIL] Fixed incorrect \"time ago\" for Who's Here listing</li><li>[ADD VENUE] Adding a venue respects coordinates selected from map and not just GPS specified location</li><li>[ABOUT] Update content</li></ul>"
 	]
 };
 

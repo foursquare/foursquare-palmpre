@@ -25,8 +25,163 @@ function MainAssistant(expressLogin,credentials,fp) {
 	   this.loggedIn=false;
 	   _globals.firstLoad=true;
 	   this.wrongcreds=false;
+	   this.gpsCount=0;
 	   
+	   this.gettingGPS=false;
+	   
+};
+MainAssistant.prototype.gpsTimedOut = function(){
+	logthis("gps timed out. trying one final time");
+	this.controller.get("gps-message").update("GPS timed out! Trying again...");
+	this.controller.window.clearTimeout(this.gpsTimeout);
+
+    this.getLocationClearAll();
+
+	logthis("cleared gps trackers");
+	
+	this.failedLocationBound=this.failedLocation.bind(this);
+
+	logthis("trying one-off request");
+	fsq.Metrix.ServiceRequest.request('palm://com.palm.location', {
+		method: "getCurrentPosition",
+		parameters: {accuracy: 1, maximumAge:0, responseTime: 1},
+		onSuccess: this.gpsSuccessBound,
+		onFailure: this.failedLocationBound
+	});
+
+};
+
+MainAssistant.prototype.getLocation = function(event){
+logthis("getting location...");
+	this.gettingGPS=true;
+	this.controller.get("gps-message").update("Initiating GPS...");
+	//set up the timeout timer
+	this.gpsTimeout=this.controller.window.setTimeout(function(){this.gpsTimedOut();}.bind(this),17000);
+	
+	this.trackGPSObjA = new Mojo.Service.Request('palm://com.palm.location', {
+		method: 'startTracking',
+		parameters: {
+			subscribe: true
+		},
+		onSuccess: function(event){
+			logthis("gps ok!");
+			logthis(Object.toJSON(event));
+			this.gpsCount++;
+			if (event.errorCode==undefined){
+				//--> This is simply our 'returnValue: true' call. No data here.
+				logthis("true call");
+				this.controller.get("gps-message").update("Finding your location...");
+
+			}else{
+				if (event.errorCode != 0){
+					logthis("location error");
+					this.failedLocationBound=this.failedLocation.bind(this);
+					this.failedLocationBound(event);
+					if (event.errorCode == 5){
+						//--> Alert user that location services are off	
+						this.controller.get("gps-message").update("Location services not enabled!");
+						this.controller.window.clearTimeout(this.gpsTimeout);
+
+					}else if (event.errorCode == 4){
+						//--> Alert user that GPS Permanent Failure (reboot device is the advice).
+						this.controller.get("gps-message").update("Permanent GPS Failure! Restart device.");
+						this.controller.window.clearTimeout(this.gpsTimeout);
+
+					}
+				}else{
+					logthis("location  OK!");
+					//--> Got a GPS Response, cache it for later!
+					_globals.gps = event;
+					
+					var acc=(_globals.gpsAccuracy != undefined)? Math.abs(_globals.gpsAccuracy): 750;
+					logthis("acc="+acc);
+					if(this.gpsCount<4){
+						if(acc>=event.horizAccuracy || acc==0){
+							this.controller.get("gps-message").update("Found you!");
+
+							this.gpsSuccessBound(event);
+							
+							//--> Stop tracking
+							this.trackGPSObjA.cancel();							
+						}else{
+							this.controller.get("gps-message").update("Getting better accuracy...");
+						}
+					}else{
+					
+						//--> Do your other stuff here and give up
+						/*		... code	
+							*/
+						this.controller.get("gps-message").update("Found you!");
+
+						this.gpsSuccessBound(event);
+						
+						//--> Stop tracking
+						this.trackGPSObjA.cancel();
+					
+					}
+				}
+			}
+		}.bind(this),
+		onFailure: function(event){
+			this.controller.get("gps-message").update("GPS Failure! Error: "+event.errorCode);
+			this.controller.window.clearTimeout(this.gpsTimeout);
+
+			//Mojo.Log.error("*** trackGPSObj FAILURE: " + event.errorCode + " [" + gps.errorCodeDescription(event.errorCode) + "]");
+		}.bind(this)
+	});
+	
+	logthis("gettting location b");
+
+	//--> Launch a second tracking to 'unstick' GPS
+	this.trackGPSObjB = new Mojo.Service.Request('palm://com.palm.location', {
+		method: 'startTracking',
+		parameters: {
+			subscribe: true
+		},
+		onSuccess: function(event){
+			if (event.errorCode){
+				logthis("tracker b canceled");
+				this.trackGPSObjB.cancel();		//--> Stop tracking
+			}
+		}.bind(this),
+		onFailure: function(event){
+			//logthis("*** trackGPSObjB FAILURE: " + event.errorCode + " [" + gps.errorCodeDescription(event.errorCode) + "]");
+			logthis("tracker b failed: "+event.errorCode);
+		}.bind(this)
+	});
+	
+	logthis("getting location c");
+	//--> Launch a third tracking to 'unstick' GPS
+	this.trackGPSObjC = new Mojo.Service.Request('palm://com.palm.location', {
+		method: 'startTracking',
+		parameters: {
+			subscribe: true
+		},
+		onSuccess: function(event){
+			if (event.errorCode){
+				logthis("tracker c canceled");
+				this.trackGPSObjC.cancel();		//--> Stop tracking
+			}
+		}.bind(this),
+		onFailure: function(event){
+			logthis("tracker c failed: "+event.errorCode);
+			//logthis("*** trackGPSObjC FAILURE: " + event.errorCode + " [" + gps.errorCodeDescription(event.errorCode) + "]");
+		}.bind(this)
+	});
 }
+MainAssistant.prototype.getLocationClearAll = function(event){
+	logthis("clearing all trackers");
+
+	try{
+		this.trackGPSObjC.cancel();
+	}catch(e){logthis("tracker c failed clear");}
+	try{
+		this.trackGPSObjA.cancel();
+	}catch(e){logthis("tracker a failed clear");}
+	try{
+		this.trackGPSObjB.cancel();
+	}catch(e){logthis("tracker b failed clear");}
+};
 
 MainAssistant.prototype.setup = function() {
 	_globals.mainLoaded=true;
@@ -34,13 +189,15 @@ MainAssistant.prototype.setup = function() {
 	
 	this.gpsSuccessBound=this.gpsSuccess.bind(this);
 //	this.controller.serviceRequest('palm://com.palm.location', {
-	fsq.Metrix.ServiceRequest.request('palm://com.palm.location', {
+	
+	
+	/*fsq.Metrix.ServiceRequest.request('palm://com.palm.location', {
 	    method:"getCurrentPosition",
 	    parameters:{accuracy:1, maximumAge: 0, responseTime: 1},
 	    onSuccess: this.gpsSuccessBound,
 	    onFailure: this.failedLocation.bind(this)
 	    }
-	); 
+	);*/ 
 	
 /*    this.controller.setupWidget("loginSpinner",
         this.attributes = {
@@ -339,6 +496,11 @@ MainAssistant.prototype.activate = function(event) {
 		_globals.main=this;
 	}
 	
+	if(!this.gettingGPS){
+		this.getLocation();
+	}
+
+	
 	if(event){
 		if(event.token){
 			//start logging in!
@@ -373,6 +535,8 @@ MainAssistant.prototype.proceed = function(){
 
 MainAssistant.prototype.gpsSuccess = function(event) {
 	logthis("got gps response");
+	this.controller.window.clearTimeout(this.gpsTimeout);
+
 	if(event.errorCode==0){
 		logthis("gps is ok");
 		
@@ -394,6 +558,9 @@ MainAssistant.prototype.gpsSuccess = function(event) {
 };
 
 MainAssistant.prototype.failedLocation = function(event) {
+	logthis("location failed!");
+	this.controller.window.clearTimeout(this.gpsTimeout);
+
 	var msg='';
 	switch(event.errorCode){
 		case 1:
@@ -418,7 +585,7 @@ MainAssistant.prototype.failedLocation = function(event) {
 			msg="foursquare was denied GPS access for this session. Please restart your phone and allow foursquare access when prompted. (EC8)";
 			break;
 	}
-
+	logthis("failure msg="+msg);
 
 	this.controller.showAlertDialog({
 		onChoose: function(value) {
@@ -456,6 +623,7 @@ MainAssistant.prototype.cleanup = function(event) {
 //	Mojo.Event.stopListening(this.controller.get("goLogin"), Mojo.Event.tap, this.onLoginTappedBound);
 //	Mojo.Event.stopListening(this.controller.get("goSignup"), Mojo.Event.tap, this.onSignupTappedBound);
     this.controller.document.removeEventListener("keyup", this.keyDownHandlerBound, true);
+    this.getLocationClearAll();
 }
 
 

@@ -99,7 +99,7 @@ UserInfoAssistant.prototype.setup = function() {
                 {label: "Friends", value: 1}
             ]        }
     );
-    this.controller.setupWidget("venuehistoryToggle",
+/*    this.controller.setupWidget("venuehistoryToggle",
         this.vhtabAttributes = {
 
         },
@@ -110,7 +110,7 @@ UserInfoAssistant.prototype.setup = function() {
                 {label: "Visits", value: 1},
                 {label: "Last There", value: 2}
             ]        }
-    );
+    );*/
     
     if(this.fromFriends){
     	var cm_items=[
@@ -1362,16 +1362,18 @@ UserInfoAssistant.prototype.getVenueHistorySuccess = function(response){
 				j.venues.items[v].primarycategory={icon:"images/no-cat.png"};
 			}
 			
-	    	var ca=new Date(j.venues.items[v].lastHereAt*1000);
-	    	var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+			if(j.venues.items[v].lastHereAt!=undefined){
+		    	var ca=new Date(j.venues.items[v].lastHereAt*1000);
+		    	var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
 	    	
 	    	
-	    	var mins=(ca.getMinutes()<10)? "0"+ca.getMinutes(): ca.getMinutes();
-	    	var hours=(ca.getHours()<10)? "0"+ca.getHours(): ca.getHours();
-	    	
-	    	var t=hours+':'+mins;
-	    	var d=months[ca.getMonth()]+' '+ca.getDate()+', '+(ca.getYear()+1900);
-			j.venues.items[v].lasthere='Last here: '+t+' '+d;
+	    		var mins=(ca.getMinutes()<10)? "0"+ca.getMinutes(): ca.getMinutes();
+	    		var hours=(ca.getHours()<10)? "0"+ca.getHours(): ca.getHours();
+	    		
+		    	var t=hours+':'+mins;
+		    	var d=months[ca.getMonth()]+' '+ca.getDate()+', '+(ca.getYear()+1900);
+				j.venues.items[v].lasthere='Last here: '+t+' '+d;
+			}
 			
 			j.venues.items[v].times=(j.venues.items[v].beenHere==1)? '1 time': j.venues.items[v].beenHere+' times';
 		

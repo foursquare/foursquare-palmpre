@@ -15,7 +15,7 @@ body {
 	/*background: #cdd3dc !important;*/
 	}
 
-#message {
+#message, #gps-message {
 	/*width: 90%;*/
 /*	position: absolute;
 	top: 220px;
@@ -25,7 +25,10 @@ body {
 	width: 100%;
 	text-align: center;
 	color: #fff;
-	margin-top: 30px;
+	margin-top: 0px;
+}
+#gps-message {
+	margin-top: 2px;
 }
 #login-status {
 	width: 100%;
@@ -2343,7 +2346,7 @@ img.right-arrow {
 	background: url(../images/signinwith-foursquare.png) no-repeat left top;
 	width: 263px;
 	height: 35px;
-	margin: 285px auto 0 auto;
+	margin: 265px auto 0 auto;
 }
 
 #login-extra {
@@ -2367,7 +2370,7 @@ img.right-arrow {
 	background: url(../images/main-bg.png) no-repeat fixed left top;
 }
 #loginSpinner {
-	margin: -25px auto;
+	margin: -45px auto 2px auto;
 }
 
 
