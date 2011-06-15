@@ -108,8 +108,10 @@ PreferencesAssistant.prototype.setup = function() {
             choices: [
                 {label: "Web Browser", value: "web",secondaryIconPath: "images/web_32.png"},
                 {label: "Bad Kitty", value: "badkitty",secondaryIconPath: "images/bad_kitty_32.png"},
+                {label: "Spaz", value: "spaz",secondaryIconPath: "images/spaz_32.png"},
+                {label: "Spaz Special Edition", value: "spaz-sped",secondaryIconPath: "images/spaz_32.png"},
                 {label: "TweetMe", value: "tweetme",secondaryIconPath: "images/tweetme_32.png"}
-                ]},
+            ]},
 
         this.twittermodel = {
         value: "web",

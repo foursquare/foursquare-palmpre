@@ -548,51 +548,28 @@ VenuedetailAssistant.prototype.infoTapped = function(event) {
 					break;				
 				case "badkitty":
 					logthis("badkitty");
-				   try{
-				      this.controller.serviceRequest("palm://com.palm.applicationManager", {
-				         method: 'launch',
-				         parameters: {
-				            id: 'com.superinhuman.badkitty',
-				            params: {action: 'user', name: event.item.username}
-				         },
-				         onSuccess:function(){
-				         }.bind(this),
-				         onFailure:function(){
-				            this.controller.serviceRequest('palm://com.palm.applicationManager', {
-				                method:'open',
-				                   parameters:{
-				                   target: event.item.url
-				                        }
-				             });
-				         }.bind(this)
-				      })
-				   }catch(e){
-				   }
-				
+					_globals.openApp(this.controller, "Bad Kitty", "com.superinhuman.badkitty", {
+										action: "user",
+										name: event.item.username
+									});
+					break;
+				case "spaz":
+					_globals.openApp(this.controller, "Spaz", "com.funkatron.app.spaz", {
+										action: "user",
+										userid: event.item.username
+									});
+					break;
+				case "spaz-sped":
+					_globals.openApp(this.controller, "Spaz Special Edition", "com.funkatron.app.spaz-sped", {
+										action: "user",
+										userid: event.item.username
+									});
 					break;
 				case "tweetme":
-					logthis("tweetme");
-				   try{
-				      this.controller.serviceRequest("palm://com.palm.applicationManager", {
-				         method: 'launch',
-				         parameters: {
-				            id: 'com.catalystmediastudios.tweetme',
-				            params: {action: 'user', name: event.item.username}
-				         },
-				         onSuccess:function(){
-				         }.bind(this),
-				         onFailure:function(){
-				            this.controller.serviceRequest('palm://com.palm.applicationManager', {
-				                method:'open',
-				                   parameters:{
-				                   target: event.item.url
-				                        }
-				             });
-				         }.bind(this)
-				      })
-				   }catch(e){
-				   }
-				
+					_globals.openApp(this.controller, "TweetMe", "com.catalystmediastudios.tweetme", {
+										action: "user",
+										name: event.item.username
+									});
 					break;
 			}
 			break;
