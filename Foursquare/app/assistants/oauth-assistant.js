@@ -20,11 +20,11 @@ OauthAssistant.prototype.setup = function() {
 	    this.model = {
 	    }
 	); 
-//    Mojo.Event.listen(this.controller.get('WebId'), Mojo.Event.webViewTitleUrlChanged, this.titleChanged.bind(this));
+    Mojo.Event.listen(this.controller.get('WebId'), Mojo.Event.webViewTitleUrlChanged, this.titleChanged.bind(this));
     Mojo.Event.listen(this.controller.get("WebId"), Mojo.Event.webViewLoadStopped, this.loadStopped.bind(this));
     Mojo.Event.listen(this.controller.get("WebId"), Mojo.Event.webViewLoadStarted, this.loadStarted.bind(this));
 
-    Mojo.Event.listen(this.controller.get('WebId'), Mojo.Event.webViewUrlChanged, this.titleChanged.bind(this));
+    //Mojo.Event.listen(this.controller.get('WebId'), Mojo.Event.webViewUrlChanged, this.titleChanged.bind(this));
 
 };
 
