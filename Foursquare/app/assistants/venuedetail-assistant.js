@@ -22,7 +22,7 @@ VenuedetailAssistant.prototype.setup = function() {
 	NavMenu.setup(this,{buttons:'navOnly',class:'trans'});
 	this.controller.get("snapMayor").hide();
 	this.controller.get("checkinVenueName").innerHTML=this.venue.name.replace("✈","<img src=\"images/plane-large-white.png\">");
-	this.controller.get("checkinVenueAddress").innerHTML=(this.venue.location.address)? this.venue.location.address: '';
+	this.controller.get("checkinVenueAddress").innerHTML=this.venue.location.address ? this.venue.location.address: '';
 	if (this.venue.location.crossStreet) {
 		this.controller.get("checkinVenueAddress").innerHTML += " ("+this.venue.location.crossStreet+")";
 	}
@@ -644,9 +644,13 @@ logthis("passed todo");
 	this.controller.get("vcategory").innerHTML=(j.venue.categories[0])? 
 		'<img src="'+j.venue.categories[0].icon+'"><br/>'+j.venue.categories[0].name: '';
 	
-	
-	this.controller.get("checkinVenueAddress").innerHTML=(this.controller.get("checkinVenueAddress").innerHTML=="")? j.venue.location.address: this.controller.get("checkinVenueAddress").innerHTML;
-	
+	// this.controller.get("checkinVenueAddress").innerHTML=(this.controller.get("checkinVenueAddress").innerHTML=="")? j.venue.location.address: this.controller.get("checkinVenueAddress").innerHTML;
+	var currentAddress = this.controller.get("checkinVenueAddress").innerHTML;
+	if (currentAddress == "" && j.venue.location.address) {
+		this.controller.get("checkinVenueAddress").innerHTML = j.venue.location.address;
+	} else {
+		this.controller.get("checkinVenueAddress").innerHTML = currentAddress;
+	}
 	
 	this.vaddress=j.venue.location.address;
 	this.vcity=j.venue.location.city;
@@ -655,7 +659,7 @@ logthis("passed todo");
 	
 	if(this.fromLaunch){
 		this.controller.get("checkinVenueName").innerHTML=j.venue.name;
-		this.controller.get("checkinVenueAddress").innerHTML=j.venue.location.address;
+		this.controller.get("checkinVenueAddress").innerHTML=j.venue.location.address ? j.venue.location.address : '';
 		if (j.venue.location.crossStreet && this.controller.get("checkinVenueAddress").innerHTML.indexOf(j.venue.location.crossStreet)==-1) {
 			this.controller.get("checkinVenueAddress").innerHTML += " ("+j.venue.location.crossStreet+")";
 		}
