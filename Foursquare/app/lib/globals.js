@@ -929,3 +929,61 @@ logthis(response.responseText);
 _globals.loginRequestFailed = function(){
 	logthis("login failed");
 };
+
+/**
+ * openApp - uses palm application manager to start
+ * a given app by id with params
+ * if app was not found, delegate to error dialog
+ *
+ * @param Object	the scene-controller object
+ * @param String	a desriptive app name (used for error dialog)
+ * @param String	appId
+ * @param Object	param necessary to send to started app.
+ *
+ * @author Rene Meister (@codingbees)
+ *
+ */
+
+_globals.openApp = function(controller, name, appId, params) {
+	controller.serviceRequest("palm://com.palm.applicationManager", {
+		method: "open",
+		parameters: {
+			id: appId,
+			params: params
+		},
+		onFailure: _globals.errorOpenAppDialog.curry(name, appId, controller)
+	})
+};
+
+/**
+ * errorOpenAppDialog - presents dialog and asks if the users wants
+ * to go to the catalog and download the app.
+ *
+ * @param String	name of app
+ * @param String	appId
+ * @param Object	the scene-controller object
+ *
+ * @author Rene Meister (@codingbees)
+ */
+_globals.errorOpenAppDialog = function(name, appId, controller) {
+	Mojo.Log.info("Showing install dialog for app: ", name);
+
+	controller.showAlertDialog({
+		title: name + " " + $L("not found"),
+		message: $L("Would you like to download and install it?"),
+		choices: [
+			{label: $L("Open AppCatalog"), value: "yes", type: "affirmative"},
+			{label: $L("Not yet."), value: "no", type: "dismissal"}
+		],
+		onChoose: function(value) {
+			if (value == "yes") {
+				controller.serviceRequest("palm://com.palm.applicationManager", {
+					method: "open",
+					parameters: {
+						target: "http://developer.palm.com/appredirect/?packageid=" + appId
+					}
+				})
+			}
+		}
+	});
+};
