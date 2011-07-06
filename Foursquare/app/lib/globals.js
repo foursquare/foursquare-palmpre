@@ -393,6 +393,18 @@ function foursquareGet(that,opts){
 			   		logthis("code="+r.responseJSON.meta.code);
 			   		//if(r.status!=0){
 			   			if(r.responseJSON.meta.code=="200" || r.responseJSON.meta.code==200){
+			   			 //every response should include a notifications object now. let's handle that
+			   			 if(r.responseJSON.notifications !=undefined){
+                    for(var n=0;n<r.responseJSON.notifications.length;n++){
+                      if(r.responseJSON.notifications[n].type=="notificationTray"){
+                        var notif=r.responseJSON.notifications[n].item;
+                        var unread=notif.unreadCount;
+                        
+                        //TODO: display notification count
+                      }
+                    }
+               }
+			   			
 			   				opts.onSuccess(r);
 			   			}else if(r.responseJSON.meta.errorType!=undefined){
 			   				logthis("has error");

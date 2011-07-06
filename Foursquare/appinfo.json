@@ -1,6 +1,6 @@
 {
 	"id": "com.foursquare.foursquare",
-	"version": "2.7.5",
+	"version": "2.7.7",
 	"vendor": "foursquare",
 	"noWindow" : "true",
 	"timingEnabled": "true",
