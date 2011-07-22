@@ -1759,64 +1759,30 @@ UserInfoAssistant.prototype.infoTapped = function(event) {
 							 target: event.item.url
 						 }
 					});
-					break;				
+					break;
 				case "badkitty":
-				   try{
-				      this.controller.serviceRequest("palm://com.palm.applicationManager", {
-				         method: 'launch',
-				         parameters: {
-				            id: 'com.superinhuman.badkitty',
-				            params: {action: 'user', name: event.item.username}
-				         },
-				         onSuccess:function(){
-				            /*
-				              INSERT ANY CODE YOU WANT EXECUTED UPON SUCCESS OF LAUNCHING BADKITTY
-				            */
-				         }.bind(this),
-				         onFailure:function(){
-				            this.controller.serviceRequest('palm://com.palm.applicationManager', {
-				                method:'open',
-				                   parameters:{
-				                   target: event.item.url
-				                        }
-				             });
-				         }.bind(this)
-				      })
-				   }catch(e){
-				      /*
-				       INSERT ANY ERROR HANDLING CODE HERE
-				     */
-				   }
-				
+					_globals.openApp(this.controller, "Bad Kitty", "com.superinhuman.badkitty", {
+										action: "user",
+										name: event.item.username
+									});
+					break;
+				case "spaz":
+					_globals.openApp(this.controller, "Spaz", "com.funkatron.app.spaz", {
+										action: "user",
+										userid: event.item.username
+									});
+					break;
+				case "spaz-sped":
+					_globals.openApp(this.controller, "Spaz Special Edition", "com.funkatron.app.spaz-sped", {
+										action: "user",
+										userid: event.item.username
+									});
 					break;
 				case "tweetme":
-				   try{
-				      this.controller.serviceRequest("palm://com.palm.applicationManager", {
-				         method: 'launch',
-				         parameters: {
-				            id: 'com.catalystmediastudios.tweetme',
-				            params: {action: 'user', name: event.item.username}
-				         },
-				         onSuccess:function(){
-				            /*
-				              INSERT ANY CODE YOU WANT EXECUTED UPON SUCCESS OF LAUNCHING TWEETME
-				            */
-				         }.bind(this),
-				         onFailure:function(){
-				            this.controller.serviceRequest('palm://com.palm.applicationManager', {
-				                method:'open',
-				                   parameters:{
-				                   target: event.item.url
-				                        }
-				             });
-				         }.bind(this)
-				      })
-				   }catch(e){
-				      /*
-				       INSERT ANY ERROR HANDLING CODE HERE
-				     */
-				   }
-				
+					_globals.openApp(this.controller, "TweetMe", "com.catalystmediastudios.tweetme", {
+										action: "user",
+										name: event.item.username
+									});
 					break;
 			}
 			break;
