@@ -683,17 +683,20 @@ logthis("got venues");
 		this.venueList = [];
 		this.housesList=[];
 
-		logthis(Object.toJSON(venuesResponse.groups[0]));
-		if(venuesResponse.groups[0] != undefined) { //actually got some venues
+//		logthis(Object.toJSON(venuesResponse.groups[0]));
+		var grouping="Nearby";
+//		if(venuesResponse.groups[0] != undefined) { //actually got some venues
 			this.setvenues=true;
-			for(var g=0;g<venuesResponse.groups.length;g++) {
+			/*for(var g=0;g<venuesResponse.groups.length;g++) {
 				var varray=venuesResponse.groups[g].items;
 				var grouping=venuesResponse.groups[g].name;
 				if(venuesResponse.groups[g].type=="trending" || venuesResponse.groups[g].type=="pollingplaces"){
 					var bgcolor="#f7f7f7";
 				}else{
 					var bgcolor="transparent";
-				}
+				}*/
+				
+				varray=venuesResponse.venues;
 
 				varray.sort(function(a, b){return (a.location.distance - b.location.distance);});
 
@@ -805,9 +808,9 @@ logthis("got venues");
 						this.setvenues=false;
 					}
 				}
-			}
+			//}
 			this.lastId=this.venueList[this.venueList.length-1].id;
-		}
+		//}
 		logthis("rawdist="+tmp_venue.rawdistance);
 		this.venueList=this.venueList.concat(this.housesList); //append houses to bottom of the list
 

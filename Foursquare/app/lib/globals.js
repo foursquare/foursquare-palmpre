@@ -4,7 +4,7 @@ window.maps = window.maps || {};
 fsq = {};
 logthis("globals started launch");
 fsq.Metrix = new Metrix();
-_globals.v="20110505";
+_globals.v="20110608";
 _globals.db = new Mojo.Depot({name:"feed"}, function(){logthis("depot OK");}, function(){logthis("depot FAIL");}); 
 _globals.rdb = new Mojo.Depot({name:"rec"}, function(){logthis("recdepot OK");}, function(){logthis("recdepot FAIL");}); 
 _globals.debugMode=true;

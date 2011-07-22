@@ -21,6 +21,7 @@ OauthAssistant.prototype.setup = function() {
 	    }
 	); 
     Mojo.Event.listen(this.controller.get('WebId'), Mojo.Event.webViewTitleUrlChanged, this.titleChanged.bind(this));
+//    Mojo.Event.listen(this.controller.get('WebId'), Mojo.Event.webViewUrlRedirect, this.titleChanged.bind(this));
     Mojo.Event.listen(this.controller.get("WebId"), Mojo.Event.webViewLoadStopped, this.loadStopped.bind(this));
     Mojo.Event.listen(this.controller.get("WebId"), Mojo.Event.webViewLoadStarted, this.loadStarted.bind(this));
 
@@ -69,6 +70,9 @@ OauthAssistant.prototype.titleChanged = function(event) {
 OauthAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
+	   	//this.controller.get("WebId").mojo.addUrlRedirect(/http:\/\/zhephree.com\/foursquare\/callback/gi,true,"",1);
+	   	//this.controller.get("WebId").mojo.addUrlRedirect("http://zhephree.com/foursquare/callback",true,"",1);
+
 };
 
 OauthAssistant.prototype.deactivate = function(event) {
