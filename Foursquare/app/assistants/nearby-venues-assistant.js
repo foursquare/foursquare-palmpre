@@ -360,6 +360,7 @@ NearbyVenuesAssistant.prototype.getSpecials = function(event){
 
 NearbyVenuesAssistant.prototype.specialsSuccess = function(r){
 	if(r.meta.code==200){
+		logthis("specials ok");
 		var specials=r.response.specials;
 		var varray=[];
 		if(specials.count>0){
@@ -367,6 +368,7 @@ NearbyVenuesAssistant.prototype.specialsSuccess = function(r){
 			this.controller.get("specials-count").show();
 			for(var v=0;v<specials.items.length;v++){
 				var venue=specials.items[v].venue;
+				console.log("special venue="+venue);
 				if(venue.categories.length==0){
 					venue.primarycategory={};
 					venue.primarycategory.icon="images/no-cat.png";
@@ -697,15 +699,21 @@ logthis("got venues");
 				}*/
 				
 				varray=venuesResponse.venues;
+				logthis("butts");
+				logthis("venues="+Object.toJSON(varray));
 
-				varray.sort(function(a, b){return (a.location.distance - b.location.distance);});
+				//varray.sort(function(a, b){return (a.location.distance - b.location.distance);});
 
 				for(var v=0;v<varray.length;v++) {
+					logthis("in venue array");
 					var tmp_venue=varray[v];
-					tmp_venue.bgcolor=bgcolor;
+					logthis("tmp_venue="+Object.toJSON(tmp_venue));
+					//tmp_venue.bgcolor=bgcolor;
 					//this.venueList.push(varray[v]);
 					var dist=tmp_venue.location.distance;
 					var rawdist=tmp_venue.location.distance;
+					
+					logthis("1");
 					
 					if(_globals.units=="si") {					
 						var amile=0.000621371192;
@@ -719,6 +727,7 @@ logthis("got venues");
 					}else{
 						if(dist==1){unit="meters";}else{unit="meters";}						
 					}
+					logthis("2");
 					
 					//handle people here
 					var herenow=(tmp_venue.hereNow)? tmp_venue.hereNow.count: 0;
@@ -727,6 +736,7 @@ logthis("got venues");
 					}else{
 						tmp_venue.peopleicon="off";
 					}
+					logthis("3");
 					
 					tmp_venue.herepeople=(herenow==1)? "person": "people";
 					
@@ -737,6 +747,8 @@ logthis("got venues");
 					
 					tmp_venue.grouping=grouping;
 
+					logthis("4");
+
 
 					//handle empty category
 					if(tmp_venue.categories.length==0){
@@ -746,25 +758,33 @@ logthis("got venues");
 						tmp_venue.primarycategory=tmp_venue.categories[0];
 						
 					}
+					logthis("5");
 					
-					
-					if(tmp_venue.todos.count>0){
-						tmp_venue.dogear="block";
+					if(tmp_venue.todos){
+						if(tmp_venue.todos.count>0){
+							tmp_venue.dogear="block";
+						}else{
+							tmp_venue.dogear="none";
+						}
 					}else{
 						tmp_venue.dogear="none";
 					}
+
+					logthis("6");
 					
 					if(tmp_venue.specials!=undefined){
 						if(tmp_venue.specials.length>0){
 							tmp_venue.specialimage='<img src="images/small-special.png" class="small-special">';
 						}
 					}
+					logthis("7");
 					
 					if(tmp_venue.location.crossStreet!=undefined){
 						if(tmp_venue.location.crossStreet!=""){
 							tmp_venue.crossstreet=" ("+tmp_venue.location.crossStreet+")";
 						}
 					}
+					logthis("8");
 					
 					tmp_venue.distance=dist;
 					tmp_venue.unit=unit;
@@ -774,6 +794,7 @@ logthis("got venues");
 				  		this.venueList[this.venueList.length-1].grouping="Hidden";
 					}else{*/
 					//}
+					logthis("9");
 					
 					var ar="main";
 					if(tmp_venue.primarycategory.id!=undefined){
@@ -792,6 +813,7 @@ logthis("got venues");
 							ar="main";
 						}
 					}
+					logthis("10");
 					
 					switch(ar){
 						case "main":
@@ -801,14 +823,20 @@ logthis("got venues");
 							this.housesList.push(tmp_venue);
 							break;
 					}
+
+					logthis("11");
 					
 					
 			//		this.venueList.push(varray[v]);
 					if(grouping.indexOf("Matching")>-1) {  //searching
 						this.setvenues=false;
 					}
+					logthis("12");
+					
 				}
 			//}
+					logthis("13");
+			
 			this.lastId=this.venueList[this.venueList.length-1].id;
 		//}
 		logthis("rawdist="+tmp_venue.rawdistance);
