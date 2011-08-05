@@ -37,7 +37,7 @@ DoShoutDialogAssistant.prototype.setup = function(widget) {
              value: stt,
              disabled: false
          });
-	Mojo.Log.error("twittersave:"+credentials.savetotwitter);
+//	Mojo.Log.error("twittersave:"+credentials.savetotwitter);
   
 	this.sceneAssistant.controller.setupWidget('shout', this.tipAttributes = {hintText:'Add a shout',multiline:true,focus:true}, this.tipModel = {value:'', disabled:false});
 
@@ -50,9 +50,9 @@ DoShoutDialogAssistant.prototype.activate = function() {
 
 DoShoutDialogAssistant.prototype.okTappedShout = function() {
 
-	Mojo.Log.error("###check in please??");
+//	Mojo.Log.error("###check in please??");
 	if (this.auth) {
-		Mojo.Log.error("###trying to shout");
+//		Mojo.Log.error("###trying to shout");
 	
 		var url = 'https://api.foursquare.com/v1/checkin.json';
 		var request = new Ajax.Request(url, {
@@ -75,7 +75,7 @@ DoShoutDialogAssistant.prototype.okTappedShout = function() {
 
 
 DoShoutDialogAssistant.prototype.checkInSuccess = function(response) {
-	Mojo.Log.error(response.responseText);
+	//Mojo.Log.error(response.responseText);
 		$("okButtonShout").mojo.deactivate();
 
 	Mojo.Controller.getAppController().showBanner("Sent your shout to your friends!", {source: 'notification'});

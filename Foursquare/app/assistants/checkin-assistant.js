@@ -35,7 +35,7 @@ CheckinAssistant.prototype.setup = function() {
 	this.stt=(_globals.settings.sendToTwitter==true)? '1': '0';
 	this.stf=(_globals.settings.sendToFacebook==true || _globals.settings.sendToFacebook=='true')? '1': '0';
 
-	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
+//	Mojo.Log.error("stf: %i, stt: %i",this.stf,this.stt);
 
 	this.lhc=new Mojo.Model.Cookie("photohost");
 	var lh=this.lhc.get();

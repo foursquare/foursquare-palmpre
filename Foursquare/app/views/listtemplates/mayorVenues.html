@@ -1,0 +1,29 @@
+<div class='result row' x-mojo-tap-highlight='momentary' style="position: relative;padding:0;padding-top:5px;padding-left: 7px; padding-right: 7px;border-bottom: 0px solid #e7e7e7;background-color:#{bgcolor};">
+	<div style="position: relative;">
+		<div class="venue-category">
+			<div class="venue-cat-icon"><img src="#{primarycategory.icon}"/></div>
+			<!--<div class="venue-cat-name">#{primarycategory.nodename}</div>-->
+		</div>
+		<div class="venue-info-wrap">
+			<div class="venue-name truncating-text capitalize">#{name}</div>
+			<div class='venue-address truncating-text capitalize' id="address-#{venue.id}">#{location.address}</div>
+		</div>
+		<!--<div class='fsq-venue-distance'>
+			<!--<div class="fsq-distance-unit">#{unit}</div>
+			<div class="distance-num">#{distance}</div>-->
+			<!--i know, i know. tables are dumb...-->
+			<!--<table border="0" cellspacing="0" cellpadding="0" width="55">
+				<tr>
+					<td class="fsq-distance-unit">#{unit}</td>
+					<td class="fsq-distance-num">#{distance}</td>
+				</tr>
+				<tr>
+					<td class="fsq-people-icon"><img src="images/people-#{peopleicon}.png"/></td>
+					<td class="fsq-people-num">#{stats.herenow}</td>
+				</tr>
+			</table>
+		</div>-->
+		<br class="breaker">
+	</div>
+	<div class="dogear" style="display: #{dogear};"></div>
+</div>

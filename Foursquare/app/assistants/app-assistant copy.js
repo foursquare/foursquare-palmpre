@@ -632,8 +632,8 @@ AppAssistant.prototype.doFeedData = function(data,r){
 				var inarray=false;
 				for(var of=0;of<oldfeed.length;of++){
 					if(oldfeed[of].id==newfeed[f].id){
-						Mojo.Log.error("checkin for %i is old (ping=%i)",newfeed[f].user.firstName,newfeed[f].user.ping);
-						Mojo.Log.error("old id=%i, new id=%i",oldfeed[of].id,newfeed[f].id);
+//						Mojo.Log.error("checkin for %i is old (ping=%i)",newfeed[f].user.firstName,newfeed[f].user.ping);
+//						Mojo.Log.error("old id=%i, new id=%i",oldfeed[of].id,newfeed[f].id);
 
 						inarray=true;
 						break;

@@ -478,6 +478,9 @@ a.vtag,a.vtip-black {
 	padding-bottom: 5px;
 	padding-left: 3px;
 }
+.venue-info-wrap.touchpad {
+	width: 95%;
+}
 .venue-info-wrap.thin {
 	width: 170px;
 	padding-right: 5px;
@@ -905,12 +908,12 @@ a.vtag,a.vtip-black {
 	margin: 4px;
 }
 #gps_banner, .blue-box {
-	background: url(../images/dark-zags.png) no-repeat left bottom;
+	background: url(../images/dark-zags.png) repeat-x left bottom;
 	color: #fff;
 	font-size: 15px;
 	padding: 4px;
 	height: 20px;
-	width: 320px;
+	width: 100%;
 }
 #smallSpinner {
 	float: left;
@@ -944,7 +947,7 @@ a.vtag,a.vtip-black {
 .righter{float:right;}
 
 .thin-header-redux {
-	background: url(../images/fsq-header-bg.png) no-repeat !important;
+	background: url(../images/fsq-header-bg.png) repeat-x !important;
 	text-align: center;
 	color: #000;
 	font-size: 25px;
@@ -961,7 +964,7 @@ a.vtag,a.vtip-black {
 	color: #fff;
 	text-transform: capitalize;
 	font-size: 16px;
-	background: url(../images/small-blue-header.png) no-repeat;
+	background: url(../images/small-blue-header.png) repeat-x;
 	top: 42px;
 	position: absolute;
 	height: 31px;

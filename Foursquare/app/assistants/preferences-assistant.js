@@ -385,11 +385,11 @@ PreferencesAssistant.prototype.handleNotifs = function(event) {
 	                }
 	            },
 	            onSuccess: function(response) {
-	                Mojo.Log.error("Alarm Set Success", response.returnValue);
+	                //Mojo.Log.error("Alarm Set Success", response.returnValue);
 	                _globals.wakeupTaskId = Object.toJSON(response.taskId);
 	            },
 	            onFailure: function(response) {
-	                Mojo.Log.error("Alarm Set Failure",
+	               // Mojo.Log.error("Alarm Set Failure",
 	                    response.returnValue, response.errorText);
 	            }
 	        });

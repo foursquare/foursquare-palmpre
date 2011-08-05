@@ -214,7 +214,7 @@ AddVenueAssistant.prototype.setup = function(widget) {
 }
 
 AddVenueAssistant.prototype.scrollTest = function(a,b,c,d,e){
-	Mojo.Log.error("state="+Object.toJSON(this.controller.get('mojo-scene-add-venue-scene-scroller').mojo.getScrollPosition()));	
+/*	Mojo.Log.error("state="+Object.toJSON(this.controller.get('mojo-scene-add-venue-scene-scroller').mojo.getScrollPosition()));	
 	
 	var ss=this.controller.get('mojo-scene-add-venue-scene-scroller').mojo.getScrollPosition();
 	

@@ -670,7 +670,7 @@ logthis("passed todo");
 	}
 	
 	
-	Mojo.Log.error("vadd=%i, vcity=%i, vstate=%i",this.vaddress,this.vcity,this.vstate);
+//	Mojo.Log.error("vadd=%i, vcity=%i, vstate=%i",this.vaddress,this.vcity,this.vstate);
 	
 	if (j.venue.location.crossStreet && !this.venue.crossstreet && !this.fromLaunch && this.controller.get("checkinVenueAddress").innerHTML.indexOf(j.venue.location.crossStreet)==-1) {
 	 this.controller.get("checkinVenueAddress").innerHTML += " ("+j.venue.location.crossStreet+")";

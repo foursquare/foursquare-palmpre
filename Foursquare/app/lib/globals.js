@@ -7,7 +7,7 @@ fsq.Metrix = new Metrix();
 _globals.v="20110720";
 _globals.db = new Mojo.Depot({name:"feed"}, function(){logthis("depot OK");}, function(){logthis("depot FAIL");}); 
 _globals.rdb = new Mojo.Depot({name:"rec"}, function(){logthis("recdepot OK");}, function(){logthis("recdepot FAIL");}); 
-_globals.debugMode=true;
+_globals.debugMode=false;
 _globals.hasWeb=false;
 _globals.interval="00:20:00";
 //_globals.interval="00:05:00";
@@ -58,13 +58,11 @@ _globals.whatsnew={
 	"id":"whatsnew",
 	"icon":"",
 	"pages":[
+		"Here's what's new in foursquare webOS <b>v2.8.0</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Fixed a bug that prevented user's mayorships from being seen</li><li>Now compatible with the TouchPad!</li></ul>",
 		"Here's what's new in foursquare webOS <b>v2.7.7</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Added Spaz as a Twitter client option</li><li>Fixed a bug preventing venues from displaying; now sorted by your likely selection; not by distance or grouped (Foursquare API Change)</li><li>Fixed a bug where 'undefined' was displayed as the venue address</li></ul>",
 		"Here's what's new in foursquare webOS <b>v2.7.5</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>A change in the foursquare API prevented venues from being listed</li></ul>",
 		"Here's what's new in foursquare webOS <b>v2.7.4</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>OAuth / sign-in issues resolved</li></ul>",
-		"Here's what's new in foursquare webOS <b>v2.7.3</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>GPS Issues resolved</li></ul>",
-		"Here's what's new in foursquare webOS <b>v2.7.0</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>I seriously, absolutely, feel that I once-and-for-all fixed the GPS and timing-out issues during start up, thanks to James Harris. Automatically waits for the best accuracy (if available)</li><li>[USER PROFILE] Removed \"Last Visited\" option from the \"Where Have I Been?\" feature since foursquare removed it from the API</li><li>[ABOUT] Updated the content on here finally</li></ul>",
-		"Here's what's new in foursquare webOS <b>v2.6.0</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>[USER PROFILE] Added points and mini-leaderboard. Tap mini-leaderboard to view full leaderboard</li><li>[LEADERBOARD] No longer an embedded web page! An actual, pretty, and useful leaderboard now.</li><li>[CHECKIN RESULT] Uses new data point for scores instead of old deprecated one. Future-proofing, yo.</li><li>[USER PROFILE] Number of user's check-ins now visible, regardless of friendship status, however, check-in history still only viewable for yourself</li><li>[USER PROFILE] Did I mention how much I love the new points progress bar? I didn't? Well, it's awesome!</li></ul>",
-		"Here's what's new in foursquare webOS <b>v2.5.0</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Added Explore feature</li><li>[CHECKIN RESULTS] Redesigned layout; added leaderboard rankings; added special unlock detection</li><li>Fixed ability to view check-ins from links supplied by Twitter clients</li><li>[NEARBY VENUES] Fixed a bug that prevented searching for venues with a space</li><li>[VIEW TODO] Fixed ability to view to-dos with no text assigned to them</li><li>[VENUE DETAIL] Fixed incorrect \"time ago\" for Who's Here listing</li><li>[ADD VENUE] Adding a venue respects coordinates selected from map and not just GPS specified location</li><li>[ABOUT] Update content</li></ul>"
+		"Here's what's new in foursquare webOS <b>v2.7.3</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>GPS Issues resolved</li></ul>"
 	]
 };
 

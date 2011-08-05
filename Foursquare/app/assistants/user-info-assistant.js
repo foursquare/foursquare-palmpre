@@ -135,7 +135,7 @@ UserInfoAssistant.prototype.setup = function() {
     
 	this.mayorshipModel = {items: [], listTitle: $L('Results')};
 	this.controller.setupWidget('mayorshipList', 
-					      {itemTemplate:'listtemplates/venueItemsLimited', formatters:{categories:this.fixIcon.bind(this)}},
+					      {itemTemplate:'listtemplates/mayorVenues'/*,formatters:{categories:this.fixIcon.bind(this)}*/},
 					      this.mayorshipModel);
 	this.venuehistoryModel = {items: [], listTitle: $L('Results')};
 	this.controller.setupWidget('venueHistory', 
@@ -348,26 +348,26 @@ UserInfoAssistant.prototype.enlargeAvatar = function(event) {
 };
 
 UserInfoAssistant.prototype.fixIcon = function(value,model) {
-logthis("fix icon:");
+logthis("fix icon seriously:");
 //logthis(Object.toJSON(model));
-//logthis(Object.toJSON(value));
-logthis(Object.toJSON(model));
+/*logthis("value="+Object.toJSON(value));
+logthis("model="+Object.toJSON(model));
 
-	if(model.categories){
-		if(model.categories.length==0){
+	if(model.venue.categories){
+		if(model.venue.categories.length==0){
 			model.primarycategory={icon:"images/no-cat.png"};
 			return "images/no-cat.png";
 		}else{
-			model.primarycategory={icon:model.categories[0].icon};
-			return model.categories[0].icon;
+			model.primarycategory={icon:model.venue.categories[0].icon};
+			return model.venue.categories[0].icon;
 		}
 	}else{
 		model.primarycategory={icon:"images/no-cat.png"};
 		return "images/no-cat.png";
-	}
+	}*/
 }
 UserInfoAssistant.prototype.fixIconVH = function(value,model) {
-logthis("fix icon:");
+logthis("fix icon vh:");
 //logthis(Object.toJSON(model));
 //logthis(Object.toJSON(value));
 logthis(Object.toJSON(model));
@@ -387,9 +387,10 @@ logthis(Object.toJSON(model));
 }
 UserInfoAssistant.prototype.getUserInfo = function() {
 	 	foursquareGetMulti(this,{
-	 		endpoints: '/users/'+this.uid+',/users/leaderboard?neighbors=2',
+	 		endpoints: '/users/'+this.uid+',/users/leaderboard?neighbors=2,/users/'+this.uid+'/mayorships',
 	 		requiresAuth: true,
 	 		parameters: {},
+	 		debug: true,
 	   		onSuccess: this.getUserInfoSuccess.bind(this),
 	   		onFailure: this.getUserInfoFailed.bind(this)
 	 	});
@@ -588,11 +589,24 @@ UserInfoAssistant.prototype.getTipsFailed = function(r){
 	this.checkDone();
 
 };
+function roundNumber(num, dec) {
+	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
+	return result;
+}
+
 
 UserInfoAssistant.prototype.getUserInfoSuccess = function(response) {
 	var j=response.responseJSON.response.responses;
+	logthis(response.responseText);
+	logthis("user info OK");
 	var userResponse=j[0].response;
+	logthis("user ok");
 	var lboardResponse=j[1].response;
+	logthis("lboard ok");
+	var mayorResponse=j[2].response;
+	//userResponse.user.mayorships=j[3].response.mayorships;
+	logthis("mayor ok");
+	logthis(Object.toJSON(mayorResponse));
 
 	this.cookieData=new Mojo.Model.Cookie("credentials");
 	var credentials=this.cookieData.get();
@@ -804,12 +818,41 @@ logthis("handled pings");
 
 	//user's mayorships
 	if(userResponse.user.mayorships != null && userResponse.user.mayorships != undefined) {
-		if(userResponse.user.mayorships.items.length>0){
+		if(userResponse.user.mayorships.count>0){
 			//this.controller.get("mayor-title").innerHTML=j.user.mayor.length+" Mayorships";
 			logthis("mayor="+Object.toJSON(userResponse.user.mayorships));
 			this.controller.get("mayorcount").innerHTML=userResponse.user.mayorships.count;
+			
+			var mayorships=[];
+			
+			for(var m=0;m<mayorResponse.mayorships.items.length;m++){
+				var itm=mayorResponse.mayorships.items[m].venue;
+				//logthis("itm="+Object.toJSON(itm));
+				if(itm.todos){
+					if(itm.todos.count>0){
+						itm.dogear="block";
+					}else{
+						itm.dogear="none";
+					}
+				}else{
+					itm.dogear="none";
+				}
+				
+				//handle empty category
+				if(itm.categories.length==0){
+					itm.primarycategory={};
+					itm.primarycategory.icon="images/no-cat.png";
+				}else{
+					itm.primarycategory=itm.categories[0];
+					
+				}
+
+				
+				mayorships.push(itm);
+			}
 	
-			this.mayorshipModel.items=userResponse.user.mayorships.items;
+			logthis("mayorhsip count="+mayorships.length);
+			this.mayorshipModel.items=mayorships;
 			this.controller.modelChanged(this.mayorshipModel);
 		}else{
 			this.controller.get("mayor-notice").innerHTML=userResponse.user.firstName+' isn\'t the mayor of anything yet.';
