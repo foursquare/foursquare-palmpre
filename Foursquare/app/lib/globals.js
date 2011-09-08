@@ -58,11 +58,9 @@ _globals.whatsnew={
 	"id":"whatsnew",
 	"icon":"",
 	"pages":[
+		"Here's what's new in foursquare webOS <b>v2.8.2</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Fixed a bug preventing Preferences from loading</li><li>Fixed a bug that prevented you from adding new venues</li></ul>",
 		"Here's what's new in foursquare webOS <b>v2.8.0</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Fixed a bug that prevented user's mayorships from being seen</li><li>Now compatible with the TouchPad!</li></ul>",
 		"Here's what's new in foursquare webOS <b>v2.7.7</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Added Spaz as a Twitter client option</li><li>Fixed a bug preventing venues from displaying; now sorted by your likely selection; not by distance or grouped (Foursquare API Change)</li><li>Fixed a bug where 'undefined' was displayed as the venue address</li></ul>",
-		"Here's what's new in foursquare webOS <b>v2.7.5</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>A change in the foursquare API prevented venues from being listed</li></ul>",
-		"Here's what's new in foursquare webOS <b>v2.7.4</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>OAuth / sign-in issues resolved</li></ul>",
-		"Here's what's new in foursquare webOS <b>v2.7.3</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>GPS Issues resolved</li></ul>"
 	]
 };
 

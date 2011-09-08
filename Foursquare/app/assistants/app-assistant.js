@@ -84,6 +84,16 @@ AppAssistant.prototype.prelaunch = function(){
 	 	requiresAuth: true
 	});
 
+	/*foursquareGet(this,{
+	 	endpoint: 'venues/categories',
+	 	requiresAuth: true,
+	 	ignoreErrors: true,
+	 	parameters: {},
+	 	onSuccess: _globals.categoriesSuccess.bind(this),
+	 	onFailure: _globals.categoriesFailed.bind(this),
+	 	requiresAuth: true
+	});*/
+
 };
 
 /***********HANDLE LAUNCH**************/
@@ -232,6 +242,16 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 		
 		
 		        // Update the feed list
+/*				 foursquareGetMulti(this, {
+				 	endpoints: '/venues/'+this.venue.id+',/venues/'+this.venue.id+'/tips,/venues/'+this.venue.id+'/photos?group=venue,/venues/'+this.venue.id+'/photos?group=checkin,/venues/'+this.venue.id+'/herenow?limit=250',
+				 	requiresAuth: true,
+				 	debug: true,
+				 	ignoreErrors: false,
+				    onSuccess: this.getVenueInfoSuccess.bind(this),
+				    onFailure: this.getVenueInfoFailed.bind(this)
+				 });*/
+				
+				
 				foursquareGet(this,{
 					endpoint: 'checkins/recent',
 					requiresAuth: true,
@@ -443,24 +463,24 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 						_globals.loadPrefs();
 						
 
-						 var url = "https://api.foursquare.com/v1/categories.json";
+					/*	 var url = "https://api.foursquare.com/v1/categories.json";
 						 var request = new Ajax.Request(url, {
 						   method: 'get',
 						   evalJSON: 'force',
 						   onSuccess: _globals.categorySuccess.bind(this),
 						   onFailure: _globals.categoryFailed.bind(this)
-						 });
+						 });*/
 			
 			
 						//also grab user settings in bg
-						var url = "https://api.foursquare.com/v1/user.json";
+					/*	var url = "https://api.foursquare.com/v1/user.json";
 						var request = new Ajax.Request(url, {
 						   method: 'get',
 						   evalJSON: 'true',
 						   requestHeaders: {Authorization:_globals.auth},
 						   onSuccess: _globals.userSuccess.bind(this),
 						   onFailure: _globals.userFailed.bind(this)
-						 });
+						 });*/
 			
 						_globals.cmmodel = {
 					          visible: true,
@@ -553,6 +573,8 @@ AppAssistant.prototype.doFeedData = function(data,r){
 	
 	//setup array to hold actually new checkins
 	var newitems=[];
+	
+
 	
 	//run through array of newly downloaded checkins
 	var newfeed=r.responseJSON.response.recent;

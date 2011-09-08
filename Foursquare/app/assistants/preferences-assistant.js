@@ -389,8 +389,7 @@ PreferencesAssistant.prototype.handleNotifs = function(event) {
 	                _globals.wakeupTaskId = Object.toJSON(response.taskId);
 	            },
 	            onFailure: function(response) {
-	               // Mojo.Log.error("Alarm Set Failure",
-	                    response.returnValue, response.errorText);
+	               // Mojo.Log.error("Alarm Set Failure",	                    response.returnValue, response.errorText);
 	            }
 	        });
 		}else{

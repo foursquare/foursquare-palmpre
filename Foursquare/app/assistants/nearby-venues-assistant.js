@@ -143,20 +143,34 @@ NearbyVenuesAssistant.prototype.setup = function() {
 	this.venuelessCheckinBound=this.venuelessCheckin.bind(this);
 	this.stageActivateBound=this.stageActivate.bind(this);
 	
-	Mojo.Event.listen(this.controller.stageController.document,Mojo.Event.activate, this.stageActivateBound);
-	Mojo.Event.listen(this.controller.get('search-checkin'),Mojo.Event.tap, this.venuelessCheckinBound);
-	Mojo.Event.listen(this.controller.get('search-add-venue'),Mojo.Event.tap, this.addNewVenueBound);
-	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTappedBound);
-	Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listAdd, this.addNewVenueBound);
-	Mojo.Event.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandlerBound);
-	Mojo.Event.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandlerBound);
-	Mojo.Event.listen(this.controller.get('refresh-venues'),Mojo.Event.tap, this.refreshVenuesBound);
-    Mojo.Event.listen(this.doc,"keyup", this.keyUpHandlerBound, true);
-	Mojo.Event.listen(this.controller.get('gotloc'),"handleit", this.gotLocationBound);
-	Mojo.Event.listen(this.controller.get('gotloc'),"showrefresh", this.showRefreshBound);
-	Mojo.Event.listen(this.controller.get('gotloc'),"gaveup", this.hideRetryBannerBound);
-	Mojo.Event.listen(this.controller.get('gotlocagain'),"handleit", this.gotLocationAgainBound);
-	Mojo.Event.listen(this.controller.get('retryloc'),"handleit", this.loadVenuesBound);
+	try{
+		Mojo.Event.listen(this.controller.stageController.document,Mojo.Event.activate, this.stageActivateBound);
+		Mojo.Event.listen(this.controller.get('search-checkin'),Mojo.Event.tap, this.venuelessCheckinBound);
+		Mojo.Event.listen(this.controller.get('search-add-venue'),Mojo.Event.tap, this.addNewVenueBound);
+		Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listTap, this.listWasTappedBound);
+		Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listAdd, this.addNewVenueBound);
+		Mojo.Event.listen(this.controller.sceneElement, Mojo.Event.keypress, this.onKeyPressHandlerBound);
+		Mojo.Event.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownHandlerBound);
+		Mojo.Event.listen(this.controller.get('refresh-venues'),Mojo.Event.tap, this.refreshVenuesBound);
+	    Mojo.Event.listen(this.doc,"keyup", this.keyUpHandlerBound, true);
+		Mojo.Event.listen(this.controller.get('gotloc'),"handleit", this.gotLocationBound);
+		Mojo.Event.listen(this.controller.get('gotloc'),"showrefresh", this.showRefreshBound);
+		Mojo.Event.listen(this.controller.get('gotloc'),"gaveup", this.hideRetryBannerBound);
+		Mojo.Event.listen(this.controller.get('gotlocagain'),"handleit", this.gotLocationAgainBound);
+		Mojo.Event.listen(this.controller.get('retryloc'),"handleit", this.loadVenuesBound);
+	}catch(e){
+		Mojo.Log.error(Object.toJSON(e));
+		this.controller.showAlertDialog({
+			onChoose: function(value) {},
+			title: $L("Unrecoverable Error"),
+			message: $L("Whoa! Major error attempting to listen to events on elements in the app. Try restarting the app or your phone. If the problem persists, contact Zhephree at geoff@zhephree.com"),
+			allowHTMLMessage: true,
+			choices:[
+				{label:$L('D\'oh!'), value:"OK", type:'primary'}
+			]
+		});
+		
+	}
 //	Mojo.Event.listen(this.controller.get('go_button'),Mojo.Event.tap, this.onGetNearbyVenueSearchBound);
 	//Mojo.Event.listen(this.controller.get('recommend'),Mojo.Event.tap, this.doRecommendBound);
 	//Mojo.Event.listen(this.controller.get('results-venue-list'),Mojo.Event.listDelete, this.listHideItemBound);
@@ -1232,20 +1246,26 @@ NearbyVenuesAssistant.prototype.activate = function(event) {
 
 	   if(_globals.nearbyVenues!=undefined){
 			this.controller.get("resultListBox").style.display = 'block';
-	   		this.controller.get("spinnerId").mojo.stop();
+	   		try{
+		   		this.controller.get("spinnerId").mojo.stop();
+		   	}catch(e){}
 			this.controller.get("spinnerId").hide();
 	   }
 	   
 	   if(this.showSearch) {
 			var scroller = this.controller.getSceneScroller();
-			scroller.mojo.revealTop(0);
+			try{
+				scroller.mojo.revealTop(0);
+			}catch(e){}
 /*			this.controller.get("drawerId").mojo.setOpenState(true);
 			this.controller.modelChanged(this.drawerModel);*/
 
 	   }
 	   
 	   if(_globals.reloadVenues) {
+	   		try{
                 	this.controller.get("spinnerId").mojo.start();
+                }catch(e){}
 					this.controller.get("spinnerId").show();
 					this.controller.get("resultListBox").style.display = 'none';
                 	_globals.nearbyVenues=undefined;
