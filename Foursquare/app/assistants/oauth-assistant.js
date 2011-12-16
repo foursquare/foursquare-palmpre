@@ -44,7 +44,7 @@ OauthAssistant.prototype.titleChanged = function(event) {
 	event.preventDefault();
     var callbackUrl=event.url;
     var responseVars=callbackUrl.split("#access_token=");
-	if(responseVars[0] == "http://zhephree.com/foursquare/callback" || responseVars[0] == "http://zhephree.com/foursquare/callback/"){
+	if(responseVars[0] == "http://zhephree.com/foursquare/callback" || responseVars[0] == "http://zhephree.com/foursquare/callback/" || responseVars[0] == "http://zhephree.com/foursquare/callback.php" || responseVars[0] == "http://zhephree.com/foursquare/callback.php/"){
 		logthis("token="+responseVars[1]);
 		this.cookieData=new Mojo.Model.Cookie("oauth");
 		this.cookieData.put({

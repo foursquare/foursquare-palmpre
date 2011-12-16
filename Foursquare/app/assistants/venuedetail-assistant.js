@@ -780,118 +780,56 @@ logthis("done mayor");
 	var showbutton=false;
 	var specialWidth=0;
 	this.controller.get('special_content').innerHTML='';		
-	
-	if(j.venue.specials.length>0){ //specials here
-		var nearbyShown=false;
-		this.nearbys=[];
-		var lastHereSpecial=0;
-		specialWidth=j.venue.specials.length*300;
-		this.controller.get("special_content").style.width=(specialWidth)+"px";
-		if(j.venue.specials.length+j.venue.specialsNearby.length>1){
-			this.controller.get("triangle-right").show();
-		}		
-		for(var b = 0; b < j.venue.specials.length;b++) {
-			var special_type=j.venue.specials[b].type;
-			var special_msg=j.venue.specials[b].message;
-			var special_description=j.venue.specials[b].description;
-			var special_unlocked=(j.venue.specials[b].unlocked)? j.venue.specials[b].unlocked: false;
-			var unlock_msg="";
-			switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
-				case "mayor":
-					var spt="<img src=\"images/smallcrown.png\" width=\"22\" height=\"22\" /> Mayor Special";
-					break;
-				default:
-					var spt="<img src=\"images/starburst.png\" width=\"22\" height=\"22\" /> Foursquare Special";
-					break;
-			}
-			if(special_unlocked){
-				unlock_msg='<div class="special-unlocked">You\'ve unlocked this special!</div>';
-			}else{
-				unlock_msg='<div class="special-locked">You have not unlocked this special.</div>';
-			}
-
-
-			var special_venue="";
-
-			if(j.venue.specials[b].id!=lastHereSpecial){
-				this.controller.get('special_content').innerHTML = '<div class="special-wrapper"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class=""><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div><div class="checkin-venue">'+unlock_msg+'</div></div></div></div>'+this.controller.get('special_content').innerHTML;			
-
-				lastHereSpecial=j.venue.specials[b].id;
-			}
-
-			
-			//spt="Mayor Special";
-			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
-			//special_venue="@ Venue Name (123 Venue St.)";
-		}//end of for
-		//this.controller.get('special_content').innerHTML+='<br class="breaker">';
-		this.controller.get("nearby-special").addClassName("here-button");
-		showbutton=true;
-		this.controller.get("nearbySpecials").hide();
-		this.controller.get("nearby-special").show();
-		Mojo.Event.listen(this.controller.get("nearby-special"),Mojo.Event.tap,function(){
-			this.controller.get("special_overlay").toggle();
-		}.bind(this));
-		Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
-		nearbyShown=true;
+	if(!j.venue.specialsNearby){
+		j.venue.specialsNearby=[];
 	}
 	
-	logthis("**************finished with specials here");
-	logthis(this.controller.get('special_content').innerHTML);
-
-	if(j.venue.specialsNearby.length>0){ //specials nearby
-		logthis("has enarby specials");
-		this.nearbys=[];
-		var lastNearbySpecial=0;
-		logthis("specials1");
-		this.controller.get("special_content").style.width=((j.venue.specialsNearby.length*300)+specialWidth)+"px";
-		logthis("specials2");
-		if(j.venue.specialsNearby.length+j.venue.specials.length>1){
-			this.controller.get("triangle-right").show();
-		}		
-		logthis("specials3");
-		for(var b = 0; b < j.venue.specialsNearby.length;b++) {
-		logthis("specials4");
-			var special_type=j.venue.specialsNearby[b].type;
-			var special_msg=j.venue.specialsNearby[b].message;
-			var special_description=j.venue.specialsNearby[b].description;
-			var special_unlocked=(j.venue.specialsNearby[b].unlocked)? j.venue.specialsNearby[b].unlocked: false;
-			var unlock_msg="";
-		logthis("specials5");
-			switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
-				case "mayor":
-					var spt="<img src=\"images/smallcrown.png\" width=\"22\" height=\"22\" /> Mayor Special";
-					break;
-				default:
-					var spt="<img src=\"images/starburst.png\" width=\"22\" height=\"22\" /> Foursquare Special";
-					break;
-			}
-			spt=spt+" Nearby";
-		logthis("specials6");
-			if(special_unlocked){
-				unlock_msg='<div class="special-unlocked">You\'ve unlocked this special!</div>';
-			}else{
-				unlock_msg='<div class="special-locked">You have not unlocked this special.</div>';
-			}
-
-		logthis("specials7");
-
-			var special_venue="@ "+j.venue.specialsNearby[b].venue.name;
-			if(j.venue.specialsNearby[b].id!=lastNearbySpecial){
-				this.controller.get('special_content').innerHTML += '<div class="special-wrapper" id="special'+j.venue.specialsNearby[b].id+'"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class=""><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div><div class="checkin-venue">'+unlock_msg+'</div></div></div></div>';//+this.controller.get('special_content').innerHTML;			
-
-				lastNearbySpecial=j.venue.specialsNearby[b].id;
-			}
-
-		logthis("specials8");
-			
-			//spt="Mayor Special";
-			//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
-			//special_venue="@ Venue Name (123 Venue St.)";
-		}//end of for
-		logthis("specials9");
-		if(!nearbyShown){
-			this.controller.get("nearby-special").addClassName("nearby-button2");
+	if(j.venue.specials){
+		if(j.venue.specials.length>0){ //specials here
+			var nearbyShown=false;
+			this.nearbys=[];
+			var lastHereSpecial=0;
+			specialWidth=j.venue.specials.length*300;
+			this.controller.get("special_content").style.width=(specialWidth)+"px";
+			if(j.venue.specials.length+j.venue.specialsNearby.length>1){
+				this.controller.get("triangle-right").show();
+			}		
+			for(var b = 0; b < j.venue.specials.length;b++) {
+				var special_type=j.venue.specials[b].type;
+				var special_msg=j.venue.specials[b].message;
+				var special_description=j.venue.specials[b].description;
+				var special_unlocked=(j.venue.specials[b].unlocked)? j.venue.specials[b].unlocked: false;
+				var unlock_msg="";
+				switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
+					case "mayor":
+						var spt="<img src=\"images/smallcrown.png\" width=\"22\" height=\"22\" /> Mayor Special";
+						break;
+					default:
+						var spt="<img src=\"images/starburst.png\" width=\"22\" height=\"22\" /> Foursquare Special";
+						break;
+				}
+				if(special_unlocked){
+					unlock_msg='<div class="special-unlocked">You\'ve unlocked this special!</div>';
+				}else{
+					unlock_msg='<div class="special-locked">You have not unlocked this special.</div>';
+				}
+	
+	
+				var special_venue="";
+	
+				if(j.venue.specials[b].id!=lastHereSpecial){
+					this.controller.get('special_content').innerHTML = '<div class="special-wrapper"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class=""><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div><div class="checkin-venue">'+unlock_msg+'</div></div></div></div>'+this.controller.get('special_content').innerHTML;			
+	
+					lastHereSpecial=j.venue.specials[b].id;
+				}
+	
+				
+				//spt="Mayor Special";
+				//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
+				//special_venue="@ Venue Name (123 Venue St.)";
+			}//end of for
+			//this.controller.get('special_content').innerHTML+='<br class="breaker">';
+			this.controller.get("nearby-special").addClassName("here-button");
 			showbutton=true;
 			this.controller.get("nearbySpecials").hide();
 			this.controller.get("nearby-special").show();
@@ -901,14 +839,82 @@ logthis("done mayor");
 			Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
 			nearbyShown=true;
 		}
-				logthis("specials10");
-		for(var g=0;g<j.venue.specialsNearby.length;g++){
-				Mojo.Event.listen(this.controller.get('special'+j.venue.specialsNearby[g].id),Mojo.Event.tap,function(e,g){
-					this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade},j.venue.specialsNearby[g].venue,_globals.username,_globals.password,_globals.uid,false,undefined,undefined,this,false,true);
-				}.bindAsEventListener(this,g));		
+	}	
+	logthis("**************finished with specials here");
+	logthis(this.controller.get('special_content').innerHTML);
+
+	if(j.venue.specialsNearby){
+		if(j.venue.specialsNearby.length>0){ //specials nearby
+			logthis("has enarby specials");
+			this.nearbys=[];
+			var lastNearbySpecial=0;
+			logthis("specials1");
+			this.controller.get("special_content").style.width=((j.venue.specialsNearby.length*300)+specialWidth)+"px";
+			logthis("specials2");
+			if(j.venue.specialsNearby.length+j.venue.specials.length>1){
+				this.controller.get("triangle-right").show();
+			}		
+			logthis("specials3");
+			for(var b = 0; b < j.venue.specialsNearby.length;b++) {
+			logthis("specials4");
+				var special_type=j.venue.specialsNearby[b].type;
+				var special_msg=j.venue.specialsNearby[b].message;
+				var special_description=j.venue.specialsNearby[b].description;
+				var special_unlocked=(j.venue.specialsNearby[b].unlocked)? j.venue.specialsNearby[b].unlocked: false;
+				var unlock_msg="";
+			logthis("specials5");
+				switch(special_type) { //can be 'mayor','count','frequency','other' we're just gonna lump non-mayor specials into one category
+					case "mayor":
+						var spt="<img src=\"images/smallcrown.png\" width=\"22\" height=\"22\" /> Mayor Special";
+						break;
+					default:
+						var spt="<img src=\"images/starburst.png\" width=\"22\" height=\"22\" /> Foursquare Special";
+						break;
+				}
+				spt=spt+" Nearby";
+			logthis("specials6");
+				if(special_unlocked){
+					unlock_msg='<div class="special-unlocked">You\'ve unlocked this special!</div>';
+				}else{
+					unlock_msg='<div class="special-locked">You have not unlocked this special.</div>';
+				}
+	
+			logthis("specials7");
+	
+				var special_venue="@ "+j.venue.specialsNearby[b].venue.name;
+				if(j.venue.specialsNearby[b].id!=lastNearbySpecial){
+					this.controller.get('special_content').innerHTML += '<div class="special-wrapper" id="special'+j.venue.specialsNearby[b].id+'"><div class="checkin-special-title" x-mojo-loc="">'+spt+'</div><div class=""><div class="">'+special_msg+'<div class="checkin-venue">'+special_venue+'</div><div class="checkin-venue">'+unlock_msg+'</div></div></div></div>';//+this.controller.get('special_content').innerHTML;			
+	
+					lastNearbySpecial=j.venue.specialsNearby[b].id;
+				}
+	
+			logthis("specials8");
+				
+				//spt="Mayor Special";
+				//special_msg="There's a special text thing here. There's a special text thing here. There's a special text thing here. ";
+				//special_venue="@ Venue Name (123 Venue St.)";
+			}//end of for
+			logthis("specials9");
+			if(!nearbyShown){
+				this.controller.get("nearby-special").addClassName("nearby-button2");
+				showbutton=true;
+				this.controller.get("nearbySpecials").hide();
+				this.controller.get("nearby-special").show();
+				Mojo.Event.listen(this.controller.get("nearby-special"),Mojo.Event.tap,function(){
+					this.controller.get("special_overlay").toggle();
+				}.bind(this));
+				Mojo.Animation.animateStyle(this.controller.get("nearby-special"),"top","linear",{from: -53, to: 0, duration: 1});
+				nearbyShown=true;
+			}
+					logthis("specials10");
+			for(var g=0;g<j.venue.specialsNearby.length;g++){
+					Mojo.Event.listen(this.controller.get('special'+j.venue.specialsNearby[g].id),Mojo.Event.tap,function(e,g){
+						this.controller.stageController.pushScene({name: "venuedetail", transition: Mojo.Transition.zoomFade},j.venue.specialsNearby[g].venue,_globals.username,_globals.password,_globals.uid,false,undefined,undefined,this,false,true);
+					}.bindAsEventListener(this,g));		
+			}
+	
+	
 		}
-
-
 	}
 	logthis("**************finished with specials nearby");
 	logthis(this.controller.get('special_content').innerHTML);

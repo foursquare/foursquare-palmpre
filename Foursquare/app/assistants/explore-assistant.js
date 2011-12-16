@@ -206,6 +206,7 @@ ExploreAssistant.prototype.handleRadio = function(event){
 
 ExploreAssistant.prototype.trendingSuccess = function(r) {
 	var j=r.responseJSON.response;
+	logthis("trending loaded");
 	
 	var varray=j.venues;
 	varray.sort(function(a, b){return (a.location.distance - b.location.distance);});
@@ -258,18 +259,23 @@ ExploreAssistant.prototype.trendingSuccess = function(r) {
 			
 			logthis("4");
 					
-					
-			if(tmp_venue.todos.count>0){
-				tmp_venue.dogear="block";
+			if(tmp_venue.todos){		
+				if(tmp_venue.todos.count>0){
+					tmp_venue.dogear="block";
+				}else{
+					tmp_venue.dogear="none";
+				}
 			}else{
 				tmp_venue.dogear="none";
 			}
 			
 			logthis("5");
 					
-			if(tmp_venue.specials!=undefined){
-				if(tmp_venue.specials.length>0){
-					tmp_venue.specialimage='<img src="images/small-special.png" class="small-special">';
+			if(tmp_venue.specials){
+				if(tmp_venue.specials!=undefined){
+					if(tmp_venue.specials.length>0){
+						tmp_venue.specialimage='<img src="images/small-special.png" class="small-special">';
+					}
 				}
 			}
 			
