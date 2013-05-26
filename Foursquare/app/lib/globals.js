@@ -58,6 +58,7 @@ _globals.whatsnew={
 	"id":"whatsnew",
 	"icon":"",
 	"pages":[
+		"Here's what's new in foursquare webOS <b>v2.8.5</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Added Project Macaw as a Twitter client option<li>Fixed sig resolving from 4sq.com links passed from other apps</li></ul>",
 		"Here's what's new in foursquare webOS <b>v2.8.4</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Sorry for the bugs lately. Something changed in foursquare's API that I didn't account for. I take the blame here. Enjoy this update. Hopefully the next update will be to bring NEW features and not fix existing ones<li>Fixed a bug preventing Venues with a special from loading</li><li>Fixed a bug that prevented list of Trending Places from displaying in Explore tab</li></ul>",
 		"Here's what's new in foursquare webOS <b>v2.8.3</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Fixed a bug preventing Venues from loading</li><li>Adapted to Pre 3 resolution</li></ul>",
 		"Here's what's new in foursquare webOS <b>v2.8.2</b>! Follow me on Twitter: <a href=\"http://mobile.twitter.com/zhephree\">@zhephree</a><ul><li>Fixed a bug preventing Preferences from loading</li><li>Fixed a bug that prevented you from adding new venues</li></ul>",

@@ -1808,7 +1808,7 @@ UserInfoAssistant.prototype.infoTapped = function(event) {
 										action: "user",
 										name: event.item.username
 									});
-					break;
+					break;								
 				case "spaz":
 					_globals.openApp(this.controller, "Spaz", "com.funkatron.app.spaz", {
 										action: "user",
@@ -1827,6 +1827,12 @@ UserInfoAssistant.prototype.infoTapped = function(event) {
 										name: event.item.username
 									});
 					break;
+				case "projectmacaw":
+					_globals.openApp(this.controller, "Project Macaw", "net.minego.phnx", {
+										action: "user",
+										userid: event.item.username
+									});
+					break;							
 			}
 			break;
 	}
