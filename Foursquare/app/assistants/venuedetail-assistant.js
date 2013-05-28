@@ -571,6 +571,12 @@ VenuedetailAssistant.prototype.infoTapped = function(event) {
 										name: event.item.username
 									});
 					break;
+				case "projectmacaw":
+					_globals.openApp(this.controller, "Project Macaw", "net.minego.phnx", {
+										action: "user",
+										userid: event.item.username
+									});
+					break;					
 			}
 			break;
 	}

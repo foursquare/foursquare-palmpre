@@ -378,6 +378,8 @@ AppAssistant.prototype.handleLaunch = function (launchParams) {
 								var cid=longurl.substr(s,len);
 								
 								var sig=longurl.substr(e+3);
+								var ref=sig.indexOf("&ref=");
+								sig = sig.substr(0,ref);
 								
 								if(cardStageController){ //app already opened
 									cardStageController.pushScene("view-checkin",{checkin:cid,signature:sig});

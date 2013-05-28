@@ -9,7 +9,7 @@ AttachPhotoAssistant.prototype.setup = function() {
 	var credentials=this.cookieData.get();
 	//var pings=(credentials.swf=="on")? '1': '0';
 	var pings=_globals.swf;
-	this.stt=(_globals.settings.snedToTwitter==true)? '1': '0';
+	this.stt=(_globals.settings.sendToTwitter==true)? '1': '0';
 	this.stf=(_globals.settings.sendToFacebook==true || _globals.settings.sendToFacebook=='true')? '1': '0';
 
 
