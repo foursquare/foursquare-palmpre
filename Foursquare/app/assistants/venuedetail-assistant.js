@@ -5,8 +5,10 @@ function VenuedetailAssistant(venue,u,p,i,fui,ps,fm,fl) {
 	   this.password=_globals.password;
 	   this.uid=_globals.uid;
 	   this.fromuserinfo=fui;
-	   this.vgeolat=this.venue.geolat;
-	   this.vgeolong=this.venue.geolong;
+	   //this.vgeolat=this.venue.geolat;
+	   //this.vgeolong=this.venue.geolong;
+	   this.vgeolat=this.venue.location.lat;
+	   this.vgeolong=this.venue.location.lng;
 	   this.prevScene=ps;
 	   this.fromMap=fm;
 	   this.fromLaunch=fl;
@@ -433,11 +435,14 @@ VenuedetailAssistant.prototype.swapTabs = function(what) {
 }
 
 VenuedetailAssistant.prototype.showGoogleMaps = function() {
- this.controller.serviceRequest('palm://com.palm.applicationManager', {
- 	method:'open',
- 	parameters:{target: "maploc:("+this.vgeolat+","+this.vgeolong+")" }
-     }
- ); 
+	//Mojo.Log.error('calling maps: ' + this.vgeolat + ',' + this.vgeolong);
+	this.controller.serviceRequest('palm://com.palm.applicationManager', {
+		method:'open',
+			//parameters:{target: "maploc:("+this.vgeolat+","+this.vgeolong+")" } // googlemaps supports brackets, but not enyo bing maps
+			//Unfortunately setting the Default App for addresses only sets the mapto: target and not maploc:, so in the future we'll have to create an option to select mapping app to use
+			parameters:{target: "maploc:"+this.vgeolat+","+this.vgeolong }
+	}
+	); 
 }
 
 VenuedetailAssistant.prototype.getVenueInfo = function() {

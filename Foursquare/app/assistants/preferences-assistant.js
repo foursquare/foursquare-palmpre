@@ -111,7 +111,7 @@ PreferencesAssistant.prototype.setup = function() {
                 {label: "Spaz", value: "spaz",secondaryIconPath: "images/spaz_32.png"},
                 {label: "Spaz Special Edition", value: "spaz-sped",secondaryIconPath: "images/spaz_32.png"},
                 {label: "TweetMe", value: "tweetme",secondaryIconPath: "images/tweetme_32.png"},
-                {label: "Project Macaw", value: "projectmacaw",secondaryIconPath: "images/project_macaw_32.png"}
+                {label: "Project Macaw", value: "projectmacaw",secondaryIconPath: "images/project_macaw.png"}
             ]},
 
         this.twittermodel = {

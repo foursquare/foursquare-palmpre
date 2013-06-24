@@ -2371,6 +2371,7 @@ img.right-arrow {
 
 #mojo-scene-main-scene-scroller {
 	background: url(../images/main-bg.png) no-repeat fixed left top;
+	//background-position: 0px 1px;
 }
 #loginSpinner {
 	margin: -45px auto 2px auto;
